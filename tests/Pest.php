@@ -5,7 +5,7 @@ use Tests\TestCase;
 
 /*
 |--------------------------------------------------------------------------
-| Test Case -
+| Test Case
 |--------------------------------------------------------------------------
 |
 | The closure you provide to your test functions is always bound to a specific PHPUnit test
