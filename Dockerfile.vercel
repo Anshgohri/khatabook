@@ -11,6 +11,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY resources ./resources
 COPY vite.config.js ./
+COPY --from=vendor /app/vendor/livewire/flux/stubs ./vendor/livewire/flux/stubs
+COPY --from=vendor /app/vendor/laravel/framework/src/Illuminate/Pagination/resources/views ./vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 RUN npm run build
 
 FROM dunglas/frankenphp:php8.5-alpine AS runtime
