@@ -99,6 +99,17 @@ new #[Title('Users')] class extends Component {
         unset($this->users);
         Flux::toast(variant: 'success', text: __('User updated.'));
     }
+
+    public function deleteUser(int $userId): void
+    {
+        $target = User::findOrFail($userId);
+
+        $this->authorize('delete', $target);
+
+        $target->delete();
+        unset($this->users);
+        Flux::toast(variant: 'success', text: __('User deleted.'));
+    }
 }; ?>
 
 <div class="flex flex-col gap-6">
@@ -131,9 +142,14 @@ new #[Title('Users')] class extends Component {
                         </flux:badge>
                     </flux:table.cell>
                     <flux:table.cell>
-                        @can('update', $targetUser)
-                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
-                        @endcan
+                        <div class="flex gap-2">
+                            @can('update', $targetUser)
+                                <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
+                            @endcan
+                            @can('delete', $targetUser)
+                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteUser({{ $targetUser->id }})" wire:confirm="{{ __('Delete this user?') }}" />
+                            @endcan
+                        </div>
                     </flux:table.cell>
                 </flux:table.row>
             @endforeach

@@ -46,3 +46,27 @@ test('manager cannot edit another manager', function () {
         ->call('editUser', $otherManager->id)
         ->assertForbidden();
 });
+
+test('admin can delete a user', function () {
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    Livewire::actingAs($admin)
+        ->test('pages::khatabook.users')
+        ->call('deleteUser', $staff->id)
+        ->assertHasNoErrors();
+
+    expect(User::find($staff->id))->toBeNull();
+});
+
+test('manager cannot delete a user', function () {
+    $manager = User::factory()->role(RoleName::Manager)->create();
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    Livewire::actingAs($manager)
+        ->test('pages::khatabook.users')
+        ->call('deleteUser', $staff->id)
+        ->assertForbidden();
+
+    expect(User::find($staff->id))->not->toBeNull();
+});
