@@ -149,7 +149,7 @@ new #[Title('Dashboard')] class extends Component {
         <flux:heading size="xl">{{ __('Dashboard') }}</flux:heading>
 
         <flux:dropdown position="bottom" align="end">
-            <flux:button icon="bell" variant="ghost">
+            <flux:button icon="bell" variant="ghost" data-test="notifications-button">
                 @if ($this->unreadNotificationsCount > 0)
                     <flux:badge color="red" size="sm">{{ $this->unreadNotificationsCount }}</flux:badge>
                 @endif
