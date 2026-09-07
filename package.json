@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vp build --outDir public",
+        "build": "vp build",
         "dev": "vp dev"
     },
     "dependencies": {
