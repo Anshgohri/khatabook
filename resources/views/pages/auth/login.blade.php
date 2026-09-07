@@ -2,6 +2,14 @@
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
+        @if (\App\Models\User::query()->doesntExist())
+            <flux:callout variant="secondary" icon="sparkles" :heading="__('No accounts exist yet')">
+                <x-slot name="actions">
+                    <flux:button :href="route('setup')" variant="primary" wire:navigate>{{ __('Set up admin account') }}</flux:button>
+                </x-slot>
+            </flux:callout>
+        @endif
+
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
@@ -50,10 +58,5 @@
                 </flux:button>
             </div>
         </form>
-
-        <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Don\'t have an account?') }}</span>
-            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-        </div>
     </div>
 </x-layouts::auth>

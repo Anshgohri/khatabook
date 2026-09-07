@@ -17,6 +17,10 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Validate and create a newly registered user.
      *
+     * Unused while the `registration` Fortify feature is disabled (see config/fortify.php) —
+     * the first Admin account is created via the `setup` route instead, and every account
+     * after that is created by an Admin from the Users page.
+     *
      * @param  array<string, string>  $input
      */
     public function create(array $input): User
@@ -26,13 +30,11 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $roleName = User::query()->doesntExist() ? RoleName::Admin : RoleName::Viewer;
-
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
-            'role_id' => Role::where('name', $roleName->value)->value('id'),
+            'role_id' => Role::where('name', RoleName::Viewer->value)->value('id'),
             'status' => 'active',
         ]);
     }
