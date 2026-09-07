@@ -4,10 +4,11 @@ use App\Concerns\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Accept invitation')] class extends Component {
+new #[Layout('layouts::auth')] #[Title('Accept invitation')] class extends Component {
     use PasswordValidationRules;
 
     public User $user;
@@ -41,36 +42,34 @@ new #[Title('Accept invitation')] class extends Component {
     }
 }; ?>
 
-<x-layouts::auth :title="__('Accept invitation')">
-    <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Set your password')" :description="__('Welcome to Bamboo Khatabook. Choose a password to activate your account.')" />
+<div class="flex flex-col gap-6">
+    <x-auth-header :title="__('Set your password')" :description="__('Welcome to Bamboo Khatabook. Choose a password to activate your account.')" />
 
-        <form wire:submit="acceptInvite" class="flex flex-col gap-6">
-            <flux:input
-                wire:model="password"
-                :label="__('Password')"
-                type="password"
-                required
-                autofocus
-                autocomplete="new-password"
-                :placeholder="__('Password')"
-                passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
-            />
+    <form wire:submit="acceptInvite" class="flex flex-col gap-6">
+        <flux:input
+            wire:model="password"
+            :label="__('Password')"
+            type="password"
+            required
+            autofocus
+            autocomplete="new-password"
+            :placeholder="__('Password')"
+            passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
+            viewable
+        />
 
-            <flux:input
-                wire:model="password_confirmation"
-                :label="__('Confirm password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                :placeholder="__('Confirm password')"
-                viewable
-            />
+        <flux:input
+            wire:model="password_confirmation"
+            :label="__('Confirm password')"
+            type="password"
+            required
+            autocomplete="new-password"
+            :placeholder="__('Confirm password')"
+            viewable
+        />
 
-            <flux:button type="submit" variant="primary" class="w-full">
-                {{ __('Activate account') }}
-            </flux:button>
-        </form>
-    </div>
-</x-layouts::auth>
+        <flux:button type="submit" variant="primary" class="w-full">
+            {{ __('Activate account') }}
+        </flux:button>
+    </form>
+</div>

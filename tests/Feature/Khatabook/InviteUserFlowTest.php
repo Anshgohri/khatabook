@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
 test('an invited user can set their password and their account becomes active', function () {
-    $role = Role::where('name', RoleName::Staff->value)->firstOrFail();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
     $invited = app(InviteUser::class)->invite('New Hire', 'new-hire@example.com', $role);
 
     expect($invited->status)->toBe('invited');
@@ -24,14 +24,14 @@ test('an invited user can set their password and their account becomes active', 
 });
 
 test('the invite link requires a valid signature', function () {
-    $role = Role::where('name', RoleName::Staff->value)->firstOrFail();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
     $invited = app(InviteUser::class)->invite('New Hire', 'new-hire@example.com', $role);
 
     $this->get(route('invite.accept', $invited))->assertForbidden();
 });
 
 test('a valid signed invite link is accessible for an invited user', function () {
-    $role = Role::where('name', RoleName::Staff->value)->firstOrFail();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
     $invited = app(InviteUser::class)->invite('New Hire', 'new-hire@example.com', $role);
 
     $url = URL::temporarySignedRoute('invite.accept', now()->addDays(7), ['user' => $invited->id]);

@@ -19,7 +19,7 @@ test('admin can invite a user and the invitation notification is sent', function
     Notification::fake();
 
     $admin = User::factory()->role(RoleName::Admin)->create();
-    $role = Role::where('name', RoleName::Staff->value)->firstOrFail();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
 
     Livewire::actingAs($admin)
         ->test('pages::khatabook.users')

@@ -20,7 +20,7 @@ test('exporting sales streams a csv scoped to the current user for staff', funct
 
     $response->assertFileDownloaded();
 
-    $content = $response->streamedContent();
+    $content = base64_decode(data_get($response->effects, 'download.content'));
 
     expect($content)->toContain('Own Customer');
     expect($content)->not->toContain('Other Customer');
