@@ -13,9 +13,12 @@ COPY resources ./resources
 COPY vite.config.js ./
 RUN npm run build
 
-FROM dunglas/frankenphp:php8.3-alpine AS runtime
+FROM dunglas/frankenphp:php8.5-alpine AS runtime
 WORKDIR /app
 
+RUN install-php-extensions pdo_pgsql bcmath
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
