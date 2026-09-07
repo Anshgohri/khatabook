@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +29,9 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'status' => 'active',
+            'role_id' => fn () => Role::query()->firstOrCreate(['name' => RoleName::Staff->value])->id,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -43,6 +48,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user has the given role.
+     */
+    public function role(RoleName $role): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::query()->firstOrCreate(['name' => $role->value])->id,
         ]);
     }
 

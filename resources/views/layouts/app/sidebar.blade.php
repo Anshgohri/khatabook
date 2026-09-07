@@ -15,6 +15,34 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="banknotes" :href="route('sales')" :current="request()->routeIs('sales')" wire:navigate>
+                        {{ __('Sales') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses')" wire:navigate>
+                        {{ __('Expenses') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="archive-box" :href="route('products')" :current="request()->routeIs('products')" wire:navigate>
+                        {{ __('Products') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
+                        {{ __('Reports') }}
+                    </flux:sidebar.item>
+
+                    @can('viewAny', App\Models\User::class)
+                        <flux:sidebar.item icon="users" :href="route('users')" :current="request()->routeIs('users')" wire:navigate>
+                            {{ __('Users') }}
+                        </flux:sidebar.item>
+                    @endcan
+
+                    @can('viewAny', App\Models\AuditLog::class)
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('audit-log')" :current="request()->routeIs('audit-log')" wire:navigate>
+                            {{ __('Audit Log') }}
+                        </flux:sidebar.item>
+                    @endcan
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
