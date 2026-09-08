@@ -4,8 +4,8 @@ use App\Http\Controllers\ContactInquiryController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
-Route::view('/about', 'about')->name('about');
-Route::view('/contact', 'contact')->name('contact');
+Route::redirect('/about', '/#about')->name('about');
+Route::redirect('/contact', '/#contact')->name('contact');
 Route::view('/thank-you', 'thank-you')->name('thank-you');
 Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
 

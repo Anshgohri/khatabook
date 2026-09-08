@@ -5,7 +5,7 @@
 
         <style>
             body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-family: 'Poppins', sans-serif;
                 background-color: #060911 !important;
                 color: #f8fafc !important;
                 overflow-x: hidden;
@@ -70,7 +70,7 @@
                 <span>🎋</span> ASHOK KUMAR BANS STORE
             </span>
             <span class="text-slate-100 font-bold">
-                Karnal, Haryana • Bamboo Merchant Digital Khata Access
+                House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001
             </span>
         </div>
 
@@ -94,9 +94,9 @@
             <!-- Navigation Links -->
             <div class="flex items-center flex-wrap gap-4 sm:gap-6">
                 <nav class="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-extrabold">
-                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'text-emerald-400 font-extrabold underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition" wire:navigate>Home</a>
-                    <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'text-emerald-400 font-extrabold underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition" wire:navigate>About Us</a>
-                    <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'text-emerald-400 font-extrabold underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition" wire:navigate>Contact Us</a>
+                    <a href="{{ route('home') }}" class="text-slate-300 hover:text-emerald-400 transition">Home</a>
+                    <a href="{{ url('/#about') }}" class="text-slate-300 hover:text-emerald-400 transition">About Us</a>
+                    <a href="{{ url('/#contact') }}" class="text-slate-300 hover:text-emerald-400 transition">Contact Us</a>
                 </nav>
 
                 @auth
