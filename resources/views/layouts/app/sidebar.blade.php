@@ -28,6 +28,10 @@
                         {{ __('Products') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="tag" :href="route('categories')" :current="request()->routeIs('categories')" wire:navigate>
+                        {{ __('Categories') }}
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
                         {{ __('Reports') }}
                     </flux:sidebar.item>
@@ -43,6 +47,13 @@
                             {{ __('Audit Log') }}
                         </flux:sidebar.item>
                     @endcan
+
+                    @if (auth()->user()?->isAdmin())
+                        <flux:sidebar.item icon="envelope" :href="route('inquiries')" :current="request()->routeIs('inquiries')" wire:navigate>
+                            {{ __('Contact Inquiries') }}
+                        </flux:sidebar.item>
+                    @endif
+
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
