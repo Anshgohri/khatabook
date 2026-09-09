@@ -66,8 +66,18 @@ select:focus[data-flux-control] {
 
 /* Global Responsive & Touch Utilities */
 [data-flux-table] {
-    @apply w-full overflow-x-auto min-w-full block;
-    -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+    min-width: 100% !important;
+    display: table !important;
+    table-layout: auto;
+}
+
+[data-flux-table] th {
+    @apply px-4 py-3 text-start font-semibold text-zinc-700 dark:text-zinc-200;
+}
+
+[data-flux-table] td {
+    @apply px-4 py-3.5 align-middle;
 }
 
 [data-flux-container] {
