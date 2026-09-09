@@ -113,7 +113,7 @@ new #[Title('Users')] class extends Component {
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <flux:heading size="xl">{{ __('Users') }}</flux:heading>
 
         @can('create', App\Models\User::class)
@@ -121,40 +121,42 @@ new #[Title('Users')] class extends Component {
         @endcan
     </div>
 
-    <flux:table :paginate="$this->users">
-        <flux:table.columns>
-            <flux:table.column>{{ __('Name') }}</flux:table.column>
-            <flux:table.column>{{ __('Email') }}</flux:table.column>
-            <flux:table.column>{{ __('Role') }}</flux:table.column>
-            <flux:table.column>{{ __('Status') }}</flux:table.column>
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+    <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <flux:table :paginate="$this->users">
+            <flux:table.columns>
+                <flux:table.column>{{ __('Name') }}</flux:table.column>
+                <flux:table.column>{{ __('Email') }}</flux:table.column>
+                <flux:table.column>{{ __('Role') }}</flux:table.column>
+                <flux:table.column>{{ __('Status') }}</flux:table.column>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @foreach ($this->users as $targetUser)
-                <flux:table.row wire:key="user-{{ $targetUser->id }}">
-                    <flux:table.cell>{{ $targetUser->name }}</flux:table.cell>
-                    <flux:table.cell>{{ $targetUser->email }}</flux:table.cell>
-                    <flux:table.cell>{{ $targetUser->role?->name ?? __('None') }}</flux:table.cell>
-                    <flux:table.cell>
-                        <flux:badge :color="match ($targetUser->status) { 'active' => 'green', 'invited' => 'amber', default => 'red' }" size="sm">
-                            {{ ucfirst($targetUser->status) }}
-                        </flux:badge>
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        <div class="flex gap-2">
-                            @can('update', $targetUser)
-                                <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
-                            @endcan
-                            @can('delete', $targetUser)
-                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteUser({{ $targetUser->id }})" wire:confirm="{{ __('Delete this user?') }}" />
-                            @endcan
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @endforeach
-        </flux:table.rows>
-    </flux:table>
+            <flux:table.rows>
+                @foreach ($this->users as $targetUser)
+                    <flux:table.row wire:key="user-{{ $targetUser->id }}">
+                        <flux:table.cell>{{ $targetUser->name }}</flux:table.cell>
+                        <flux:table.cell>{{ $targetUser->email }}</flux:table.cell>
+                        <flux:table.cell>{{ $targetUser->role?->name ?? __('None') }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge :color="match ($targetUser->status) { 'active' => 'green', 'invited' => 'amber', default => 'red' }" size="sm">
+                                {{ ucfirst($targetUser->status) }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                @can('update', $targetUser)
+                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
+                                @endcan
+                                @can('delete', $targetUser)
+                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteUser({{ $targetUser->id }})" wire:confirm="{{ __('Delete this user?') }}" />
+                                @endcan
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforeach
+            </flux:table.rows>
+        </flux:table>
+    </div>
 
     <flux:modal wire:model.self="showInviteForm" class="md:w-96">
         <div class="flex flex-col gap-6">

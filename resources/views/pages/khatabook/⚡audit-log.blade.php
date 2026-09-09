@@ -66,37 +66,39 @@ new #[Title('Audit Log')] class extends Component {
         </flux:select>
     </div>
 
-    <flux:table :paginate="$this->logs">
-        <flux:table.columns>
-            <flux:table.column>{{ __('When') }}</flux:table.column>
-            <flux:table.column>{{ __('User') }}</flux:table.column>
-            <flux:table.column>{{ __('Action') }}</flux:table.column>
-            <flux:table.column>{{ __('Resource') }}</flux:table.column>
-            <flux:table.column>{{ __('Changes') }}</flux:table.column>
-        </flux:table.columns>
+    <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <flux:table :paginate="$this->logs">
+            <flux:table.columns>
+                <flux:table.column>{{ __('When') }}</flux:table.column>
+                <flux:table.column>{{ __('User') }}</flux:table.column>
+                <flux:table.column>{{ __('Action') }}</flux:table.column>
+                <flux:table.column>{{ __('Resource') }}</flux:table.column>
+                <flux:table.column>{{ __('Changes') }}</flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->logs as $log)
-                <flux:table.row wire:key="audit-{{ $log->id }}">
-                    <flux:table.cell>{{ $log->created_at->format('d M Y H:i') }}</flux:table.cell>
-                    <flux:table.cell>{{ $log->user?->name ?? __('System') }}</flux:table.cell>
-                    <flux:table.cell>
-                        <flux:badge :color="match ($log->action) { 'created' => 'green', 'updated' => 'amber', default => 'red' }" size="sm">
-                            {{ ucfirst($log->action) }}
-                        </flux:badge>
-                    </flux:table.cell>
-                    <flux:table.cell>{{ class_basename($log->auditable_type) }} #{{ $log->auditable_id }}</flux:table.cell>
-                    <flux:table.cell class="max-w-md truncate">
-                        @if ($log->new_values)
-                            {{ collect($log->new_values)->keys()->implode(', ') }}
-                        @endif
-                    </flux:table.cell>
-                </flux:table.row>
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center text-zinc-500">{{ __('No audit entries found.') }}</flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+            <flux:table.rows>
+                @forelse ($this->logs as $log)
+                    <flux:table.row wire:key="audit-{{ $log->id }}">
+                        <flux:table.cell>{{ $log->created_at->format('d M Y H:i') }}</flux:table.cell>
+                        <flux:table.cell>{{ $log->user?->name ?? __('System') }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge :color="match ($log->action) { 'created' => 'green', 'updated' => 'amber', default => 'red' }" size="sm">
+                                {{ ucfirst($log->action) }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>{{ class_basename($log->auditable_type) }} #{{ $log->auditable_id }}</flux:table.cell>
+                        <flux:table.cell class="max-w-md truncate">
+                            @if ($log->new_values)
+                                {{ collect($log->new_values)->keys()->implode(', ') }}
+                            @endif
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5" class="text-center text-zinc-500">{{ __('No audit entries found.') }}</flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </div>
 </div>

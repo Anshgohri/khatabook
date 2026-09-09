@@ -141,7 +141,7 @@ new #[Title('Expenses')] class extends Component {
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <flux:heading size="xl">{{ __('Expenses') }}</flux:heading>
 
         @can('create', Expense::class)
@@ -163,44 +163,46 @@ new #[Title('Expenses')] class extends Component {
         <flux:input type="date" wire:model.live="dateTo" :label="__('To')" />
     </div>
 
-    <flux:table :paginate="$this->expenses">
-        <flux:table.columns>
-            <flux:table.column>{{ __('Date') }}</flux:table.column>
-            <flux:table.column>{{ __('Category') }}</flux:table.column>
-            <flux:table.column>{{ __('Description') }}</flux:table.column>
-            <flux:table.column>{{ __('Amount') }}</flux:table.column>
-            <flux:table.column>{{ __('Payment method') }}</flux:table.column>
-            <flux:table.column>{{ __('Recorded by') }}</flux:table.column>
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+    <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <flux:table :paginate="$this->expenses">
+            <flux:table.columns>
+                <flux:table.column>{{ __('Date') }}</flux:table.column>
+                <flux:table.column>{{ __('Category') }}</flux:table.column>
+                <flux:table.column>{{ __('Description') }}</flux:table.column>
+                <flux:table.column>{{ __('Amount') }}</flux:table.column>
+                <flux:table.column>{{ __('Payment method') }}</flux:table.column>
+                <flux:table.column>{{ __('Recorded by') }}</flux:table.column>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->expenses as $expense)
-                <flux:table.row wire:key="expense-{{ $expense->id }}">
-                    <flux:table.cell>{{ $expense->date->format('d M Y') }}</flux:table.cell>
-                    <flux:table.cell>{{ $expense->category->name }}</flux:table.cell>
-                    <flux:table.cell>{{ $expense->description }}</flux:table.cell>
-                    <flux:table.cell>{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
-                    <flux:table.cell>{{ ucfirst(str_replace('_', ' ', $expense->payment_method)) }}</flux:table.cell>
-                    <flux:table.cell>{{ $expense->user->name }}</flux:table.cell>
-                    <flux:table.cell>
-                        <div class="flex gap-2">
-                            @can('update', $expense)
-                                <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editExpense({{ $expense->id }})" />
-                            @endcan
-                            @can('delete', $expense)
-                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteExpense({{ $expense->id }})" wire:confirm="{{ __('Delete this expense?') }}" />
-                            @endcan
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="7" class="text-center text-zinc-500">{{ __('No expenses found.') }}</flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+            <flux:table.rows>
+                @forelse ($this->expenses as $expense)
+                    <flux:table.row wire:key="expense-{{ $expense->id }}">
+                        <flux:table.cell>{{ $expense->date->format('d M Y') }}</flux:table.cell>
+                        <flux:table.cell>{{ $expense->category->name }}</flux:table.cell>
+                        <flux:table.cell>{{ $expense->description }}</flux:table.cell>
+                        <flux:table.cell>{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
+                        <flux:table.cell>{{ ucfirst(str_replace('_', ' ', $expense->payment_method)) }}</flux:table.cell>
+                        <flux:table.cell>{{ $expense->user->name }}</flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                @can('update', $expense)
+                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editExpense({{ $expense->id }})" />
+                                @endcan
+                                @can('delete', $expense)
+                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteExpense({{ $expense->id }})" wire:confirm="{{ __('Delete this expense?') }}" />
+                                @endcan
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="7" class="text-center text-zinc-500">{{ __('No expenses found.') }}</flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </div>
 
     <flux:modal wire:model.self="showForm" class="md:w-96">
         <div class="flex flex-col gap-6">

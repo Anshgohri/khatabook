@@ -73,44 +73,7 @@
         </div>
 
         <!-- Main Header / Navigation -->
-        <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="{{ route('home') }}" class="flex items-center gap-3.5 group">
-                <div class="w-12 h-12 p-3 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-600 to-amber-500 flex items-center justify-center shadow-lg shadow-emerald-900/50 text-slate-950 font-extrabold text-2xl group-hover:scale-105 transition duration-300">
-                    🎋
-                </div>
-                <div>
-                    <span class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-                        Ashok Kumar <span class="text-emerald-glow">Bans Store</span>
-                    </span>
-                    <span class="block text-xs text-amber-glow font-bold tracking-wide">
-                        Ashok Kumar • Karnal, Haryana
-                    </span>
-                </div>
-            </a>
-
-            <!-- Navigation Links & Actions -->
-            <div class="flex items-center gap-6">
-                <nav class="hidden md:flex items-center gap-6 text-sm font-extrabold">
-                    <a href="{{ route('home') }}" class="text-slate-300 hover:text-emerald-glow transition">Home</a>
-                    <a href="{{ route('about') }}" class="text-slate-300 hover:text-emerald-glow transition">About Us</a>
-                    <a href="{{ route('contact') }}" class="text-slate-300 hover:text-emerald-glow transition">Contact Us</a>
-                </nav>
-
-                <div class="flex items-center gap-3">
-                    @if (Route::has('login'))
-                        @auth
-                            <a href="{{ route('dashboard') }}" class="px-6 py-2.5 rounded-xl btn-glow-emerald text-sm">Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-xl btn-glass-secondary text-sm">Log in</a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="px-5 py-2.5 rounded-xl btn-glow-emerald text-sm">Register</a>
-                            @endif
-                        @endauth
-                    @endif
-                </div>
-            </div>
-        </header>
+        @include('partials.public-header', ['active' => 'thank-you'])
 
         <!-- Main Body -->
         <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center justify-center">

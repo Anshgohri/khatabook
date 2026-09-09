@@ -124,50 +124,7 @@
     </div>
 
     <!-- Main Header / Navigation -->
-    <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between relative z-30">
-        <!-- Brand Logo -->
-        <a href="#" class="flex items-center gap-4 group">
-            <div class="w-13 h-13 p-3 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-600 to-amber-500 flex items-center justify-center shadow-xl shadow-emerald-950/80 text-slate-950 font-black text-2xl group-hover:scale-105 transition duration-300">
-                🎋
-            </div>
-            <div>
-                <span class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-1.5">
-                    Ashok Kumar <span class="gradient-text-emerald">Bans Store</span>
-                </span>
-                <span class="block text-xs gradient-text-amber font-bold tracking-wide">
-                    Ashok Kumar • Karnal, Haryana
-                </span>
-            </div>
-        </a>
-
-        <!-- Navigation Links & Single Header Button -->
-        <div class="flex items-center flex-wrap gap-4 sm:gap-6">
-            <nav class="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-extrabold">
-                <a href="#" class="text-slate-300 hover:text-emerald-400 transition">Home</a>
-                <a href="#products" class="text-slate-300 hover:text-emerald-400 transition">Products</a>
-                <a href="#about" class="text-slate-300 hover:text-emerald-400 transition">About Us</a>
-                <a href="#contact" class="text-slate-300 hover:text-emerald-400 transition">Contact Us</a>
-            </nav>
-
-            <div class="flex items-center gap-3">
-                @if (Route::has('login'))
-                @auth
-                <a href="{{ route('dashboard') }}" class="px-6 py-2.5 rounded-xl btn-emerald-glow text-sm flex items-center gap-2">
-                    <span>Dashboard</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </a>
-                @else
-                <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-xl btn-glass-secondary text-sm">Log in</a>
-                @if (Route::has('register'))
-                <a href="{{ route('register') }}" class="px-5 py-2.5 rounded-xl btn-emerald-glow text-sm">Register</a>
-                @endif
-                @endauth
-                @endif
-            </div>
-        </div>
-    </header>
+    @include('partials.public-header', ['active' => 'home'])
 
     <!-- Real Bamboo Shop Hero Section -->
     <section class="relative min-h-[65vh] flex items-center justify-center hero-bg-overlay px-4 sm:px-6 lg:px-8 py-16 lg:py-24">

@@ -145,7 +145,7 @@ new #[Title('Dashboard')] class extends Component {
 }; ?>
 
 <div class="flex flex-col gap-6" wire:poll.15s="refreshDashboard">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <flux:heading size="xl">{{ __('Dashboard') }}</flux:heading>
 
         <flux:dropdown position="bottom" align="end">

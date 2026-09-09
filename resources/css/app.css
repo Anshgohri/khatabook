@@ -63,6 +63,26 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/* Global Responsive & Touch Utilities */
+[data-flux-table] {
+    @apply w-full overflow-x-auto min-w-full block;
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-flux-container] {
+    @apply max-w-full w-full px-4 sm:px-6 lg:px-8;
+}
+
+/* Ensure smooth horizontal scrollbar for data tables on mobile */
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+    [data-flux-modal] {
+        @apply w-full max-w-[calc(100vw-2rem)] mx-auto p-4;
+    }
+}
+

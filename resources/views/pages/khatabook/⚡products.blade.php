@@ -156,7 +156,7 @@ new #[Title('Products & Inventory')] class extends Component {
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <flux:heading size="xl">{{ __('Products & Inventory') }}</flux:heading>
 
         @can('create', Product::class)
@@ -164,45 +164,47 @@ new #[Title('Products & Inventory')] class extends Component {
         @endcan
     </div>
 
-    <flux:table :paginate="$this->products">
-        <flux:table.columns>
-            <flux:table.column>{{ __('Name') }}</flux:table.column>
-            <flux:table.column>{{ __('Category') }}</flux:table.column>
-            <flux:table.column>{{ __('Unit price') }}</flux:table.column>
-            <flux:table.column>{{ __('Stock level') }}</flux:table.column>
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+    <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <flux:table :paginate="$this->products">
+            <flux:table.columns>
+                <flux:table.column>{{ __('Name') }}</flux:table.column>
+                <flux:table.column>{{ __('Category') }}</flux:table.column>
+                <flux:table.column>{{ __('Unit price') }}</flux:table.column>
+                <flux:table.column>{{ __('Stock level') }}</flux:table.column>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->products as $product)
-                <flux:table.row wire:key="product-{{ $product->id }}">
-                    <flux:table.cell>{{ $product->name }}</flux:table.cell>
-                    <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
-                    <flux:table.cell>{{ number_format((float) $product->unit_price, 2) }}</flux:table.cell>
-                    <flux:table.cell>
-                        <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }}</flux:badge>
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        <div class="flex gap-2">
-                            @can('create', App\Models\InventoryLog::class)
-                                <flux:button size="sm" variant="ghost" icon="archive-box" wire:click="adjustStock({{ $product->id }})">{{ __('Adjust stock') }}</flux:button>
-                            @endcan
-                            @can('update', $product)
-                                <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editProduct({{ $product->id }})" />
-                            @endcan
-                            @can('delete', $product)
-                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteProduct({{ $product->id }})" wire:confirm="{{ __('Delete this product?') }}" />
-                            @endcan
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+            <flux:table.rows>
+                @forelse ($this->products as $product)
+                    <flux:table.row wire:key="product-{{ $product->id }}">
+                        <flux:table.cell>{{ $product->name }}</flux:table.cell>
+                        <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
+                        <flux:table.cell>{{ number_format((float) $product->unit_price, 2) }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }}</flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                @can('create', App\Models\InventoryLog::class)
+                                    <flux:button size="sm" variant="ghost" icon="archive-box" wire:click="adjustStock({{ $product->id }})">{{ __('Adjust stock') }}</flux:button>
+                                @endcan
+                                @can('update', $product)
+                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editProduct({{ $product->id }})" />
+                                @endcan
+                                @can('delete', $product)
+                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteProduct({{ $product->id }})" wire:confirm="{{ __('Delete this product?') }}" />
+                                @endcan
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </div>
 
     <flux:modal wire:model.self="showProductForm" class="md:w-96">
         <div class="flex flex-col gap-6">
