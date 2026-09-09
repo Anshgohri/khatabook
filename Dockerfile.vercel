@@ -32,6 +32,7 @@ RUN composer dump-autoload --optimize --classmap-authoritative \
     && touch storage/logs/laravel.log \
     && ln -sf ../storage/logs/laravel.log public/laravel.log \
     && chown -R www-data:www-data storage bootstrap/cache public/laravel.log \
+    && sed -i 's/\r$//' /entrypoint.sh \
     && chmod +x /entrypoint.sh
 
 ENV APP_ENV=production
