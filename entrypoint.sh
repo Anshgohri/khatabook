@@ -1,4 +1,3 @@
-cat > entrypoint.sh << 'EOF'
 #!/bin/bash
 set -e
 
@@ -14,4 +13,3 @@ php artisan config:cache 2>/dev/null || true
 
 echo "Starting FrankenPHP..."
 exec frankenphp run --config /etc/frankenphp/Caddyfile
-EOF
