@@ -117,7 +117,7 @@ new #[Title('Users')] class extends Component {
         <flux:heading size="xl">{{ __('Users') }}</flux:heading>
 
         @can('create', App\Models\User::class)
-            <flux:button variant="primary" icon="plus" wire:click="$set('showInviteForm', true)">{{ __('Invite user') }}</flux:button>
+        <flux:button variant="primary" icon="plus" wire:click="$set('showInviteForm', true)">{{ __('Invite user') }}</flux:button>
         @endcan
     </div>
 
@@ -133,26 +133,26 @@ new #[Title('Users')] class extends Component {
 
             <flux:table.rows>
                 @foreach ($this->users as $targetUser)
-                    <flux:table.row wire:key="user-{{ $targetUser->id }}">
-                        <flux:table.cell>{{ $targetUser->name }}</flux:table.cell>
-                        <flux:table.cell>{{ $targetUser->email }}</flux:table.cell>
-                        <flux:table.cell>{{ $targetUser->role?->name ?? __('None') }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge :color="match ($targetUser->status) { 'active' => 'green', 'invited' => 'amber', default => 'red' }" size="sm">
-                                {{ ucfirst($targetUser->status) }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <div class="flex gap-2">
-                                @can('update', $targetUser)
-                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
-                                @endcan
-                                @can('delete', $targetUser)
-                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteUser({{ $targetUser->id }})" wire:confirm="{{ __('Delete this user?') }}" />
-                                @endcan
-                            </div>
-                        </flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row wire:key="user-{{ $targetUser->id }}">
+                    <flux:table.cell>{{ $targetUser->name }}</flux:table.cell>
+                    <flux:table.cell>{{ $targetUser->email }}</flux:table.cell>
+                    <flux:table.cell>{{ $targetUser->role?->name ?? __('None') }}</flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge :color="match ($targetUser->status) { 'active' => 'green', 'invited' => 'amber', default => 'red' }" size="sm">
+                            {{ ucfirst($targetUser->status) }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex gap-2">
+                            @can('update', $targetUser)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
+                            @endcan
+                            @can('delete', $targetUser)
+                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteUser({{ $targetUser->id }})" wire:confirm="{{ __('Delete this user?') }}" />
+                            @endcan
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
                 @endforeach
             </flux:table.rows>
         </flux:table>
@@ -168,7 +168,7 @@ new #[Title('Users')] class extends Component {
 
                 <flux:select wire:model="invite_role_id" :label="__('Role')" :placeholder="__('Select a role')">
                     @foreach ($this->roles as $role)
-                        <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
+                    <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
@@ -187,7 +187,7 @@ new #[Title('Users')] class extends Component {
             <form wire:submit="saveUser" class="flex flex-col gap-4">
                 <flux:select wire:model="edit_role_id" :label="__('Role')">
                     @foreach ($this->roles as $role)
-                        <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
+                    <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 

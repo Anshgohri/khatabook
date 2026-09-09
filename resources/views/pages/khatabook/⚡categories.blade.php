@@ -33,7 +33,7 @@ new #[Title('Product Categories')] class extends Component {
     {
         return ProductCategory::query()
             ->withCount('products')
-            ->when($this->search !== '', fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
+            ->when($this->search !== '', fn($query) => $query->where('name', 'like', '%' . $this->search . '%'))
             ->orderBy('name')
             ->paginate(15);
     }
@@ -64,7 +64,7 @@ new #[Title('Product Categories')] class extends Component {
                 'required',
                 'string',
                 'max:255',
-                'unique:product_categories,name,'.($this->editingId ?? 'NULL').',id',
+                'unique:product_categories,name,' . ($this->editingId ?? 'NULL') . ',id',
             ],
         ]);
 
@@ -107,7 +107,7 @@ new #[Title('Product Categories')] class extends Component {
         </div>
 
         @can('create', App\Models\ProductCategory::class)
-            <flux:button variant="primary" icon="plus" wire:click="createCategory">{{ __('Add category') }}</flux:button>
+        <flux:button variant="primary" icon="plus" wire:click="createCategory">{{ __('Add category') }}</flux:button>
         @endcan
     </div>
 
@@ -126,31 +126,31 @@ new #[Title('Product Categories')] class extends Component {
 
             <flux:table.rows>
                 @forelse ($this->categories as $category)
-                    <flux:table.row wire:key="category-{{ $category->id }}">
-                        <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">{{ $category->name }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge :color="$category->products_count > 0 ? 'emerald' : 'zinc'" size="sm">
-                                {{ $category->products_count }} {{ __($category->products_count === 1 ? 'item' : 'items') }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell class="text-zinc-500">{{ $category->created_at?->format('M d, Y') ?? '-' }}</flux:table.cell>
-                        <flux:table.cell>
-                            <div class="flex gap-2 justify-end">
-                                @can('update', $category)
-                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editCategory({{ $category->id }})" title="{{ __('Edit') }}" />
-                                @endcan
-                                @can('delete', $category)
-                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteCategory({{ $category->id }})" wire:confirm="{{ __('Are you sure you want to delete this category?') }}" title="{{ __('Delete') }}" />
-                                @endcan
-                            </div>
-                        </flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row wire:key="category-{{ $category->id }}">
+                    <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">{{ $category->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge :color="$category->products_count > 0 ? 'emerald' : 'zinc'" size="sm">
+                            {{ $category->products_count }} {{ __($category->products_count === 1 ? 'item' : 'items') }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell class="text-zinc-500">{{ $category->created_at?->format('M d, Y') ?? '-' }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex gap-2 justify-end">
+                            @can('update', $category)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editCategory({{ $category->id }})" title="{{ __('Edit') }}" />
+                            @endcan
+                            @can('delete', $category)
+                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteCategory({{ $category->id }})" wire:confirm="{{ __('Are you sure you want to delete this category?') }}" title="{{ __('Delete') }}" />
+                            @endcan
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
                 @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="4" class="text-center text-zinc-500 py-8">
-                            {{ __('No categories found.') }}
-                        </flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row>
+                    <flux:table.cell colspan="4" class="text-center text-zinc-500 py-8">
+                        {{ __('No categories found.') }}
+                    </flux:table.cell>
+                </flux:table.row>
                 @endforelse
             </flux:table.rows>
         </flux:table>

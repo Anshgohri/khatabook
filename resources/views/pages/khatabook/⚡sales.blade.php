@@ -62,11 +62,11 @@ new #[Title('Sales')] class extends Component {
 
         return Sale::query()
             ->with('user')
-            ->when($user->isStaff(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn ($query) => $query->where('customer_name', 'like', "%{$this->search}%"))
-            ->when($this->paymentStatus, fn ($query) => $query->where('payment_status', $this->paymentStatus))
-            ->when($this->dateFrom, fn ($query) => $query->whereDate('date', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn ($query) => $query->whereDate('date', '<=', $this->dateTo))
+            ->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id))
+            ->when($this->search, fn($query) => $query->where('customer_name', 'like', "%{$this->search}%"))
+            ->when($this->paymentStatus, fn($query) => $query->where('payment_status', $this->paymentStatus))
+            ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
             ->latest('date')
             ->paginate(15);
     }
@@ -141,7 +141,7 @@ new #[Title('Sales')] class extends Component {
         <flux:heading size="xl">{{ __('Sales') }}</flux:heading>
 
         @can('create', Sale::class)
-            <flux:button variant="primary" icon="plus" wire:click="createSale">{{ __('Add sale') }}</flux:button>
+        <flux:button variant="primary" icon="plus" wire:click="createSale">{{ __('Add sale') }}</flux:button>
         @endcan
     </div>
 
@@ -174,33 +174,33 @@ new #[Title('Sales')] class extends Component {
 
             <flux:table.rows>
                 @forelse ($this->sales as $sale)
-                    <flux:table.row wire:key="sale-{{ $sale->id }}">
-                        <flux:table.cell>{{ $sale->date->format('d M Y') }}</flux:table.cell>
-                        <flux:table.cell>{{ $sale->customer_name }}</flux:table.cell>
-                        <flux:table.cell>{{ $sale->items_sold }}</flux:table.cell>
-                        <flux:table.cell>{{ $sale->quantity }}</flux:table.cell>
-                        <flux:table.cell>{{ number_format((float) $sale->total_amount, 2) }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge :color="match ($sale->payment_status) { 'paid' => 'green', 'partial' => 'amber', default => 'red' }" size="sm">
-                                {{ ucfirst($sale->payment_status) }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell>{{ $sale->user->name }}</flux:table.cell>
-                        <flux:table.cell>
-                            <div class="flex gap-2">
-                                @can('update', $sale)
-                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editSale({{ $sale->id }})" />
-                                @endcan
-                                @can('delete', $sale)
-                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteSale({{ $sale->id }})" wire:confirm="{{ __('Delete this sale?') }}" />
-                                @endcan
-                            </div>
-                        </flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row wire:key="sale-{{ $sale->id }}">
+                    <flux:table.cell>{{ $sale->date->format('d M Y') }}</flux:table.cell>
+                    <flux:table.cell>{{ $sale->customer_name }}</flux:table.cell>
+                    <flux:table.cell>{{ $sale->items_sold }}</flux:table.cell>
+                    <flux:table.cell>{{ $sale->quantity }}</flux:table.cell>
+                    <flux:table.cell>{{ number_format((float) $sale->total_amount, 2) }}</flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge :color="match ($sale->payment_status) { 'paid' => 'green', 'partial' => 'amber', default => 'red' }" size="sm">
+                            {{ ucfirst($sale->payment_status) }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell>{{ $sale->user->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex gap-2">
+                            @can('update', $sale)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editSale({{ $sale->id }})" />
+                            @endcan
+                            @can('delete', $sale)
+                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteSale({{ $sale->id }})" wire:confirm="{{ __('Delete this sale?') }}" />
+                            @endcan
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
                 @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="8" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row>
+                    <flux:table.cell colspan="8" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
+                </flux:table.row>
                 @endforelse
             </flux:table.rows>
         </flux:table>

@@ -13,14 +13,14 @@ new #[Title('Dashboard')] class extends Component {
     {
         $user = Auth::user();
 
-        return Sale::query()->when($user->isStaff(), fn ($query) => $query->where('user_id', $user->id));
+        return Sale::query()->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id));
     }
 
     protected function scopedExpenses()
     {
         $user = Auth::user();
 
-        return Expense::query()->when($user->isStaff(), fn ($query) => $query->where('user_id', $user->id));
+        return Expense::query()->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id));
     }
 
     #[Computed]
@@ -98,7 +98,7 @@ new #[Title('Dashboard')] class extends Component {
 
     protected function salesTrendData(): array
     {
-        $days = collect(range(13, 0))->map(fn ($i) => now()->subDays($i)->toDateString());
+        $days = collect(range(13, 0))->map(fn($i) => now()->subDays($i)->toDateString());
 
         $totals = $this->scopedSales()
             ->whereDate('date', '>=', now()->subDays(13)->toDateString())
@@ -107,8 +107,8 @@ new #[Title('Dashboard')] class extends Component {
             ->pluck('total', 'date');
 
         return [
-            'labels' => $days->map(fn ($day) => Carbon::parse($day)->format('d M'))->all(),
-            'values' => $days->map(fn ($day) => (float) ($totals[$day] ?? 0))->all(),
+            'labels' => $days->map(fn($day) => Carbon::parse($day)->format('d M'))->all(),
+            'values' => $days->map(fn($day) => (float) ($totals[$day] ?? 0))->all(),
         ];
     }
 
@@ -122,8 +122,8 @@ new #[Title('Dashboard')] class extends Component {
             ->get();
 
         return [
-            'labels' => $rows->map(fn ($row) => $row->category->name)->all(),
-            'values' => $rows->map(fn ($row) => (float) $row->total)->all(),
+            'labels' => $rows->map(fn($row) => $row->category->name)->all(),
+            'values' => $rows->map(fn($row) => (float) $row->total)->all(),
         ];
     }
 
@@ -139,7 +139,7 @@ new #[Title('Dashboard')] class extends Component {
 
         return [
             'labels' => $rows->pluck('items_sold')->all(),
-            'values' => $rows->pluck('total')->map(fn ($value) => (float) $value)->all(),
+            'values' => $rows->pluck('total')->map(fn($value) => (float) $value)->all(),
         ];
     }
 }; ?>
@@ -151,7 +151,7 @@ new #[Title('Dashboard')] class extends Component {
         <flux:dropdown position="bottom" align="end">
             <flux:button icon="bell" variant="ghost" data-test="notifications-button">
                 @if ($this->unreadNotificationsCount > 0)
-                    <flux:badge color="red" size="sm">{{ $this->unreadNotificationsCount }}</flux:badge>
+                <flux:badge color="red" size="sm">{{ $this->unreadNotificationsCount }}</flux:badge>
                 @endif
             </flux:button>
 
@@ -159,18 +159,18 @@ new #[Title('Dashboard')] class extends Component {
                 <div class="flex items-center justify-between px-3 py-2">
                     <flux:heading size="sm">{{ __('Notifications') }}</flux:heading>
                     @if ($this->unreadNotificationsCount > 0)
-                        <flux:link class="text-xs cursor-pointer" wire:click.prevent="markAllNotificationsRead">{{ __('Mark all read') }}</flux:link>
+                    <flux:link class="text-xs cursor-pointer" wire:click.prevent="markAllNotificationsRead">{{ __('Mark all read') }}</flux:link>
                     @endif
                 </div>
 
                 <flux:menu.separator />
 
                 @forelse ($this->recentNotifications as $notification)
-                    <div class="px-3 py-2 text-sm {{ $notification->read_at ? 'text-zinc-400' : 'text-zinc-800 dark:text-white' }}">
-                        {{ $notification->data['message'] ?? '' }}
-                    </div>
+                <div class="px-3 py-2 text-sm {{ $notification->read_at ? 'text-zinc-400' : 'text-zinc-800 dark:text-white' }}">
+                    {{ $notification->data['message'] ?? '' }}
+                </div>
                 @empty
-                    <div class="px-3 py-2 text-sm text-zinc-500">{{ __('No notifications yet.') }}</div>
+                <div class="px-3 py-2 text-sm text-zinc-500">{{ __('No notifications yet.') }}</div>
                 @endforelse
             </flux:menu>
         </flux:dropdown>
@@ -212,8 +212,7 @@ new #[Title('Dashboard')] class extends Component {
         class="grid gap-6 lg:grid-cols-2"
         wire:ignore
         x-data="khatabookCharts(@js($this->chartsPayload()))"
-        x-on:dashboard-refreshed.window="update($event.detail)"
-    >
+        x-on:dashboard-refreshed.window="update($event.detail)">
         <flux:card>
             <flux:heading size="lg" class="mb-4">{{ __('Sales trend (last 14 days)') }}</flux:heading>
             <div class="h-64"><canvas x-ref="salesTrend"></canvas></div>

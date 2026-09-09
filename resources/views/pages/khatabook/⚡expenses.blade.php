@@ -67,11 +67,11 @@ new #[Title('Expenses')] class extends Component {
 
         return Expense::query()
             ->with(['user', 'category'])
-            ->when($user->isStaff(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn ($query) => $query->where('description', 'like', "%{$this->search}%"))
-            ->when($this->categoryId, fn ($query) => $query->where('expense_category_id', $this->categoryId))
-            ->when($this->dateFrom, fn ($query) => $query->whereDate('date', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn ($query) => $query->whereDate('date', '<=', $this->dateTo))
+            ->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id))
+            ->when($this->search, fn($query) => $query->where('description', 'like', "%{$this->search}%"))
+            ->when($this->categoryId, fn($query) => $query->where('expense_category_id', $this->categoryId))
+            ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
             ->latest('date')
             ->paginate(15);
     }
@@ -145,7 +145,7 @@ new #[Title('Expenses')] class extends Component {
         <flux:heading size="xl">{{ __('Expenses') }}</flux:heading>
 
         @can('create', Expense::class)
-            <flux:button variant="primary" icon="plus" wire:click="createExpense">{{ __('Add expense') }}</flux:button>
+        <flux:button variant="primary" icon="plus" wire:click="createExpense">{{ __('Add expense') }}</flux:button>
         @endcan
     </div>
 
@@ -155,7 +155,7 @@ new #[Title('Expenses')] class extends Component {
         <flux:select wire:model.live="categoryId" :placeholder="__('All categories')">
             <flux:select.option value="">{{ __('All categories') }}</flux:select.option>
             @foreach ($this->categories as $category)
-                <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+            <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
             @endforeach
         </flux:select>
 
@@ -177,28 +177,28 @@ new #[Title('Expenses')] class extends Component {
 
             <flux:table.rows>
                 @forelse ($this->expenses as $expense)
-                    <flux:table.row wire:key="expense-{{ $expense->id }}">
-                        <flux:table.cell>{{ $expense->date->format('d M Y') }}</flux:table.cell>
-                        <flux:table.cell>{{ $expense->category->name }}</flux:table.cell>
-                        <flux:table.cell>{{ $expense->description }}</flux:table.cell>
-                        <flux:table.cell>{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
-                        <flux:table.cell>{{ ucfirst(str_replace('_', ' ', $expense->payment_method)) }}</flux:table.cell>
-                        <flux:table.cell>{{ $expense->user->name }}</flux:table.cell>
-                        <flux:table.cell>
-                            <div class="flex gap-2">
-                                @can('update', $expense)
-                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editExpense({{ $expense->id }})" />
-                                @endcan
-                                @can('delete', $expense)
-                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteExpense({{ $expense->id }})" wire:confirm="{{ __('Delete this expense?') }}" />
-                                @endcan
-                            </div>
-                        </flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row wire:key="expense-{{ $expense->id }}">
+                    <flux:table.cell>{{ $expense->date->format('d M Y') }}</flux:table.cell>
+                    <flux:table.cell>{{ $expense->category->name }}</flux:table.cell>
+                    <flux:table.cell>{{ $expense->description }}</flux:table.cell>
+                    <flux:table.cell>{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
+                    <flux:table.cell>{{ ucfirst(str_replace('_', ' ', $expense->payment_method)) }}</flux:table.cell>
+                    <flux:table.cell>{{ $expense->user->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex gap-2">
+                            @can('update', $expense)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editExpense({{ $expense->id }})" />
+                            @endcan
+                            @can('delete', $expense)
+                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteExpense({{ $expense->id }})" wire:confirm="{{ __('Delete this expense?') }}" />
+                            @endcan
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
                 @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center text-zinc-500">{{ __('No expenses found.') }}</flux:table.cell>
-                    </flux:table.row>
+                <flux:table.row>
+                    <flux:table.cell colspan="7" class="text-center text-zinc-500">{{ __('No expenses found.') }}</flux:table.cell>
+                </flux:table.row>
                 @endforelse
             </flux:table.rows>
         </flux:table>
@@ -213,7 +213,7 @@ new #[Title('Expenses')] class extends Component {
 
                 <flux:select wire:model="expense_category_id" :label="__('Category')" :placeholder="__('Select a category')">
                     @foreach ($this->categories as $category)
-                        <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
