@@ -77,7 +77,8 @@
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php -r \"file_exists('storage/logs/laravel.log') || touch('storage/logs/laravel.log'); file_exists('public/laravel.log') || @symlink('../storage/logs/laravel.log', 'public/laravel.log');\""
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force",

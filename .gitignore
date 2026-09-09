@@ -4,6 +4,7 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/public/laravel.log
 /storage/*.key
 /storage/pail
 /vendor

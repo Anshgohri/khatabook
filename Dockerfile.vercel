@@ -28,7 +28,9 @@ COPY Caddyfile /etc/frankenphp/Caddyfile
 
 RUN composer dump-autoload --optimize --classmap-authoritative \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && touch storage/logs/laravel.log \
+    && ln -sf ../storage/logs/laravel.log public/laravel.log \
+    && chown -R www-data:www-data storage bootstrap/cache public/laravel.log
 
 ENV APP_ENV=production
 EXPOSE 8080
