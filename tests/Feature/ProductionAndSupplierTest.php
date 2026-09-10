@@ -104,3 +104,33 @@ test('production log updates finished product stock, reduces raw material stock 
     expect($worker->payments->first()->type)->toBe('daily_pay');
     expect((float) $worker->payments->first()->amount)->toEqual(500.00);
 });
+
+test('finished products dropdown filters products where category is finished', function () {
+    $finishedCategory = ProductCategory::create(['name' => 'Finished Goods']);
+    $rawCategory = ProductCategory::create(['name' => 'Raw Materials']);
+
+    $finishedProduct = Product::create([
+        'product_category_id' => $finishedCategory->id,
+        'name' => 'Finished Chair',
+        'unit_price' => 500,
+        'unit' => 'pcs',
+        'stock_level' => 10,
+    ]);
+
+    $rawMaterial = Product::create([
+        'product_category_id' => $rawCategory->id,
+        'name' => 'Raw Timber',
+        'unit_price' => 200,
+        'unit' => 'pcs',
+        'stock_level' => 50,
+    ]);
+
+    $finishedProducts = Product::finished()->get();
+    $rawMaterials = Product::rawMaterial()->get();
+
+    expect($finishedProducts->pluck('id'))->toContain($finishedProduct->id);
+    expect($finishedProducts->pluck('id'))->not()->toContain($rawMaterial->id);
+
+    expect($rawMaterials->pluck('id'))->toContain($rawMaterial->id);
+    expect($rawMaterials->pluck('id'))->not()->toContain($finishedProduct->id);
+});

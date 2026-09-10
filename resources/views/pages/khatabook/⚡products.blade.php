@@ -100,6 +100,17 @@ new #[Title('Products & Inventory')] class extends Component {
 
         $validated['product_category_id'] = $validated['product_category_id'] ?: null;
 
+        if ($validated['product_category_id']) {
+            $cat = ProductCategory::find($validated['product_category_id']);
+            if ($cat) {
+                if (str_contains(strtolower($cat->name), 'raw')) {
+                    $validated['type'] = 'raw_material';
+                } elseif (str_contains(strtolower($cat->name), 'finished')) {
+                    $validated['type'] = 'finished_good';
+                }
+            }
+        }
+
         if ($this->editingId) {
             $product = Product::findOrFail($this->editingId);
             $this->authorize('update', $product);

@@ -55,10 +55,8 @@ new #[Title('Production Log')] class extends Component {
     #[Computed]
     public function finishedProducts()
     {
-        $user = Auth::user();
         return Product::query()
-            ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
-            ->where('type', 'finished_good')
+            ->finished()
             ->orderBy('name')
             ->get();
     }
@@ -66,10 +64,8 @@ new #[Title('Production Log')] class extends Component {
     #[Computed]
     public function rawMaterials()
     {
-        $user = Auth::user();
         return Product::query()
-            ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
-            ->where('type', 'raw_material')
+            ->rawMaterial()
             ->orderBy('name')
             ->get();
     }
@@ -98,7 +94,7 @@ new #[Title('Production Log')] class extends Component {
         return (float) ProductionLog::query()
             ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
             ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-            ->sum('finished_quantity');
+            ->sum('quantity_produced');
     }
 
     #[Computed]
@@ -136,10 +132,15 @@ new #[Title('Production Log')] class extends Component {
         $this->authorize('create', ProductionLog::class);
 
         ProductionLog::create([
-            ...$validated,
             'user_id' => Auth::id(),
-            'raw_quantity_consumed' => $validated['raw_quantity_consumed'] ?? 0.0,
+            'employee_id' => $validated['employee_id'],
+            'finished_product_id' => $validated['finished_product_id'],
+            'quantity_produced' => (int) $validated['finished_quantity'],
+            'raw_material_id' => $validated['raw_material_id'] ?: null,
+            'raw_material_consumed_qty' => (int) ($validated['raw_quantity_consumed'] ?? 0),
             'worker_wage' => $validated['worker_wage'] ?? 0.0,
+            'date' => $validated['date'],
+            'notes' => $validated['notes'] ?? null,
         ]);
 
         $this->showModal = false;
@@ -219,11 +220,11 @@ new #[Title('Production Log')] class extends Component {
                         <flux:badge color="indigo" size="sm">{{ $log->finishedProduct->name ?? '-' }}</flux:badge>
                     </flux:table.cell>
                     <flux:table.cell class="font-bold text-green-600 dark:text-green-400">
-                        +{{ $log->finished_quantity }} {{ $log->finishedProduct->unit ?? 'pcs' }}
+                        +{{ $log->quantity_produced }} {{ $log->finishedProduct->unit ?? 'pcs' }}
                     </flux:table.cell>
                     <flux:table.cell>
                         @if ($log->rawMaterial)
-                            <span class="text-red-600 dark:text-red-400 font-semibold">-{{ $log->raw_quantity_consumed }} {{ $log->rawMaterial->unit ?? 'pcs' }}</span>
+                            <span class="text-red-600 dark:text-red-400 font-semibold">-{{ $log->raw_material_consumed_qty }} {{ $log->rawMaterial->unit ?? 'pcs' }}</span>
                             <span class="text-xs text-zinc-500 block">({{ $log->rawMaterial->name }})</span>
                         @else
                             <span class="text-zinc-400">-</span>
