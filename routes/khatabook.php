@@ -10,6 +10,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('categories', 'pages::khatabook.categories')->name('categories');
     Route::livewire('employees', 'pages::khatabook.employees')->name('employees');
     Route::livewire('financiers', 'pages::khatabook.financiers')->name('financiers');
+    Route::livewire('suppliers', 'pages::khatabook.suppliers')->name('suppliers');
+    Route::livewire('production', 'pages::khatabook.production')->name('production');
     Route::livewire('users', 'pages::khatabook.users')->name('users');
     Route::livewire('reports', 'pages::khatabook.reports')->name('reports');
     Route::livewire('audit-log', 'pages::khatabook.audit-log')->name('audit-log');

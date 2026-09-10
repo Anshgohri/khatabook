@@ -4,14 +4,16 @@ use App\Models\Financier;
 use App\Models\FinancierPayment;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Title('Financiers')] class extends Component {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     #[Url]
     public string $search = '';
@@ -38,6 +40,7 @@ new #[Title('Financiers')] class extends Component {
     public string $payment_method = 'cash';
     public string $payment_date = '';
     public string $payment_notes = '';
+    public $bill_image = null;
 
     // Ledger Modal State
     public bool $showLedgerModal = false;
@@ -111,7 +114,8 @@ new #[Title('Financiers')] class extends Component {
             ->with(['payments'])
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
             ->when($this->payoutType, fn ($query) => $query->where('payout_type', $this->payoutType))
-            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%")->orWhere('phone', 'like', "%{$this->search}%"))
+            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%")
+                ->orWhere('phone', 'like', "%{$this->search}%"))
             ->latest()
             ->paginate(15);
     }
@@ -135,9 +139,8 @@ new #[Title('Financiers')] class extends Component {
     {
         $this->authorize('create', Financier::class);
 
-        $this->reset(['editingFinancierId', 'name', 'phone', 'notes', 'initial_loan_amount']);
+        $this->reset(['editingFinancierId', 'name', 'phone', 'default_payment_amount', 'initial_loan_amount', 'notes']);
         $this->payout_type = 'daily';
-        $this->default_payment_amount = 500.0;
         $this->status = 'active';
         $this->showFinancierModal = true;
     }
@@ -193,7 +196,7 @@ new #[Title('Financiers')] class extends Component {
                     'type' => 'loan_received',
                     'amount' => $initialLoan,
                     'payment_method' => 'cash',
-                    'notes' => __('Initial loan amount / opening balance'),
+                    'notes' => __('Opening loan balance'),
                 ]);
             }
         }
@@ -218,6 +221,7 @@ new #[Title('Financiers')] class extends Component {
         $this->payment_method = 'cash';
         $this->payment_date = now()->toDateString();
         $this->payment_notes = '';
+        $this->bill_image = null;
         $this->showPaymentModal = true;
     }
 
@@ -232,7 +236,13 @@ new #[Title('Financiers')] class extends Component {
             'payment_method' => ['required', 'in:cash,upi,bank_transfer,cheque,other'],
             'payment_date' => ['required', 'date'],
             'payment_notes' => ['nullable', 'string'],
+            'bill_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
+
+        $billPath = null;
+        if ($this->bill_image) {
+            $billPath = $this->bill_image->store('bills', 'public');
+        }
 
         FinancierPayment::create([
             'financier_id' => $financier->id,
@@ -242,9 +252,11 @@ new #[Title('Financiers')] class extends Component {
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'notes' => $validated['payment_notes'],
+            'bill_path' => $billPath,
         ]);
 
         $this->showPaymentModal = false;
+        $this->bill_image = null;
         unset($this->financiers);
         unset($this->selectedLedgerFinancier);
         Flux::toast(variant: 'success', text: __('Financier payment recorded successfully.'));
@@ -457,6 +469,8 @@ new #[Title('Financiers')] class extends Component {
 
                 <flux:textarea wire:model="payment_notes" :label="__('Notes / Reason')" placeholder="e.g. Daily installment paid" rows="2" />
 
+                <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
+
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showPaymentModal', false)">{{ __('Cancel') }}</flux:button>
                     <flux:button type="submit" variant="primary">{{ __('Save Payment') }}</flux:button>
@@ -466,7 +480,7 @@ new #[Title('Financiers')] class extends Component {
     </flux:modal>
 
     <!-- Ledger History Modal -->
-    <flux:modal wire:model.self="showLedgerModal" class="md:w-[650px]">
+    <flux:modal wire:model.self="showLedgerModal" class="md:w-[720px]">
         @if ($this->selectedLedgerFinancier)
         <div class="flex flex-col gap-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-700 pb-3">
@@ -517,6 +531,7 @@ new #[Title('Financiers')] class extends Component {
                             <th class="p-3 text-start">{{ __('Amount') }}</th>
                             <th class="p-3 text-start">{{ __('Method') }}</th>
                             <th class="p-3 text-start">{{ __('Notes') }}</th>
+                            <th class="p-3 text-start">{{ __('Bill / Receipt') }}</th>
                             <th class="p-3 text-end"></th>
                         </tr>
                     </thead>
@@ -538,6 +553,15 @@ new #[Title('Financiers')] class extends Component {
                             <td class="p-3 font-semibold">₹{{ number_format((float) $payment->amount, 2) }}</td>
                             <td class="p-3 uppercase text-xs">{{ $payment->payment_method }}</td>
                             <td class="p-3 text-zinc-500 text-xs">{{ $payment->notes ?? '-' }}</td>
+                            <td class="p-3 text-xs">
+                                @if ($payment->bill_path)
+                                    <a href="{{ Storage::url($payment->bill_path) }}" target="_blank" class="inline-flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                        📄 {{ __('View Bill') }}
+                                    </a>
+                                @else
+                                    <span class="text-zinc-400">-</span>
+                                @endif
+                            </td>
                             <td class="p-3 text-end">
                                 <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this payment entry?') }}" />
                             </td>

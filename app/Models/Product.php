@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['product_category_id', 'name', 'unit_price', 'description', 'stock_level'])]
+#[Fillable(['product_category_id', 'type', 'name', 'unit_price', 'unit', 'description', 'stock_level'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -41,5 +41,13 @@ class Product extends Model
     public function inventoryLogs(): HasMany
     {
         return $this->hasMany(InventoryLog::class);
+    }
+
+    /**
+     * @return HasMany<ProductionLog, $this>
+     */
+    public function productionLogs(): HasMany
+    {
+        return $this->hasMany(ProductionLog::class, 'finished_product_id');
     }
 }

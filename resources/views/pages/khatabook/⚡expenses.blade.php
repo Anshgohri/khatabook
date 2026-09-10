@@ -4,14 +4,16 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Title('Expenses')] class extends Component {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     #[Url]
     public string $search = '';
@@ -40,6 +42,8 @@ new #[Title('Expenses')] class extends Component {
     public string $payment_method = 'cash';
 
     public string $notes = '';
+
+    public $bill_image = null;
 
     public function mount(): void
     {
@@ -84,6 +88,7 @@ new #[Title('Expenses')] class extends Component {
         $this->date = now()->toDateString();
         $this->expense_category_id = '';
         $this->payment_method = 'cash';
+        $this->bill_image = null;
         $this->showForm = true;
     }
 
@@ -100,6 +105,7 @@ new #[Title('Expenses')] class extends Component {
         $this->amount = (float) $expense->amount;
         $this->payment_method = $expense->payment_method;
         $this->notes = (string) $expense->notes;
+        $this->bill_image = null;
         $this->showForm = true;
     }
 
@@ -112,18 +118,37 @@ new #[Title('Expenses')] class extends Component {
             'amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:cash,bank_transfer,upi,cheque,other'],
             'notes' => ['nullable', 'string'],
+            'bill_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
+
+        $billPath = null;
+        if ($this->bill_image) {
+            $billPath = $this->bill_image->store('bills', 'public');
+        }
 
         if ($this->editingId) {
             $expense = Expense::findOrFail($this->editingId);
             $this->authorize('update', $expense);
+
+            if ($billPath) {
+                $validated['bill_path'] = $billPath;
+            }
+
+            unset($validated['bill_image']);
             $expense->update($validated);
         } else {
             $this->authorize('create', Expense::class);
-            Expense::create([...$validated, 'user_id' => Auth::id()]);
+            unset($validated['bill_image']);
+
+            Expense::create([
+                ...$validated,
+                'user_id' => Auth::id(),
+                'bill_path' => $billPath,
+            ]);
         }
 
         $this->showForm = false;
+        $this->bill_image = null;
         unset($this->expenses);
         Flux::toast(variant: 'success', text: __('Expense saved.'));
     }
@@ -171,6 +196,7 @@ new #[Title('Expenses')] class extends Component {
                 <flux:table.column>{{ __('Description') }}</flux:table.column>
                 <flux:table.column>{{ __('Amount') }}</flux:table.column>
                 <flux:table.column>{{ __('Payment method') }}</flux:table.column>
+                <flux:table.column>{{ __('Bill / Receipt') }}</flux:table.column>
                 <flux:table.column>{{ __('Recorded by') }}</flux:table.column>
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
@@ -181,8 +207,17 @@ new #[Title('Expenses')] class extends Component {
                     <flux:table.cell>{{ $expense->date->format('d M Y') }}</flux:table.cell>
                     <flux:table.cell>{{ $expense->category->name }}</flux:table.cell>
                     <flux:table.cell>{{ $expense->description }}</flux:table.cell>
-                    <flux:table.cell>{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
+                    <flux:table.cell>₹{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
                     <flux:table.cell>{{ ucfirst(str_replace('_', ' ', $expense->payment_method)) }}</flux:table.cell>
+                    <flux:table.cell>
+                        @if ($expense->bill_path)
+                            <a href="{{ Storage::url($expense->bill_path) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                📄 {{ __('View Bill') }}
+                            </a>
+                        @else
+                            <span class="text-zinc-400 text-xs">-</span>
+                        @endif
+                    </flux:table.cell>
                     <flux:table.cell>{{ $expense->user->name }}</flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2">
@@ -197,7 +232,7 @@ new #[Title('Expenses')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7" class="text-center text-zinc-500">{{ __('No expenses found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="8" class="text-center text-zinc-500">{{ __('No expenses found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
@@ -218,7 +253,7 @@ new #[Title('Expenses')] class extends Component {
                 </flux:select>
 
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
-                <flux:input type="number" step="0.01" min="0" wire:model="amount" :label="__('Amount')" required />
+                <flux:input type="number" step="0.01" min="0" wire:model="amount" :label="__('Amount (₹)')" required />
 
                 <flux:select wire:model="payment_method" :label="__('Payment method')">
                     <flux:select.option value="cash">{{ __('Cash') }}</flux:select.option>
@@ -229,6 +264,8 @@ new #[Title('Expenses')] class extends Component {
                 </flux:select>
 
                 <flux:textarea wire:model="notes" :label="__('Notes')" rows="2" />
+
+                <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showForm', false)">{{ __('Cancel') }}</flux:button>

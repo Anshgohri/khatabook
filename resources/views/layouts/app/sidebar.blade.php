@@ -44,6 +44,18 @@
                         </flux:sidebar.item>
                     @endcan
 
+                    @can('viewAny', App\Models\Supplier::class)
+                        <flux:sidebar.item icon="truck" :href="route('suppliers')" :current="request()->routeIs('suppliers')" wire:navigate>
+                            {{ __('Suppliers') }}
+                        </flux:sidebar.item>
+                    @endcan
+
+                    @can('viewAny', App\Models\ProductionLog::class)
+                        <flux:sidebar.item icon="wrench-screwdriver" :href="route('production')" :current="request()->routeIs('production')" wire:navigate>
+                            {{ __('Production') }}
+                        </flux:sidebar.item>
+                    @endcan
+
                     <flux:sidebar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
                         {{ __('Reports') }}
                     </flux:sidebar.item>

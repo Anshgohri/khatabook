@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property Employee $employee
  * @property User $user
  */
-#[Fillable(['employee_id', 'user_id', 'date', 'type', 'amount', 'payment_method', 'notes'])]
+#[Fillable(['employee_id', 'user_id', 'date', 'type', 'amount', 'payment_method', 'notes', 'bill_path'])]
 class EmployeePayment extends Model
 {
     /** @use HasFactory<EmployeePaymentFactory> */

@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\Auditable;
-use Database\Factories\FinancierPaymentFactory;
+use Database\Factories\SupplierPaymentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $financier_id
+ * @property int $supplier_id
  * @property int $user_id
  * @property Carbon $date
  * @property string $type
@@ -21,13 +21,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property Financier $financier
+ * @property Supplier $supplier
  * @property User $user
  */
-#[Fillable(['financier_id', 'user_id', 'date', 'type', 'amount', 'payment_method', 'notes', 'bill_path'])]
-class FinancierPayment extends Model
+#[Fillable(['supplier_id', 'user_id', 'date', 'type', 'amount', 'payment_method', 'notes', 'bill_path'])]
+class SupplierPayment extends Model
 {
-    /** @use HasFactory<FinancierPaymentFactory> */
+    /** @use HasFactory<SupplierPaymentFactory> */
     use Auditable, HasFactory;
 
     /**
@@ -42,11 +42,11 @@ class FinancierPayment extends Model
     }
 
     /**
-     * @return BelongsTo<Financier, $this>
+     * @return BelongsTo<Supplier, $this>
      */
-    public function financier(): BelongsTo
+    public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Financier::class);
+        return $this->belongsTo(Supplier::class);
     }
 
     /**
@@ -60,11 +60,11 @@ class FinancierPayment extends Model
     protected static function booted(): void
     {
         static::saved(function (self $payment): void {
-            $payment->financier->recalculateOutstandingBalance();
+            $payment->supplier->recalculateOutstandingBalance();
         });
 
         static::deleted(function (self $payment): void {
-            $payment->financier->recalculateOutstandingBalance();
+            $payment->supplier->recalculateOutstandingBalance();
         });
     }
 }

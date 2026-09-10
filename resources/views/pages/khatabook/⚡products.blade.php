@@ -38,6 +38,10 @@ new #[Title('Products & Inventory')] class extends Component {
 
     public string $stock_notes = '';
 
+    public string $type = 'finished_good';
+
+    public string $unit = 'pcs';
+
     public function mount(): void
     {
         $this->authorize('viewAny', Product::class);
@@ -62,6 +66,8 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->reset(['editingId', 'name', 'description']);
         $this->product_category_id = '';
         $this->unit_price = 0;
+        $this->type = 'finished_good';
+        $this->unit = 'pcs';
         $this->showProductForm = true;
     }
 
@@ -75,6 +81,8 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->name = $product->name;
         $this->product_category_id = (string) $product->product_category_id;
         $this->unit_price = (float) $product->unit_price;
+        $this->type = $product->type ?? 'finished_good';
+        $this->unit = $product->unit ?? 'pcs';
         $this->description = (string) $product->description;
         $this->showProductForm = true;
     }
@@ -85,6 +93,8 @@ new #[Title('Products & Inventory')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'product_category_id' => ['nullable', 'exists:product_categories,id'],
             'unit_price' => ['required', 'numeric', 'min:0'],
+            'type' => ['required', 'in:raw_material,finished_good'],
+            'unit' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
         ]);
 
@@ -168,6 +178,7 @@ new #[Title('Products & Inventory')] class extends Component {
         <flux:table :paginate="$this->products">
             <flux:table.columns>
                 <flux:table.column>{{ __('Name') }}</flux:table.column>
+                <flux:table.column>{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Category') }}</flux:table.column>
                 <flux:table.column>{{ __('Unit price') }}</flux:table.column>
                 <flux:table.column>{{ __('Stock level') }}</flux:table.column>
@@ -177,11 +188,18 @@ new #[Title('Products & Inventory')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->products as $product)
                 <flux:table.row wire:key="product-{{ $product->id }}">
-                    <flux:table.cell>{{ $product->name }}</flux:table.cell>
-                    <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
-                    <flux:table.cell>{{ number_format((float) $product->unit_price, 2) }}</flux:table.cell>
+                    <flux:table.cell class="font-medium">{{ $product->name }}</flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }}</flux:badge>
+                        @if ($product->type === 'raw_material')
+                            <flux:badge color="blue" size="sm">Raw Material</flux:badge>
+                        @else
+                            <flux:badge color="indigo" size="sm">Finished Good</flux:badge>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
+                    <flux:table.cell>₹{{ number_format((float) $product->unit_price, 2) }}</flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }} {{ $product->unit ?? 'pcs' }}</flux:badge>
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2">
@@ -199,7 +217,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="6" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
@@ -211,7 +229,14 @@ new #[Title('Products & Inventory')] class extends Component {
             <flux:heading size="lg">{{ $editingId ? __('Edit product') : __('Add product') }}</flux:heading>
 
             <form wire:submit="saveProduct" class="flex flex-col gap-4">
-                <flux:input wire:model="name" :label="__('Name')" required />
+                <flux:input wire:model="name" :label="__('Name')" placeholder="e.g. Bans (Bamboo) or Finished Table" required />
+
+                <flux:select wire:model="type" :label="__('Item Type')" required>
+                    <flux:select.option value="finished_good">{{ __('Finished Good (Sales Item)') }}</flux:select.option>
+                    <flux:select.option value="raw_material">{{ __('Raw Material (Input Material)') }}</flux:select.option>
+                </flux:select>
+
+                <flux:input wire:model="unit" :label="__('Unit of Measurement')" placeholder="e.g. pcs, bundle, feet, kg" required />
 
                 <flux:select wire:model="product_category_id" :label="__('Category')" :placeholder="__('Uncategorized')">
                     @foreach ($this->categories as $category)
@@ -219,7 +244,7 @@ new #[Title('Products & Inventory')] class extends Component {
                     @endforeach
                 </flux:select>
 
-                <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Unit price')" required />
+                <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Unit price (₹)')" required />
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
 
                 <div class="flex justify-end gap-2">
