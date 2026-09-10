@@ -32,6 +32,18 @@
                         {{ __('Categories') }}
                     </flux:sidebar.item>
 
+                    @can('viewAny', App\Models\Employee::class)
+                        <flux:sidebar.item icon="user-group" :href="route('employees')" :current="request()->routeIs('employees')" wire:navigate>
+                            {{ __('Employees') }}
+                        </flux:sidebar.item>
+                    @endcan
+
+                    @can('viewAny', App\Models\Financier::class)
+                        <flux:sidebar.item icon="building-library" :href="route('financiers')" :current="request()->routeIs('financiers')" wire:navigate>
+                            {{ __('Financiers') }}
+                        </flux:sidebar.item>
+                    @endcan
+
                     <flux:sidebar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
                         {{ __('Reports') }}
                     </flux:sidebar.item>

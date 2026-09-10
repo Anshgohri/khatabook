@@ -95,4 +95,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return $this->role?->name === RoleName::Viewer->value;
     }
+
+    public function isEmployee(): bool
+    {
+        return $this->role?->name === RoleName::Employee->value;
+    }
+
+    public function isFinancier(): bool
+    {
+        return $this->role?->name === RoleName::Financier->value;
+    }
 }
