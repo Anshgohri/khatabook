@@ -43,4 +43,13 @@ class AuditLog extends Model
     {
         return $this->morphTo();
     }
+
+    protected static function booted(): void
+    {
+        static::created(function (self $log): void {
+            static::query()
+                ->where('created_at', '<', now()->subDays(10))
+                ->delete();
+        });
+    }
 }

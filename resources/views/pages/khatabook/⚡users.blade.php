@@ -24,6 +24,14 @@ new #[Title('Users')] class extends Component {
 
     public ?int $editingId = null;
 
+    public string $edit_name = '';
+
+    public string $edit_phone = '';
+
+    public string $edit_address = '';
+
+    public string $edit_city = '';
+
     public string $edit_role_id = '';
 
     public string $edit_status = 'active';
@@ -74,6 +82,10 @@ new #[Title('Users')] class extends Component {
         $this->authorize('update', $target);
 
         $this->editingId = $target->id;
+        $this->edit_name = $target->name;
+        $this->edit_phone = $target->phone ?? '';
+        $this->edit_address = $target->address ?? '';
+        $this->edit_city = $target->city ?? '';
         $this->edit_role_id = (string) $target->role_id;
         $this->edit_status = $target->status;
         $this->showEditForm = true;
@@ -86,11 +98,19 @@ new #[Title('Users')] class extends Component {
         $this->authorize('update', $target);
 
         $validated = $this->validate([
+            'edit_name' => ['required', 'string', 'max:255'],
+            'edit_phone' => ['nullable', 'string', 'max:50'],
+            'edit_address' => ['nullable', 'string', 'max:255'],
+            'edit_city' => ['nullable', 'string', 'max:100'],
             'edit_role_id' => ['required', 'exists:roles,id'],
             'edit_status' => ['required', 'in:active,disabled'],
         ]);
 
         $target->update([
+            'name' => $validated['edit_name'],
+            'phone' => $validated['edit_phone'] ?: null,
+            'address' => $validated['edit_address'] ?: null,
+            'city' => $validated['edit_city'] ?: null,
             'role_id' => $validated['edit_role_id'],
             'status' => $validated['edit_status'],
         ]);
@@ -114,7 +134,7 @@ new #[Title('Users')] class extends Component {
 
 <div class="flex flex-col gap-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <flux:heading size="xl">{{ __('Users') }}</flux:heading>
+        <flux:heading size="xl">{{ __('Users & Customers') }}</flux:heading>
 
         @can('create', App\Models\User::class)
         <flux:button variant="primary" icon="plus" wire:click="$set('showInviteForm', true)">{{ __('Invite user') }}</flux:button>
@@ -125,7 +145,8 @@ new #[Title('Users')] class extends Component {
         <flux:table :paginate="$this->users">
             <flux:table.columns>
                 <flux:table.column>{{ __('Name') }}</flux:table.column>
-                <flux:table.column>{{ __('Email') }}</flux:table.column>
+                <flux:table.column>{{ __('Contact Details') }}</flux:table.column>
+                <flux:table.column>{{ __('Address / City') }}</flux:table.column>
                 <flux:table.column>{{ __('Role') }}</flux:table.column>
                 <flux:table.column>{{ __('Status') }}</flux:table.column>
                 <flux:table.column></flux:table.column>
@@ -134,9 +155,35 @@ new #[Title('Users')] class extends Component {
             <flux:table.rows>
                 @foreach ($this->users as $targetUser)
                 <flux:table.row wire:key="user-{{ $targetUser->id }}">
-                    <flux:table.cell>{{ $targetUser->name }}</flux:table.cell>
-                    <flux:table.cell>{{ $targetUser->email }}</flux:table.cell>
-                    <flux:table.cell>{{ $targetUser->role?->name ?? __('None') }}</flux:table.cell>
+                    <flux:table.cell class="font-medium">{{ $targetUser->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex flex-col text-xs">
+                            @if (!str_contains($targetUser->email, '@khatabook.customer'))
+                            <span class="text-zinc-700 dark:text-zinc-300">{{ $targetUser->email }}</span>
+                            @endif
+                            @if ($targetUser->phone)
+                            <span class="text-zinc-500">{{ $targetUser->phone }}</span>
+                            @endif
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex flex-col text-xs text-zinc-600 dark:text-zinc-400">
+                            @if ($targetUser->city)
+                            <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $targetUser->city }}</span>
+                            @endif
+                            @if ($targetUser->address)
+                            <span class="truncate max-w-xs">{{ $targetUser->address }}</span>
+                            @endif
+                            @if (!$targetUser->city && !$targetUser->address)
+                            <span class="text-zinc-400">—</span>
+                            @endif
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge :color="match ($targetUser->role?->name) { 'Admin' => 'purple', 'Manager' => 'blue', 'ROLE_CUSTOMER' => 'emerald', default => 'zinc' }" size="sm">
+                            {{ $targetUser->role?->name ?? __('None') }}
+                        </flux:badge>
+                    </flux:table.cell>
                     <flux:table.cell>
                         <flux:badge :color="match ($targetUser->status) { 'active' => 'green', 'invited' => 'amber', default => 'red' }" size="sm">
                             {{ ucfirst($targetUser->status) }}
@@ -185,6 +232,11 @@ new #[Title('Users')] class extends Component {
             <flux:heading size="lg">{{ __('Edit user') }}</flux:heading>
 
             <form wire:submit="saveUser" class="flex flex-col gap-4">
+                <flux:input wire:model="edit_name" :label="__('Name')" required />
+                <flux:input wire:model="edit_phone" :label="__('Phone Number')" />
+                <flux:input wire:model="edit_city" :label="__('City')" />
+                <flux:input wire:model="edit_address" :label="__('Address')" />
+
                 <flux:select wire:model="edit_role_id" :label="__('Role')">
                     @foreach ($this->roles as $role)
                     <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>

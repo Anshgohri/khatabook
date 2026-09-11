@@ -21,7 +21,7 @@
         <nav class="hidden lg:flex items-center gap-6 text-sm font-extrabold">
             <a href="{{ route('home') }}" class="{{ $active === 'home' ? 'text-emerald-400 underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition">Home</a>
             <a href="{{ route('home') }}#products" class="text-slate-300 hover:text-emerald-400 transition">Products</a>
-            <a href="{{ route('about') }}" class="{{ $active === 'about' ? 'text-emerald-400 underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition">About Us</a>
+            <a href="{{ route('about') }}#about" class="{{ $active === 'about' ? 'text-emerald-400 underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition">About Us</a>
             <a href="{{ route('contact') }}" class="{{ $active === 'contact' ? 'text-emerald-400 underline underline-offset-8 decoration-emerald-500 decoration-2' : 'text-slate-300 hover:text-emerald-400' }} transition">Contact Us</a>
         </nav>
 

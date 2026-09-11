@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -25,6 +26,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $name
  * @property string $email
  * @property string|null $phone
+ * @property string|null $address
+ * @property string|null $city
  * @property string $status
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -36,7 +39,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $updated_at
  * @property Role|null $role
  */
-#[Fillable(['name', 'email', 'password', 'role_id', 'phone', 'status'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'phone', 'address', 'city', 'status'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -76,6 +79,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->belongsTo(Role::class);
     }
 
+    /**
+     * @return HasMany<Sale, $this>
+     */
+    public function customerSales(): HasMany
+    {
+        return $this->hasMany(Sale::class, 'customer_id');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role?->name === RoleName::Admin->value;
@@ -104,5 +115,10 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isFinancier(): bool
     {
         return $this->role?->name === RoleName::Financier->value;
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role?->name === RoleName::Customer->value;
     }
 }

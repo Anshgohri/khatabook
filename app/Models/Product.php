@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\Auditable;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,34 +31,34 @@ class Product extends Model
     /**
      * Scope query to only include finished products (by category name or finished_good type).
      */
-    public function scopeFinished(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    public function scopeFinished(Builder $query): Builder
     {
         return $query->where(function ($q) {
             $q->whereHas('category', fn ($cat) => $cat->where('name', 'like', '%finished%'))
-              ->orWhere(function ($sub) {
-                  $sub->where('type', 'finished_good')
-                      ->where(function ($c) {
-                          $c->whereNull('product_category_id')
-                            ->orWhereDoesntHave('category');
-                      });
-              });
+                ->orWhere(function ($sub) {
+                    $sub->where('type', 'finished_good')
+                        ->where(function ($c) {
+                            $c->whereNull('product_category_id')
+                                ->orWhereDoesntHave('category');
+                        });
+                });
         });
     }
 
     /**
      * Scope query to only include raw materials (by category name or raw_material type).
      */
-    public function scopeRawMaterial(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    public function scopeRawMaterial(Builder $query): Builder
     {
         return $query->where(function ($q) {
             $q->whereHas('category', fn ($cat) => $cat->where('name', 'like', '%raw%'))
-              ->orWhere(function ($sub) {
-                  $sub->where('type', 'raw_material')
-                      ->where(function ($c) {
-                          $c->whereNull('product_category_id')
-                            ->orWhereDoesntHave('category');
-                      });
-              });
+                ->orWhere(function ($sub) {
+                    $sub->where('type', 'raw_material')
+                        ->where(function ($c) {
+                            $c->whereNull('product_category_id')
+                                ->orWhereDoesntHave('category');
+                        });
+                });
         });
     }
 
@@ -83,5 +84,13 @@ class Product extends Model
     public function productionLogs(): HasMany
     {
         return $this->hasMany(ProductionLog::class, 'finished_product_id');
+    }
+
+    /**
+     * @return HasMany<SaleItem, $this>
+     */
+    public function saleItems(): HasMany
+    {
+        return $this->hasMany(SaleItem::class);
     }
 }

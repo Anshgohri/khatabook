@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::khatabook.dashboard')->name('dashboard');
     Route::livewire('sales', 'pages::khatabook.sales')->name('sales');
+    Route::livewire('sales/create', 'pages::khatabook.sales-form')->name('sales.create');
+    Route::livewire('sales/{sale}/edit', 'pages::khatabook.sales-form')->name('sales.edit');
     Route::livewire('expenses', 'pages::khatabook.expenses')->name('expenses');
     Route::livewire('products', 'pages::khatabook.products')->name('products');
     Route::livewire('categories', 'pages::khatabook.categories')->name('categories');

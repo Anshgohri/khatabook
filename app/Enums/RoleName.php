@@ -10,4 +10,5 @@ enum RoleName: string
     case Viewer = 'Viewer';
     case Employee = 'ROLE_EMPLOYEE';
     case Financier = 'ROLE_FINANCIERS';
+    case Customer = 'ROLE_CUSTOMER';
 }

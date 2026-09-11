@@ -36,3 +36,19 @@ test('updating only the timestamp does not create a noisy audit entry', function
 
     expect(AuditLog::query()->count())->toBe($countBefore);
 });
+
+test('audit logs older than 10 days are automatically removed when a new log is created', function () {
+    $user = User::factory()->role(RoleName::Staff)->create();
+    $this->actingAs($user);
+
+    $oldLog = AuditLog::withoutEvents(fn () => AuditLog::factory()->create(['created_at' => now()->subDays(11)]));
+    $recentLog = AuditLog::withoutEvents(fn () => AuditLog::factory()->create(['created_at' => now()->subDays(5)]));
+
+    expect(AuditLog::where('id', $oldLog->id)->exists())->toBeTrue();
+
+    // Trigger a new audit log
+    Sale::factory()->create(['user_id' => $user->id]);
+
+    expect(AuditLog::where('id', $oldLog->id)->exists())->toBeFalse();
+    expect(AuditLog::where('id', $recentLog->id)->exists())->toBeTrue();
+});

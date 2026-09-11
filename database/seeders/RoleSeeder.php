@@ -20,6 +20,7 @@ class RoleSeeder extends Seeder
             RoleName::Viewer->value => 'Read-only access to dashboards and reports.',
             RoleName::Employee->value => 'Employee account for viewing payments and advance details.',
             RoleName::Financier->value => 'Financier account for tracking daily/monthly payout details.',
+            RoleName::Customer->value => 'Customer account for tracking customer sales and details.',
         ];
 
         foreach (RoleName::cases() as $role) {
