@@ -228,3 +228,25 @@ test('existing customers can be searched by name, mobile number, or email in sal
     expect($component->get('customer_name'))->toBe('');
     expect($component->get('customer_phone'))->toBe('');
 });
+
+test('saving a sale with a phone number belonging to another customer fails validation', function () {
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    $existingCustomer = User::factory()->role(RoleName::Customer)->create([
+        'name' => 'Aarav Sharma',
+        'phone' => '9876543210',
+    ]);
+
+    // Attempting to create a sale for a new customer with Aarav's phone number fails validation
+    Livewire::actingAs($staff)
+        ->test('pages::khatabook.sales-form')
+        ->set('date', now()->toDateString())
+        ->set('customer_name', 'Different Customer')
+        ->set('customer_phone', '9876543210') // Duplicate phone
+        ->set('saleItems', [
+            ['product_id' => '', 'quantity' => 1, 'unit_price' => 500, 'total_price' => 500],
+        ])
+        ->set('payment_status', 'paid')
+        ->call('save')
+        ->assertHasErrors(['customer_phone']);
+});

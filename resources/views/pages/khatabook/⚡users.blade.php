@@ -4,6 +4,7 @@ use App\Actions\InviteUser;
 use App\Models\Role;
 use App\Models\User;
 use Flux\Flux;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -66,12 +67,13 @@ new #[Title('Users')] class extends Component {
         $validated = $this->validate([
             'invite_name' => ['required', 'string', 'max:255'],
             'invite_email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'invite_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
+            'invite_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50', Rule::unique('users', 'phone')],
             'invite_address' => ['nullable', 'string', 'max:255'],
             'invite_city' => ['nullable', 'string', 'max:100'],
             'invite_role_id' => ['required', 'exists:roles,id'],
         ], [
             'invite_phone.regex' => __('The phone number must contain only numbers.'),
+            'invite_phone.unique' => __('The phone number has already been registered to another user.'),
         ]);
 
         app(InviteUser::class)->invite(
@@ -113,13 +115,14 @@ new #[Title('Users')] class extends Component {
 
         $validated = $this->validate([
             'edit_name' => ['required', 'string', 'max:255'],
-            'edit_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
+            'edit_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50', Rule::unique('users', 'phone')->ignore($this->editingId)],
             'edit_address' => ['nullable', 'string', 'max:255'],
             'edit_city' => ['nullable', 'string', 'max:100'],
             'edit_role_id' => ['required', 'exists:roles,id'],
             'edit_status' => ['required', 'in:active,disabled'],
         ], [
             'edit_phone.regex' => __('The phone number must contain only numbers.'),
+            'edit_phone.unique' => __('The phone number has already been registered to another user.'),
         ]);
 
         $target->update([

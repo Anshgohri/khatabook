@@ -244,17 +244,27 @@ new #[Title('Sales Form')] class extends Component {
             $customerUser = User::find($validated['customer_id']);
         }
 
-        if (! $customerUser && (! empty($validated['customer_email']) || ! empty($validated['customer_phone']))) {
-            $customerUser = User::query()
-                ->where(function ($q) use ($validated) {
-                    if (! empty($validated['customer_email'])) {
-                        $q->where('email', $validated['customer_email']);
+        if (! empty($validated['customer_phone'])) {
+            $existingPhoneUser = User::where('phone', $validated['customer_phone'])->first();
+            if ($existingPhoneUser) {
+                if ($customerUser && $customerUser->id !== $existingPhoneUser->id) {
+                    $this->addError('customer_phone', __('This mobile number is already registered to customer :name. Please select them from existing customers or enter a unique mobile number.', ['name' => $existingPhoneUser->name]));
+                    return;
+                }
+
+                if (! $customerUser) {
+                    if (strtolower(trim($existingPhoneUser->name)) === strtolower(trim($validated['customer_name']))) {
+                        $customerUser = $existingPhoneUser;
+                    } else {
+                        $this->addError('customer_phone', __('This mobile number is already registered to customer ":name". Please select them from existing customers or enter a unique mobile number.', ['name' => $existingPhoneUser->name]));
+                        return;
                     }
-                    if (! empty($validated['customer_phone'])) {
-                        $q->orWhere('phone', $validated['customer_phone']);
-                    }
-                })
-                ->first();
+                }
+            }
+        }
+
+        if (! $customerUser && ! empty($validated['customer_email'])) {
+            $customerUser = User::where('email', $validated['customer_email'])->first();
         }
 
         $emailToUse = ! empty($validated['customer_email'])

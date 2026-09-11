@@ -90,3 +90,35 @@ test('manager cannot delete a user', function () {
 
     expect(User::find($staff->id))->not->toBeNull();
 });
+
+test('inviting a user with a duplicate phone number fails validation', function () {
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
+    User::factory()->create(['phone' => '9876543210']);
+
+    Livewire::actingAs($admin)
+        ->test('pages::khatabook.users')
+        ->set('invite_name', 'Duplicate Phone Hire')
+        ->set('invite_email', 'dup-phone@example.com')
+        ->set('invite_phone', '9876543210')
+        ->set('invite_role_id', (string) $role->id)
+        ->call('inviteUser')
+        ->assertHasErrors(['invite_phone']);
+});
+
+test('editing a user with a duplicate phone number belonging to another user fails validation', function () {
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
+
+    $userA = User::factory()->create(['phone' => '9876543210']);
+    $userB = User::factory()->create(['phone' => '9123456789']);
+
+    Livewire::actingAs($admin)
+        ->test('pages::khatabook.users')
+        ->call('editUser', $userB->id)
+        ->set('edit_name', 'Updated User B')
+        ->set('edit_phone', '9876543210') // Phone belongs to User A
+        ->set('edit_role_id', (string) $role->id)
+        ->call('saveUser')
+        ->assertHasErrors(['edit_phone']);
+});
