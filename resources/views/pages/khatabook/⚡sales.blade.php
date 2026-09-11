@@ -73,7 +73,7 @@ new #[Title('Sales')] class extends Component {
         @endcan
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
         <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search customer or product...')" icon="magnifying-glass" />
 
         <flux:select wire:model.live="paymentStatus" :placeholder="__('All payment statuses')">

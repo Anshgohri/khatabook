@@ -122,3 +122,18 @@ test('editing a user with a duplicate phone number belonging to another user fai
         ->call('saveUser')
         ->assertHasErrors(['edit_phone']);
 });
+
+test('inviting a user with a duplicate email address fails validation', function () {
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
+    User::factory()->create(['email' => 'duplicate@example.com']);
+
+    Livewire::actingAs($admin)
+        ->test('pages::khatabook.users')
+        ->set('invite_name', 'Duplicate Email Hire')
+        ->set('invite_email', 'duplicate@example.com')
+        ->set('invite_phone', '9876543210')
+        ->set('invite_role_id', (string) $role->id)
+        ->call('inviteUser')
+        ->assertHasErrors(['invite_email']);
+});

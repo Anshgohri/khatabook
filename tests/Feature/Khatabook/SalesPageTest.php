@@ -229,7 +229,7 @@ test('existing customers can be searched by name, mobile number, or email in sal
     expect($component->get('customer_phone'))->toBe('');
 });
 
-test('saving a sale with a phone number belonging to another customer fails validation', function () {
+test('saving a sale with an existing phone number reuses existing customer without recreating user', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     $existingCustomer = User::factory()->role(RoleName::Customer)->create([
@@ -237,16 +237,86 @@ test('saving a sale with a phone number belonging to another customer fails vali
         'phone' => '9876543210',
     ]);
 
-    // Attempting to create a sale for a new customer with Aarav's phone number fails validation
+    $initialUserCount = User::count();
+
     Livewire::actingAs($staff)
         ->test('pages::khatabook.sales-form')
         ->set('date', now()->toDateString())
-        ->set('customer_name', 'Different Customer')
-        ->set('customer_phone', '9876543210') // Duplicate phone
+        ->set('customer_name', 'Aarav Sharma')
+        ->set('customer_phone', '9876543210')
+        ->set('saleItems', [
+            ['product_id' => '', 'quantity' => 1, 'unit_price' => 500, 'total_price' => 500],
+        ])
+        ->set('payment_status', 'paid')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(User::count())->toBe($initialUserCount);
+
+    $sale = Sale::latest()->first();
+    expect($sale->customer_id)->toBe($existingCustomer->id);
+});
+
+test('saving a sale with an existing email address reuses existing customer without recreating user', function () {
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    $existingCustomer = User::factory()->role(RoleName::Customer)->create([
+        'name' => 'Aarav Sharma',
+        'email' => 'aarav@example.com',
+    ]);
+
+    $initialUserCount = User::count();
+
+    Livewire::actingAs($staff)
+        ->test('pages::khatabook.sales-form')
+        ->set('date', now()->toDateString())
+        ->set('customer_name', 'Aarav')
+        ->set('customer_email', 'aarav@example.com')
+        ->set('saleItems', [
+            ['product_id' => '', 'quantity' => 1, 'unit_price' => 500, 'total_price' => 500],
+        ])
+        ->set('payment_status', 'paid')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(User::count())->toBe($initialUserCount);
+
+    $sale = Sale::latest()->first();
+    expect($sale->customer_id)->toBe($existingCustomer->id);
+});
+
+test('saving a sale with non-numeric customer phone number fails validation', function () {
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    Livewire::actingAs($staff)
+        ->test('pages::khatabook.sales-form')
+        ->set('date', now()->toDateString())
+        ->set('customer_name', 'Valid Name')
+        ->set('customer_phone', '98765-ABCDE') // Invalid phone format
         ->set('saleItems', [
             ['product_id' => '', 'quantity' => 1, 'unit_price' => 500, 'total_price' => 500],
         ])
         ->set('payment_status', 'paid')
         ->call('save')
         ->assertHasErrors(['customer_phone']);
+});
+
+test('saving a sale with phone and email belonging to different customers fails validation', function () {
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    $cust1 = User::factory()->role(RoleName::Customer)->create(['name' => 'Customer A', 'phone' => '9876543210']);
+    $cust2 = User::factory()->role(RoleName::Customer)->create(['name' => 'Customer B', 'email' => 'b@example.com']);
+
+    Livewire::actingAs($staff)
+        ->test('pages::khatabook.sales-form')
+        ->set('date', now()->toDateString())
+        ->set('customer_name', 'Some Name')
+        ->set('customer_phone', '9876543210')
+        ->set('customer_email', 'b@example.com')
+        ->set('saleItems', [
+            ['product_id' => '', 'quantity' => 1, 'unit_price' => 500, 'total_price' => 500],
+        ])
+        ->set('payment_status', 'paid')
+        ->call('save')
+        ->assertHasErrors(['customer_email']);
 });

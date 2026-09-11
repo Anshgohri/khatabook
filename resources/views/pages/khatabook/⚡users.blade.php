@@ -72,6 +72,7 @@ new #[Title('Users')] class extends Component {
             'invite_city' => ['nullable', 'string', 'max:100'],
             'invite_role_id' => ['required', 'exists:roles,id'],
         ], [
+            'invite_email.unique' => __('The email address has already been registered to another user.'),
             'invite_phone.regex' => __('The phone number must contain only numbers.'),
             'invite_phone.unique' => __('The phone number has already been registered to another user.'),
         ]);

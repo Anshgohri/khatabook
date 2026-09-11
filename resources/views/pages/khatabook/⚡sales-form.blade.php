@@ -212,7 +212,7 @@ new #[Title('Sales Form')] class extends Component {
             'date' => ['required', 'date'],
             'customer_id' => ['nullable'],
             'customer_name' => ['required', 'string', 'max:255'],
-            'customer_phone' => ['nullable', 'string', 'max:50'],
+            'customer_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'customer_address' => ['nullable', 'string', 'max:255'],
             'customer_city' => ['nullable', 'string', 'max:100'],
@@ -223,6 +223,8 @@ new #[Title('Sales Form')] class extends Component {
             'saleItems.*.product_id' => ['nullable'],
             'saleItems.*.quantity' => ['required', 'integer', 'min:1'],
             'saleItems.*.unit_price' => ['required', 'numeric', 'min:0'],
+        ], [
+            'customer_phone.regex' => __('The phone number must contain only numbers.'),
         ]);
 
         $subtotal = $this->subtotal;
@@ -244,42 +246,59 @@ new #[Title('Sales Form')] class extends Component {
             $customerUser = User::find($validated['customer_id']);
         }
 
+        $existingPhoneUser = null;
         if (! empty($validated['customer_phone'])) {
             $existingPhoneUser = User::where('phone', $validated['customer_phone'])->first();
-            if ($existingPhoneUser) {
-                if ($customerUser && $customerUser->id !== $existingPhoneUser->id) {
-                    $this->addError('customer_phone', __('This mobile number is already registered to customer :name. Please select them from existing customers or enter a unique mobile number.', ['name' => $existingPhoneUser->name]));
-                    return;
-                }
+        }
 
-                if (! $customerUser) {
-                    if (strtolower(trim($existingPhoneUser->name)) === strtolower(trim($validated['customer_name']))) {
-                        $customerUser = $existingPhoneUser;
-                    } else {
-                        $this->addError('customer_phone', __('This mobile number is already registered to customer ":name". Please select them from existing customers or enter a unique mobile number.', ['name' => $existingPhoneUser->name]));
-                        return;
-                    }
-                }
+        $existingEmailUser = null;
+        if (! empty($validated['customer_email'])) {
+            $existingEmailUser = User::where('email', $validated['customer_email'])->first();
+        }
+
+        // Check if phone and email match two different existing users
+        if ($existingPhoneUser && $existingEmailUser && $existingPhoneUser->id !== $existingEmailUser->id) {
+            $this->addError('customer_email', __('The provided phone number belongs to customer :phoneUser, but the email belongs to customer :emailUser. Please select the correct customer.', [
+                'phoneUser' => $existingPhoneUser->name,
+                'emailUser' => $existingEmailUser->name,
+            ]));
+            return;
+        }
+
+        // Auto-match existing customer by phone or email if not explicitly selected by dropdown
+        if (! $customerUser) {
+            $customerUser = $existingPhoneUser ?? $existingEmailUser;
+        } else {
+            // If customer_id was selected, verify it doesn't conflict with another user's phone or email
+            if ($existingPhoneUser && $customerUser->id !== $existingPhoneUser->id) {
+                $this->addError('customer_phone', __('This mobile number is registered to customer :name. Please select them from existing customers or enter a unique mobile number.', ['name' => $existingPhoneUser->name]));
+                return;
+            }
+            if ($existingEmailUser && $customerUser->id !== $existingEmailUser->id) {
+                $this->addError('customer_email', __('This email address is registered to customer :name. Please select them from existing customers or enter a unique email address.', ['name' => $existingEmailUser->name]));
+                return;
             }
         }
 
-        if (! $customerUser && ! empty($validated['customer_email'])) {
-            $customerUser = User::where('email', $validated['customer_email'])->first();
-        }
-
-        $emailToUse = ! empty($validated['customer_email'])
-            ? $validated['customer_email']
-            : ($customerUser?->email ?? 'cust_'.time().'_'.rand(1000, 9999).'@khatabook.customer');
-
         if ($customerUser) {
-            $customerUser->update([
-                'name' => $validated['customer_name'],
+            $updateData = [
                 'phone' => $validated['customer_phone'] ?: $customerUser->phone,
                 'address' => $validated['customer_address'] ?: $customerUser->address,
                 'city' => $validated['customer_city'] ?: $customerUser->city,
                 'role_id' => $customerRole?->id ?? $customerUser->role_id,
-            ]);
+            ];
+            if (! empty($validated['customer_name'])) {
+                $updateData['name'] = $validated['customer_name'];
+            }
+            if (! empty($validated['customer_email'])) {
+                $updateData['email'] = $validated['customer_email'];
+            }
+            $customerUser->update($updateData);
         } else {
+            $emailToUse = ! empty($validated['customer_email'])
+                ? $validated['customer_email']
+                : 'cust_'.time().'_'.rand(1000, 9999).'@khatabook.customer';
+
             $customerUser = User::create([
                 'name' => $validated['customer_name'],
                 'email' => $emailToUse,
