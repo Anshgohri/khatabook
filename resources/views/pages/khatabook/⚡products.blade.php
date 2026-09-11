@@ -4,13 +4,15 @@ use App\Models\InventoryLog;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Flux\Flux;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Title('Products & Inventory')] class extends Component {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     public bool $showProductForm = false;
 
@@ -23,6 +25,8 @@ new #[Title('Products & Inventory')] class extends Component {
     public float $unit_price = 0;
 
     public string $description = '';
+
+    public $image = null;
 
     public bool $showStockForm = false;
 
@@ -63,7 +67,7 @@ new #[Title('Products & Inventory')] class extends Component {
     {
         $this->authorize('create', Product::class);
 
-        $this->reset(['editingId', 'name', 'description']);
+        $this->reset(['editingId', 'name', 'description', 'image']);
         $this->product_category_id = '';
         $this->unit_price = 0;
         $this->type = 'finished_good';
@@ -84,6 +88,7 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->type = $product->type ?? 'finished_good';
         $this->unit = $product->unit ?? 'pcs';
         $this->description = (string) $product->description;
+        $this->image = null;
         $this->showProductForm = true;
     }
 
@@ -96,9 +101,17 @@ new #[Title('Products & Inventory')] class extends Component {
             'type' => ['required', 'in:raw_material,finished_good'],
             'unit' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         $validated['product_category_id'] = $validated['product_category_id'] ?: null;
+
+        if ($this->image) {
+            $imagePath = $this->image->store('products', 'public');
+            $validated['image_path'] = $imagePath;
+        }
+
+        unset($validated['image']);
 
         if ($validated['product_category_id']) {
             $cat = ProductCategory::find($validated['product_category_id']);
@@ -121,6 +134,7 @@ new #[Title('Products & Inventory')] class extends Component {
         }
 
         $this->showProductForm = false;
+        $this->image = null;
         unset($this->products);
         Flux::toast(variant: 'success', text: __('Product saved.'));
     }
@@ -199,7 +213,21 @@ new #[Title('Products & Inventory')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->products as $product)
                 <flux:table.row wire:key="product-{{ $product->id }}">
-                    <flux:table.cell class="font-medium">{{ $product->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex items-center gap-3">
+                            @if ($product->image_path)
+                                <img src="{{ Storage::url($product->image_path) }}" alt="{{ $product->name }}" class="w-9 h-9 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700 shrink-0" />
+                            @else
+                                <div class="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 text-xs shrink-0 font-medium">📦</div>
+                            @endif
+                            <div class="flex flex-col">
+                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $product->name }}</span>
+                                @if ($product->description)
+                                    <span class="text-xs text-zinc-400 max-w-xs truncate" title="{{ $product->description }}">{{ $product->description }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </flux:table.cell>
                     <flux:table.cell>
                         @if ($product->type === 'raw_material')
                             <flux:badge color="blue" size="sm">Raw Material</flux:badge>
@@ -208,7 +236,7 @@ new #[Title('Products & Inventory')] class extends Component {
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
-                    <flux:table.cell>₹{{ number_format((float) $product->unit_price, 2) }}</flux:table.cell>
+                    <flux:table.cell>₹{{ number_format((float) $product->unit_price, 2) }}</flux:cell>
                     <flux:table.cell>
                         <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }} {{ $product->unit ?? 'pcs' }}</flux:badge>
                     </flux:table.cell>
@@ -257,6 +285,20 @@ new #[Title('Products & Inventory')] class extends Component {
 
                 <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Unit price (₹)')" required />
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
+
+                <flux:input type="file" wire:model="image" :label="__('Product Image (Optional)')" accept="image/*" />
+
+                @if ($image)
+                    <div class="flex items-center gap-3 p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                        <img src="{{ $image->temporaryUrl() }}" class="w-12 h-12 object-cover rounded-md border border-zinc-200" />
+                        <span class="text-xs text-zinc-500">{{ __('New Image Preview') }}</span>
+                    </div>
+                @elseif ($editingId && ($existingProduct = App\Models\Product::find($editingId))?->image_path)
+                    <div class="flex items-center gap-3 p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                        <img src="{{ Storage::url($existingProduct->image_path) }}" class="w-12 h-12 object-cover rounded-md border border-zinc-200" />
+                        <span class="text-xs text-zinc-500">{{ __('Current Product Image') }}</span>
+                    </div>
+                @endif
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showProductForm', false)">{{ __('Cancel') }}</flux:button>
