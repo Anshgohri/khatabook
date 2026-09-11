@@ -415,7 +415,7 @@ new #[Title('Sales Form')] class extends Component {
                 <flux:textarea wire:model="notes" :label="__('Notes / Payment Comments')" rows="3" :placeholder="__('Optional notes...')" />
 
                 <div class="pt-2">
-                    <flux:button type="submit" variant="primary" class="w-full" size="lg" icon="check">
+                    <flux:button type="submit" variant="primary" class="w-full" icon="check">
                         {{ __('Save Sale') }}
                     </flux:button>
                 </div>

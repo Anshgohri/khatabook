@@ -153,7 +153,6 @@ new #[Title('Sales')] class extends Component {
                 <flux:table.row>
                     <flux:table.cell colspan="8" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
                 </flux:table.row>
-                @empty
                 @endforelse
             </flux:table.rows>
         </flux:table>

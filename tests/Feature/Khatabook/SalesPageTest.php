@@ -182,4 +182,3 @@ test('staff cannot update a sale belonging to another user', function () {
         ->test('pages::khatabook.sales-form', ['sale' => $otherSale])
         ->assertForbidden();
 });
-
