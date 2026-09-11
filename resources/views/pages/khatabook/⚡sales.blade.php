@@ -141,7 +141,7 @@ new #[Title('Sales')] class extends Component {
                     <flux:table.cell>
                         <div class="flex gap-2">
                             @can('update', $sale)
-                            <flux:button size="sm" variant="ghost" icon="pencil" :href="route('sales.edit', $sale->id)" wire:navigate />
+                            <flux:button size="sm" variant="subtle" icon="pencil" :href="route('sales.edit', $sale->id)" wire:navigate>{{ __('Edit') }}</flux:button>
                             @endcan
                             @can('delete', $sale)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteSale({{ $sale->id }})" wire:confirm="{{ __('Delete this sale?') }}" />

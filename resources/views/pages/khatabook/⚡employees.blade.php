@@ -227,31 +227,10 @@ new #[Title('Employees')] class extends Component {
         Flux::toast(variant: 'success', text: __('Payment recorded successfully.'));
     }
 
-    public function openLedgerModal(int $employeeId): void
+    // Ledger Navigation
+    public function viewLedger(int $employeeId)
     {
-        $this->ledgerEmployeeId = $employeeId;
-        $this->showLedgerModal = true;
-    }
-
-    public function deletePayment(int $paymentId): void
-    {
-        $payment = EmployeePayment::findOrFail($paymentId);
-        $this->authorize('update', $payment->employee);
-
-        $payment->delete();
-        unset($this->employees);
-        unset($this->selectedLedgerEmployee);
-        Flux::toast(variant: 'success', text: __('Payment entry deleted.'));
-    }
-
-    public function deleteEmployee(int $employeeId): void
-    {
-        $employee = Employee::findOrFail($employeeId);
-        $this->authorize('delete', $employee);
-
-        $employee->delete();
-        unset($this->employees);
-        Flux::toast(variant: 'success', text: __('Employee deleted successfully.'));
+        return $this->redirect(route('employees.show', $employeeId), navigate: true);
     }
 }; ?>
 
@@ -309,9 +288,9 @@ new #[Title('Employees')] class extends Component {
                 @forelse ($this->employees as $employee)
                 <flux:table.row wire:key="employee-{{ $employee->id }}">
                     <flux:table.cell class="font-medium">
-                        <button type="button" wire:click="openLedgerModal({{ $employee->id }})" class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold text-start">
+                        <a href="{{ route('employees.show', $employee->id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold text-start">
                             {{ $employee->name }}
-                        </button>
+                        </a>
                     </flux:table.cell>
                     <flux:table.cell>{{ $employee->phone ?? '-' }}</flux:table.cell>
                     <flux:table.cell>₹{{ number_format((float) $employee->default_daily_rate, 2) }} / day</flux:table.cell>
@@ -337,7 +316,7 @@ new #[Title('Employees')] class extends Component {
                             <flux:button size="sm" variant="subtle" icon="arrow-up-circle" wire:click="openPaymentModal({{ $employee->id }}, 'advance_given')">
                                 {{ __('Give Advance') }}
                             </flux:button>
-                            <flux:button size="sm" variant="ghost" icon="document-text" wire:click="openLedgerModal({{ $employee->id }})" title="{{ __('Ledger History') }}" />
+                            <flux:button size="sm" variant="subtle" icon="eye" :href="route('employees.show', $employee->id)" wire:navigate>{{ __('View Ledger') }}</flux:button>
                             <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editEmployee({{ $employee->id }})" />
                             @can('delete', $employee)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteEmployee({{ $employee->id }})" wire:confirm="{{ __('Delete this employee and all their records?') }}" title="{{ __('Delete Employee') }}" />
@@ -413,111 +392,5 @@ new #[Title('Employees')] class extends Component {
                 </div>
             </form>
         </div>
-    </flux:modal>
-
-    <!-- Ledger History Modal -->
-    <flux:modal wire:model.self="showLedgerModal" class="md:w-[720px]">
-        @if ($this->selectedLedgerEmployee)
-        <div class="flex flex-col gap-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-700 pb-3">
-                <div>
-                    <flux:heading size="lg">{{ $this->selectedLedgerEmployee->name }} – Ledger History</flux:heading>
-                    <flux:text class="text-sm">Rate: ₹{{ number_format((float) $this->selectedLedgerEmployee->default_daily_rate, 2) }}/day</flux:text>
-                </div>
-                <div class="flex items-center gap-2">
-                    <flux:select wire:model.live="ledgerPeriod" class="w-36" size="sm">
-                        <flux:select.option value="this_month">{{ __('This Month') }}</flux:select.option>
-                        <flux:select.option value="this_week">{{ __('This Week') }}</flux:select.option>
-                        <flux:select.option value="this_year">{{ __('This Year') }}</flux:select.option>
-                        <flux:select.option value="all">{{ __('All Time') }}</flux:select.option>
-                    </flux:select>
-
-                    <flux:badge color="red" size="md">Advance Due: ₹{{ number_format((float) $this->selectedLedgerEmployee->advance_balance, 2) }}</flux:badge>
-                </div>
-            </div>
-
-            <!-- Ledger Period Summary -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs">
-                <div>
-                    <span class="text-zinc-500 block">{{ __('Wages Paid in Period') }}</span>
-                    <span class="font-bold text-sm text-blue-600 dark:text-blue-400">
-                        ₹{{ number_format((float) $this->selectedLedgerEmployee->payments->where('type', 'daily_pay')->sum('amount'), 2) }}
-                    </span>
-                </div>
-                <div>
-                    <span class="text-zinc-500 block">{{ __('Advance Given in Period') }}</span>
-                    <span class="font-bold text-sm text-red-600 dark:text-red-400">
-                        ₹{{ number_format((float) $this->selectedLedgerEmployee->payments->where('type', 'advance_given')->sum('amount'), 2) }}
-                    </span>
-                </div>
-                <div>
-                    <span class="text-zinc-500 block">{{ __('Advance Repaid/Deducted') }}</span>
-                    <span class="font-bold text-sm text-green-600 dark:text-green-400">
-                        ₹{{ number_format((float) $this->selectedLedgerEmployee->payments->whereIn('type', ['advance_repaid', 'salary_deduction'])->sum('amount'), 2) }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="w-full max-h-96 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
-                <table class="w-full text-start text-sm">
-                    <thead class="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
-                        <tr>
-                            <th class="p-3 text-start">{{ __('Date') }}</th>
-                            <th class="p-3 text-start">{{ __('Type') }}</th>
-                            <th class="p-3 text-start">{{ __('Amount') }}</th>
-                            <th class="p-3 text-start">{{ __('Method') }}</th>
-                            <th class="p-3 text-start">{{ __('Notes') }}</th>
-                            <th class="p-3 text-start">{{ __('Bill / Receipt') }}</th>
-                            <th class="p-3 text-end"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                        @forelse ($this->selectedLedgerEmployee->payments as $payment)
-                        <tr>
-                            <td class="p-3 font-medium">{{ $payment->date->format('d M Y') }}</td>
-                            <td class="p-3">
-                                @if ($payment->type === 'advance_given')
-                                    <flux:badge color="red" size="sm">Advance Given</flux:badge>
-                                @elseif ($payment->type === 'daily_pay')
-                                    <flux:badge color="blue" size="sm">Daily Pay</flux:badge>
-                                @elseif ($payment->type === 'advance_repaid')
-                                    <flux:badge color="green" size="sm">Advance Repaid</flux:badge>
-                                @else
-                                    <flux:badge color="purple" size="sm">Deduction</flux:badge>
-                                @endif
-                            </td>
-                            <td class="p-3 font-semibold">₹{{ number_format((float) $payment->amount, 2) }}</td>
-                            <td class="p-3 uppercase text-xs">{{ $payment->payment_method }}</td>
-                            <td class="p-3 text-zinc-500 text-xs">{{ $payment->notes ?? '-' }}</td>
-                            <td class="p-3 text-xs">
-                                @if ($payment->bill_path)
-                                    <a href="{{ Storage::url($payment->bill_path) }}" target="_blank" class="inline-flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                                        📄 {{ __('View Bill') }}
-                                    </a>
-                                @else
-                                    <span class="text-zinc-400">-</span>
-                                @endif
-                            </td>
-                            <td class="p-3 text-end">
-                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this payment entry?') }}" />
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="p-4 text-center text-zinc-500">{{ __('No payment records found for this employee.') }}</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex justify-between items-center">
-                <flux:button variant="subtle" icon="plus" wire:click="openPaymentModal({{ $this->selectedLedgerEmployee->id }}, 'advance_given')">
-                    {{ __('Record Advance') }}
-                </flux:button>
-                <flux:button variant="ghost" wire:click="$set('showLedgerModal', false)">{{ __('Close') }}</flux:button>
-            </div>
-        </div>
-        @endif
     </flux:modal>
 </div>

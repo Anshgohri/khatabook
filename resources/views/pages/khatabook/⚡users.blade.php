@@ -18,6 +18,12 @@ new #[Title('Users')] class extends Component {
 
     public string $invite_email = '';
 
+    public string $invite_phone = '';
+
+    public string $invite_address = '';
+
+    public string $invite_city = '';
+
     public string $invite_role_id = '';
 
     public bool $showEditForm = false;
@@ -60,16 +66,24 @@ new #[Title('Users')] class extends Component {
         $validated = $this->validate([
             'invite_name' => ['required', 'string', 'max:255'],
             'invite_email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'invite_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
+            'invite_address' => ['nullable', 'string', 'max:255'],
+            'invite_city' => ['nullable', 'string', 'max:100'],
             'invite_role_id' => ['required', 'exists:roles,id'],
+        ], [
+            'invite_phone.regex' => __('The phone number must contain only numbers.'),
         ]);
 
         app(InviteUser::class)->invite(
             $validated['invite_name'],
             $validated['invite_email'],
             Role::findOrFail($validated['invite_role_id']),
+            $validated['invite_phone'] ?: null,
+            $validated['invite_address'] ?: null,
+            $validated['invite_city'] ?: null,
         );
 
-        $this->reset(['invite_name', 'invite_email', 'invite_role_id']);
+        $this->reset(['invite_name', 'invite_email', 'invite_phone', 'invite_address', 'invite_city', 'invite_role_id']);
         $this->showInviteForm = false;
         unset($this->users);
         Flux::toast(variant: 'success', text: __('Invitation sent.'));
@@ -99,11 +113,13 @@ new #[Title('Users')] class extends Component {
 
         $validated = $this->validate([
             'edit_name' => ['required', 'string', 'max:255'],
-            'edit_phone' => ['nullable', 'string', 'max:50'],
+            'edit_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
             'edit_address' => ['nullable', 'string', 'max:255'],
             'edit_city' => ['nullable', 'string', 'max:100'],
             'edit_role_id' => ['required', 'exists:roles,id'],
             'edit_status' => ['required', 'in:active,disabled'],
+        ], [
+            'edit_phone.regex' => __('The phone number must contain only numbers.'),
         ]);
 
         $target->update([
@@ -205,21 +221,27 @@ new #[Title('Users')] class extends Component {
         </flux:table>
     </div>
 
-    <flux:modal wire:model.self="showInviteForm" class="md:w-96">
+    <flux:modal wire:model.self="showInviteForm" class="md:w-[480px]">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ __('Invite user') }}</flux:heading>
+            <flux:heading size="lg">{{ __('Invite / Create User') }}</flux:heading>
 
             <form wire:submit="inviteUser" class="flex flex-col gap-4">
-                <flux:input wire:model="invite_name" :label="__('Name')" required autofocus />
-                <flux:input type="email" wire:model="invite_email" :label="__('Email')" required />
+                <flux:input wire:model="invite_name" :label="__('Full Name')" placeholder="e.g. Rahul Sharma" required autofocus />
+                <flux:input type="email" wire:model="invite_email" :label="__('Email Address')" placeholder="e.g. rahul@example.com" required />
+                <flux:input type="tel" wire:model="invite_phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
 
-                <flux:select wire:model="invite_role_id" :label="__('Role')" :placeholder="__('Select a role')">
-                    @foreach ($this->roles as $role)
-                    <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:input wire:model="invite_city" :label="__('City')" placeholder="e.g. Jaipur" />
+                    <flux:select wire:model="invite_role_id" :label="__('Role')" :placeholder="__('Select a role')" required>
+                        @foreach ($this->roles as $role)
+                        <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
 
-                <div class="flex justify-end gap-2">
+                <flux:input wire:model="invite_address" :label="__('Full Address')" placeholder="e.g. 123 Station Road, Jaipur" />
+
+                <div class="flex justify-end gap-2 pt-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showInviteForm', false)">{{ __('Cancel') }}</flux:button>
                     <flux:button type="submit" variant="primary">{{ __('Send invite') }}</flux:button>
                 </div>
@@ -233,7 +255,7 @@ new #[Title('Users')] class extends Component {
 
             <form wire:submit="saveUser" class="flex flex-col gap-4">
                 <flux:input wire:model="edit_name" :label="__('Name')" required />
-                <flux:input wire:model="edit_phone" :label="__('Phone Number')" />
+                <flux:input type="tel" wire:model="edit_phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
                 <flux:input wire:model="edit_city" :label="__('City')" />
                 <flux:input wire:model="edit_address" :label="__('Address')" />
 
