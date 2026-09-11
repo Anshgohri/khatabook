@@ -182,3 +182,49 @@ test('staff cannot update a sale belonging to another user', function () {
         ->test('pages::khatabook.sales-form', ['sale' => $otherSale])
         ->assertForbidden();
 });
+
+test('existing customers can be searched by name, mobile number, or email in sales form', function () {
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    $cust1 = User::factory()->role(RoleName::Customer)->create([
+        'name' => 'Aarav Sharma',
+        'phone' => '9876543210',
+        'email' => 'aarav@example.com',
+    ]);
+    $cust2 = User::factory()->role(RoleName::Customer)->create([
+        'name' => 'Bhavna Patel',
+        'phone' => '9123456789',
+        'email' => 'bhavna@test.com',
+    ]);
+
+    $component = Livewire::actingAs($staff)
+        ->test('pages::khatabook.sales-form');
+
+    // Search by name
+    $component->set('customerSearch', 'Aarav');
+    expect($component->get('existingCustomers')->pluck('id')->all())->toContain($cust1->id);
+    expect($component->get('existingCustomers')->pluck('id')->all())->not->toContain($cust2->id);
+
+    // Search by mobile number
+    $component->set('customerSearch', '912345');
+    expect($component->get('existingCustomers')->pluck('id')->all())->toContain($cust2->id);
+    expect($component->get('existingCustomers')->pluck('id')->all())->not->toContain($cust1->id);
+
+    // Search by email
+    $component->set('customerSearch', 'aarav@example.com');
+    expect($component->get('existingCustomers')->pluck('id')->all())->toContain($cust1->id);
+    expect($component->get('existingCustomers')->pluck('id')->all())->not->toContain($cust2->id);
+
+    // Select customer via selectCustomer
+    $component->call('selectCustomer', $cust1->id);
+    expect($component->get('customer_id'))->toBe((string) $cust1->id);
+    expect($component->get('customer_name'))->toBe('Aarav Sharma');
+    expect($component->get('customer_phone'))->toBe('9876543210');
+    expect($component->get('customer_email'))->toBe('aarav@example.com');
+
+    // Clear selection
+    $component->call('clearCustomerSelection');
+    expect($component->get('customer_id'))->toBe('');
+    expect($component->get('customer_name'))->toBe('');
+    expect($component->get('customer_phone'))->toBe('');
+});

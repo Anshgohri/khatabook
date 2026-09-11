@@ -20,6 +20,8 @@ new #[Title('Sales Form')] class extends Component {
 
     public string $customer_id = '';
 
+    public string $customerSearch = '';
+
     public string $customer_name = '';
 
     public string $customer_phone = '';
@@ -106,6 +108,23 @@ new #[Title('Sales Form')] class extends Component {
         }
     }
 
+    public function selectCustomer(string|int $id): void
+    {
+        $this->customer_id = (string) $id;
+        $this->updatedCustomerId($this->customer_id);
+    }
+
+    public function clearCustomerSelection(): void
+    {
+        $this->customer_id = '';
+        $this->customer_name = '';
+        $this->customer_phone = '';
+        $this->customer_email = '';
+        $this->customer_address = '';
+        $this->customer_city = '';
+        $this->customerSearch = '';
+    }
+
     #[Computed]
     public function products()
     {
@@ -117,6 +136,15 @@ new #[Title('Sales Form')] class extends Component {
     {
         return User::query()
             ->whereHas('role', fn($q) => $q->where('name', RoleName::Customer->value))
+            ->when(trim($this->customerSearch) !== '', function ($query) {
+                $term = '%'.trim($this->customerSearch).'%';
+                $query->where(function ($q) use ($term) {
+                    $q->where('name', 'like', $term)
+                        ->orWhere('phone', 'like', $term)
+                        ->orWhere('email', 'like', $term)
+                        ->orWhere('city', 'like', $term);
+                });
+            })
             ->orderBy('name')
             ->get();
     }
@@ -313,14 +341,51 @@ new #[Title('Sales Form')] class extends Component {
                 <div class="grid gap-4 sm:grid-cols-2">
                     <flux:input type="date" wire:model="date" :label="__('Sale Date')" required />
 
+                    <flux:input wire:model.live.debounce.300ms="customerSearch" :label="__('Search Existing Customer')" :placeholder="__('Search by mobile number, name, or email...')" icon="magnifying-glass" clearable />
+                </div>
+
+                <div class="flex flex-col gap-2">
                     <flux:select wire:model.live="customer_id" :label="__('Select Existing Customer')">
-                        <flux:select.option value="">{{ __('-- Create New Customer / Manual --') }}</flux:select.option>
+                        <flux:select.option value="">{{ __('-- Create New Customer / Manual Entry --') }}</flux:select.option>
                         @foreach ($this->existingCustomers as $c)
                         <flux:select.option value="{{ $c->id }}">
-                            {{ $c->name }} {{ $c->phone ? "({$c->phone})" : '' }} {{ $c->city ? "- {$c->city}" : '' }}
+                            {{ $c->name }} {{ $c->phone ? " | Mobile: {$c->phone}" : '' }} {{ (!str_contains((string) $c->email, '@khatabook.customer')) ? " | Email: {$c->email}" : '' }} {{ $c->city ? " - {$c->city}" : '' }}
                         </flux:select.option>
                         @endforeach
                     </flux:select>
+
+                    @if (!empty(trim($customerSearch)) && $this->existingCustomers->isEmpty())
+                        <div class="p-3 text-xs text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+                            <span>{{ __('No existing customer found matching ":search". You can enter details manually below.', ['search' => $customerSearch]) }}</span>
+                            <flux:button size="xs" variant="ghost" wire:click="$set('customerSearch', '')">{{ __('Clear Search') }}</flux:button>
+                        </div>
+                    @endif
+
+                    @if (!empty(trim($customerSearch)) && $this->existingCustomers->isNotEmpty())
+                        <div class="flex flex-wrap items-center gap-2 pt-1">
+                            <span class="text-xs text-zinc-500 font-medium">{{ __('Quick Select:') }}</span>
+                            @foreach ($this->existingCustomers->take(4) as $c)
+                                <button type="button" wire:click="selectCustomer({{ $c->id }})" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-700 dark:hover:text-emerald-300 border border-zinc-200 dark:border-zinc-700 transition-colors {{ $customer_id == $c->id ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300' : '' }}">
+                                    <span class="font-medium">{{ $c->name }}</span>
+                                    @if ($c->phone)
+                                        <span class="text-zinc-400 dark:text-zinc-500">({{ $c->phone }})</span>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if ($customer_id)
+                        <div class="flex items-center justify-between p-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/60 text-xs">
+                            <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
+                                <flux:icon name="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span><strong>{{ __('Selected Customer:') }}</strong> {{ $customer_name }} {{ $customer_phone ? "({$customer_phone})" : '' }} {{ $customer_email ? "• {$customer_email}" : '' }}</span>
+                            </div>
+                            <button type="button" wire:click="clearCustomerSelection" class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 underline font-medium">
+                                {{ __('Clear / New Customer') }}
+                            </button>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
