@@ -261,6 +261,17 @@ new #[Title('Financiers')] class extends Component {
         unset($this->selectedLedgerFinancier);
         Flux::toast(variant: 'success', text: __('Financier payment recorded successfully.'));
     }
+    
+     public function deleteFinancier(int $id): void
+    {
+        $financier = Financier::findOrFail($id);
+        $this->authorize('delete', $financier);
+
+        $financier->delete();
+
+        unset($this->financiers);
+        Flux::toast(variant: 'success', text: __('Financier deleted successfully.'));
+    }
 
     // Ledger Navigation
     public function viewLedger(int $financierId)
