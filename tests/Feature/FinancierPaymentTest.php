@@ -157,3 +157,35 @@ test('can log daily payment via livewire form without error', function () {
 
     expect($financier->fresh()->payments)->toHaveCount(1);
 });
+
+test('can update initial loan amount when editing financier', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $financier = Financier::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Initial Test Financier',
+        'payout_type' => 'daily',
+        'default_payment_amount' => 500.00,
+    ]);
+
+    FinancierPayment::create([
+        'financier_id' => $financier->id,
+        'user_id' => $user->id,
+        'date' => now()->toDateString(),
+        'type' => 'loan_received',
+        'amount' => 50000.00,
+        'payment_method' => 'cash',
+        'notes' => 'Opening loan balance',
+    ]);
+
+    Livewire::test('pages::khatabook.financiers')
+        ->call('editFinancier', $financier->id)
+        ->assertSet('initial_loan_amount', 50000.00)
+        ->set('initial_loan_amount', 75000.00)
+        ->call('saveFinancier')
+        ->assertHasNoErrors();
+
+    $financier->refresh();
+    expect((float) $financier->outstanding_balance)->toEqual(75000.00);
+});

@@ -158,7 +158,10 @@ new #[Title('Financiers')] class extends Component {
         $this->payout_type = $financier->payout_type;
         $this->interest_type = $financier->interest_type ?? 'interest_only';
         $this->default_payment_amount = (float) $financier->default_payment_amount;
-        $this->initial_loan_amount = 0.0;
+
+        $initialLoanPayment = $financier->payments()->where('type', 'loan_received')->oldest()->first();
+        $this->initial_loan_amount = $initialLoanPayment ? (float) $initialLoanPayment->amount : 0.0;
+
         $this->status = $financier->status;
         $this->notes = (string) $financier->notes;
         $this->showFinancierModal = true;
@@ -184,6 +187,27 @@ new #[Title('Financiers')] class extends Component {
             $financier = Financier::findOrFail($this->editingFinancierId);
             $this->authorize('update', $financier);
             $financier->update($validated);
+
+            $initialLoanPayment = $financier->payments()->where('type', 'loan_received')->oldest()->first();
+            if ($initialLoanPayment) {
+                if ($initialLoan > 0) {
+                    $initialLoanPayment->update(['amount' => $initialLoan]);
+                } else {
+                    $initialLoanPayment->delete();
+                }
+            } elseif ($initialLoan > 0) {
+                FinancierPayment::create([
+                    'financier_id' => $financier->id,
+                    'user_id' => Auth::id(),
+                    'date' => $financier->created_at?->toDateString() ?? now()->toDateString(),
+                    'type' => 'loan_received',
+                    'amount' => $initialLoan,
+                    'payment_method' => 'cash',
+                    'notes' => __('Opening loan balance'),
+                ]);
+            }
+
+            $financier->recalculateOutstandingBalance();
         } else {
             $this->authorize('create', Financier::class);
             $financier = Financier::create([
@@ -426,9 +450,7 @@ new #[Title('Financiers')] class extends Component {
 
                 <flux:input type="number" step="0.01" min="0" wire:model="default_payment_amount" :label="__('Default Payment Amount (₹)')" placeholder="e.g. 500 or 5000" required />
                 
-                @if (! $editingFinancierId)
                 <flux:input type="number" step="0.01" min="0" wire:model="initial_loan_amount" :label="__('Initial Loan Amount / Opening Balance (₹)')" placeholder="e.g. 100000 (optional)" />
-                @endif
                 
                 <flux:select wire:model="status" :label="__('Status')">
                     <flux:select.option value="active">{{ __('Active') }}</flux:select.option>
