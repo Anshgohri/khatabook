@@ -167,7 +167,7 @@ new #[Title('Production Log')] class extends Component {
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
             <flux:heading size="xl">{{ __('Production & Manufacturing') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Log daily worker output, consume raw materials (Bans, Fatta), increase finished product stock, and record worker daily wages.') }}</flux:text>
+            <flux:text class="mt-1">{{ __('Log daily worker output, consume raw materials (Baans, Fatta), increase finished product stock, and record worker daily wages.') }}</flux:text>
         </div>
 
         @can('create', App\Models\ProductionLog::class)
@@ -289,7 +289,7 @@ new #[Title('Production Log')] class extends Component {
                     <flux:input type="date" wire:model="date" :label="__('Production Date')" required />
                 </div>
 
-                <flux:textarea wire:model="notes" :label="__('Remarks / Notes')" placeholder="e.g. Made 50 ladder frames using Assam bans" rows="2" />
+                <flux:textarea wire:model="notes" :label="__('Remarks / Notes')" placeholder="e.g. Made 50 ladder frames using Assam baans" rows="2" />
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showModal', false)">{{ __('Cancel') }}</flux:button>

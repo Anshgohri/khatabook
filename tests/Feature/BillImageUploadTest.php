@@ -28,7 +28,7 @@ test('user can upload a bill image when saving a supplier payment entry', functi
         ->set('amount', 25000)
         ->set('payment_method', 'bank_transfer')
         ->set('payment_date', now()->toDateString())
-        ->set('payment_notes', '200 Bans bought from Raja Assam')
+        ->set('payment_notes', '200 Baans bought from Raja Assam')
         ->set('bill_image', $file)
         ->call('savePayment');
 

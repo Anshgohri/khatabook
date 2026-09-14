@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Ashok Kumar Bans Store, Karnal - Premium Bamboo, Ghodi, Chaali & Siddhi Merchant</title>
+    <title>Ashok Kumar Baans Store, Karnal - Premium Bamboo, Ghodi, Chaali & Siddhi Merchant</title>
 
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -116,7 +116,7 @@
     <!-- Top Announcement Bar -->
     <div class="w-full bg-gradient-to-r from-emerald-950 via-slate-950 to-amber-950 border-b border-emerald-500/30 py-2.5 px-4 text-center text-xs sm:text-sm font-black flex items-center justify-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950 shadow-md animate-pulse">
-            <span>🎋</span> ASHOK KUMAR BANS STORE
+            <span>🎋</span> ASHOK KUMAR BAANS STORE
         </span>
         <span class="text-slate-100 font-bold">
             House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001 • Direct Bamboo Merchant
@@ -142,7 +142,7 @@
 
             <!-- Subtitle -->
             <p class="text-slate-200 text-lg sm:text-2xl font-semibold max-w-3xl mx-auto leading-relaxed drop-shadow-md">
-                Ashok Kumar Bans Store in Karnal. Direct timber yard supplier of 15ft, 20ft & 25ft raw bamboo poles, heavy-duty scaffolding Ghodi trestles, woven Chaali platforms, and sturdy Siddhi ladders.
+                Ashok Kumar Baans Store in Karnal. Direct timber yard supplier of 15ft, 20ft & 25ft raw bamboo poles, heavy-duty scaffolding Ghodi trestles, woven Chaali platforms, and sturdy Siddhi ladders.
             </p>
 
             <!-- Hero Action Button -->
@@ -365,9 +365,9 @@
             <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-emerald-500/40 text-emerald-400 text-xs sm:text-sm font-black shadow-xl">
                 <span>TRUSTED BAMBOO MERCHANTS • KARNAL, HARYANA</span>
             </div>
-            <h2 class="text-4xl sm:text-5xl font-black text-white">About <span class="gradient-text-emerald">Ashok Kumar Bans Store</span></h2>
+            <h2 class="text-4xl sm:text-5xl font-black text-white">About <span class="gradient-text-emerald">Ashok Kumar Baans Store</span></h2>
             <p class="text-slate-300 text-base sm:text-lg font-semibold leading-relaxed">
-                Established in Karnal, Haryana, Ashok Kumar Bans Store has been supplying high-tensile scaffolding bamboo, custom Ghodi trestles, tightly woven Chaali platforms, and sturdy Siddhi ladders to contractors and builders for over four decades.
+                Established in Karnal, Haryana, Ashok Kumar Baans Store has been supplying high-tensile scaffolding bamboo, custom Ghodi trestles, tightly woven Chaali platforms, and sturdy Siddhi ladders to contractors and builders for over four decades.
             </p>
         </div>
 
@@ -419,7 +419,7 @@
     <section id="contact" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full mb-16">
         <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-emerald-500/40 text-emerald-400 text-xs sm:text-sm font-black shadow-xl">
-                <span>GET IN TOUCH WITH ASHOK KUMAR BANS STORE</span>
+                <span>GET IN TOUCH WITH ASHOK KUMAR BAANS STORE</span>
             </div>
             <h2 class="text-4xl sm:text-5xl font-black text-white">Contact Us <span class="gradient-text-emerald">& Order Rates</span></h2>
             <p class="text-slate-300 text-base sm:text-lg font-semibold leading-relaxed">
@@ -434,7 +434,7 @@
                     <div class="space-y-6">
                         <div class="space-y-3 border-b border-slate-800 pb-6">
                             <span class="text-xs font-black uppercase tracking-wider text-emerald-400">Direct Store Address</span>
-                            <h3 class="text-2xl font-black text-white">Ashok Kumar Bans Store</h3>
+                            <h3 class="text-2xl font-black text-white">Ashok Kumar Baans Store</h3>
                             <p class="text-slate-300 text-sm font-medium leading-relaxed">
                                 House No 2755, Opposite Gaushala Road,<br>
                                 Janak Puri, Karnal, Haryana - 132001
@@ -527,7 +527,7 @@
     <!-- Footer -->
     <footer class="w-full border-t border-slate-800 bg-slate-950 py-8 text-center text-sm text-slate-300 mt-auto">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Bans Store, Karnal. All rights reserved.</span>
+            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
             <div class="flex items-center gap-6 text-sm font-bold text-slate-300">
                 <a href="#" class="hover:text-emerald-400 transition">Home</a>
                 <a href="#products" class="hover:text-emerald-400 transition">Products</a>

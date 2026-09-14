@@ -9,7 +9,7 @@
             </div>
             <div class="min-w-0">
                 <span class="text-base sm:text-2xl lg:text-3xl font-black tracking-tight text-white flex items-center gap-1 truncate">
-                    Ashok Kumar <span class="gradient-text-emerald">Bans Store</span>
+                    Ashok Kumar <span class="gradient-text-emerald">Baans Store</span>
                 </span>
                 <span class="block text-[10px] sm:text-xs gradient-text-amber font-bold tracking-wide truncate">
                     Ashok Kumar • Karnal, Haryana

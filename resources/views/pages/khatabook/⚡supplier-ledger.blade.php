@@ -308,7 +308,7 @@ new #[Title('Supplier Ledger')] class extends Component {
                     <flux:select.option value="other">{{ __('Other') }}</flux:select.option>
                 </flux:select>
 
-                <flux:textarea wire:model="payment_notes" :label="__('Notes / Item Details')" placeholder="e.g. 200 Bans purchased" rows="2" />
+                <flux:textarea wire:model="payment_notes" :label="__('Notes / Item Details')" placeholder="e.g. 200 Baans purchased" rows="2" />
 
                 <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
 

@@ -250,7 +250,7 @@ new #[Title('Suppliers')] class extends Component {
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
             <flux:heading size="xl">{{ __('Raw Material Suppliers') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Manage raw material vendors (e.g. Raja Assam for Bans, Suraj for Fatta), purchases, and balance ledgers.') }}</flux:text>
+            <flux:text class="mt-1">{{ __('Manage raw material vendors (e.g. Raja Assam for Baans, Suraj for Fatta), purchases, and balance ledgers.') }}</flux:text>
         </div>
 
         @can('create', App\Models\Supplier::class)
@@ -359,7 +359,7 @@ new #[Title('Suppliers')] class extends Component {
                 <flux:input wire:model="name" :label="__('Supplier Name')" placeholder="e.g. Raja Assam" required />
                 <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
                 <flux:input wire:model="location" :label="__('Location / City')" placeholder="e.g. Assam" />
-                <flux:input wire:model="material_supplied" :label="__('Material Supplied')" placeholder="e.g. Bans (Bamboo), Fatta" />
+                <flux:input wire:model="material_supplied" :label="__('Material Supplied')" placeholder="e.g. Baans (Bamboo), Fatta" />
 
                 @if (! $editingSupplierId)
                 <flux:input type="number" step="0.01" min="0" wire:model="initial_balance" :label="__('Initial Opening Balance Owed (₹)')" placeholder="e.g. 40000 (optional)" />
@@ -402,7 +402,7 @@ new #[Title('Suppliers')] class extends Component {
                     <flux:select.option value="other">{{ __('Other') }}</flux:select.option>
                 </flux:select>
 
-                <flux:textarea wire:model="payment_notes" :label="__('Notes / Item Details')" placeholder="e.g. 200 Bans purchased" rows="2" />
+                <flux:textarea wire:model="payment_notes" :label="__('Notes / Item Details')" placeholder="e.g. 200 Baans purchased" rows="2" />
 
                 <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
 

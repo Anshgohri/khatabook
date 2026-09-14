@@ -23,7 +23,7 @@ class SupplierFactory extends Factory
             'name' => fake()->name().' Traders',
             'phone' => fake()->phoneNumber(),
             'location' => fake()->city(),
-            'material_supplied' => fake()->randomElement(['Bans (Bamboo)', 'Fatta (Wood Planks)', 'Steel Wire', 'Plywood']),
+            'material_supplied' => fake()->randomElement(['Baans (Bamboo)', 'Fatta (Wood Planks)', 'Steel Wire', 'Plywood']),
             'outstanding_balance' => 0.00,
             'status' => 'active',
             'notes' => fake()->optional()->sentence(),

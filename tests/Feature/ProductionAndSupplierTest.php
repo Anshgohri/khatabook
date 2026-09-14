@@ -15,7 +15,7 @@ test('purchasing raw material from supplier updates supplier balance correctly',
         'user_id' => $user->id,
         'name' => 'Raja Assam',
         'location' => 'Assam',
-        'material_supplied' => 'Bans (Bamboo)',
+        'material_supplied' => 'Baans (Bamboo)',
     ]);
 
     // Raw material purchase invoice of 40,000
@@ -26,7 +26,7 @@ test('purchasing raw material from supplier updates supplier balance correctly',
         'type' => 'raw_material_purchase',
         'amount' => 40000.00,
         'payment_method' => 'bank_transfer',
-        'notes' => 'Purchased Bans batch from Assam',
+        'notes' => 'Purchased Baans batch from Assam',
     ]);
 
     // Payment made of 15,000 to Raja
@@ -49,11 +49,11 @@ test('production log updates finished product stock, reduces raw material stock 
     $user = User::factory()->create();
     $category = ProductCategory::factory()->create();
 
-    // Raw Material: Bans (Stock: 100)
+    // Raw Material: Baans (Stock: 100)
     $rawMaterial = Product::create([
         'product_category_id' => $category->id,
         'type' => 'raw_material',
-        'name' => 'Bans (Bamboo)',
+        'name' => 'Baans (Bamboo)',
         'unit_price' => 150.00,
         'unit' => 'bundle',
         'stock_level' => 100,
@@ -76,7 +76,7 @@ test('production log updates finished product stock, reduces raw material stock 
         'default_daily_rate' => 500.00,
     ]);
 
-    // Log Production: Talib makes 10 Bamboo Stools, consuming 15 Bans, wage ₹500
+    // Log Production: Talib makes 10 Bamboo Stools, consuming 15 Baans, wage ₹500
     ProductionLog::create([
         'user_id' => $user->id,
         'employee_id' => $worker->id,

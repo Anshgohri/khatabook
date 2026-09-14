@@ -73,7 +73,7 @@ test('authenticated users can access supplier ledger page and record raw materia
         ->set('amount', 15000)
         ->set('payment_date', now()->toDateString())
         ->set('payment_method', 'bank_transfer')
-        ->set('payment_notes', '200 Bans purchased')
+        ->set('payment_notes', '200 Baans purchased')
         ->call('savePayment')
         ->assertHasNoErrors();
 

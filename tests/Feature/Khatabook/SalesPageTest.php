@@ -53,7 +53,7 @@ test('staff can create a sale and the total is computed automatically', function
 test('staff can create multi-product sale and product stock levels are automatically reduced', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
-    $bans = Product::factory()->create(['name' => 'Bans 25 feet', 'unit_price' => 150, 'stock_level' => 50]);
+    $baans = Product::factory()->create(['name' => 'Baans 25 feet', 'unit_price' => 150, 'stock_level' => 50]);
     $ghodi = Product::factory()->create(['name' => 'Ghodi 4 feet', 'unit_price' => 200, 'stock_level' => 30]);
     $siddi = Product::factory()->create(['name' => 'Siddi 10 feet', 'unit_price' => 500, 'stock_level' => 20]);
 
@@ -62,7 +62,7 @@ test('staff can create multi-product sale and product stock levels are automatic
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Rajesh Buildcon')
         ->set('saleItems', [
-            ['product_id' => $bans->id, 'quantity' => 2, 'unit_price' => 150, 'total_price' => 300],
+            ['product_id' => $baans->id, 'quantity' => 2, 'unit_price' => 150, 'total_price' => 300],
             ['product_id' => $ghodi->id, 'quantity' => 4, 'unit_price' => 200, 'total_price' => 800],
             ['product_id' => $siddi->id, 'quantity' => 2, 'unit_price' => 500, 'total_price' => 1000],
         ])
@@ -74,10 +74,10 @@ test('staff can create multi-product sale and product stock levels are automatic
 
     expect($sale->items)->toHaveCount(3);
     expect((float) $sale->total_amount)->toBe(2100.0);
-    expect($sale->items_sold)->toContain('2x Bans 25 feet');
+    expect($sale->items_sold)->toContain('2x Baans 25 feet');
 
     // Verify stock reduction:
-    expect($bans->fresh()->stock_level)->toBe(48); // 50 - 2
+    expect($baans->fresh()->stock_level)->toBe(48); // 50 - 2
     expect($ghodi->fresh()->stock_level)->toBe(26); // 30 - 4
     expect($siddi->fresh()->stock_level)->toBe(18); // 20 - 2
 });
@@ -85,19 +85,19 @@ test('staff can create multi-product sale and product stock levels are automatic
 test('deleting a sale restores product stock levels', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
     $manager = User::factory()->role(RoleName::Manager)->create();
-    $bans = Product::factory()->create(['name' => 'Bans 25 feet', 'unit_price' => 150, 'stock_level' => 50]);
+    $baans = Product::factory()->create(['name' => 'Baans 25 feet', 'unit_price' => 150, 'stock_level' => 50]);
 
     Livewire::actingAs($staff)
         ->test('pages::khatabook.sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Test Customer')
         ->set('saleItems', [
-            ['product_id' => $bans->id, 'quantity' => 5, 'unit_price' => 150, 'total_price' => 750],
+            ['product_id' => $baans->id, 'quantity' => 5, 'unit_price' => 150, 'total_price' => 750],
         ])
         ->set('payment_status', 'paid')
         ->call('save');
 
-    expect($bans->fresh()->stock_level)->toBe(45);
+    expect($baans->fresh()->stock_level)->toBe(45);
 
     $sale = Sale::latest()->first();
 
@@ -105,7 +105,7 @@ test('deleting a sale restores product stock levels', function () {
         ->test('pages::khatabook.sales')
         ->call('deleteSale', $sale->id);
 
-    expect($bans->fresh()->stock_level)->toBe(50);
+    expect($baans->fresh()->stock_level)->toBe(50);
 });
 
 test('discount reduces final sale total amount', function () {

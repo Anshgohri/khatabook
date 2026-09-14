@@ -23,6 +23,6 @@ class ContactInquiryController extends Controller
 
         ContactInquiry::create($validated);
 
-        return redirect()->route('thank-you')->with('success', 'Your inquiry has been submitted successfully to Ashok Kumar Bans Store.');
+        return redirect()->route('thank-you')->with('success', 'Your inquiry has been submitted successfully to Ashok Kumar Baans Store.');
     }
 }

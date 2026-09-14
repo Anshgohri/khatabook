@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Thank You - Ashok Kumar Bans Store, Karnal</title>
+    <title>Thank You - Ashok Kumar Baans Store, Karnal</title>
 
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -75,7 +75,7 @@
     <!-- Top Announcement Bar -->
     <div class="w-full bg-gradient-to-r from-emerald-950 via-slate-900 to-amber-950 border-b border-emerald-500/30 py-2.5 px-4 text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-slate-950">
-            <span>🎋</span> ASHOK KUMAR BANS STORE
+            <span>🎋</span> ASHOK KUMAR BAANS STORE
         </span>
         <span class="text-white font-bold">
             Karnal • Raw Bamboo Stock, Scaffolding & Ladders Ledger
@@ -102,7 +102,7 @@
             </h1>
 
             <p class="text-slate-200 text-base sm:text-xl font-semibold leading-relaxed max-w-xl mx-auto">
-                We have received your inquiry at <strong>Ashok Kumar Bans Store, Karnal</strong>. Our store team will review your requirement and reach out to you on your contact number shortly.
+                We have received your inquiry at <strong>Ashok Kumar Baans Store, Karnal</strong>. Our store team will review your requirement and reach out to you on your contact number shortly.
             </p>
 
             <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
@@ -122,7 +122,7 @@
     <!-- Footer -->
     <footer class="w-full border-t-2 border-slate-800 bg-slate-950 py-8 text-center text-sm text-slate-200">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Bans Store, Karnal. All rights reserved.</span>
+            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
             <div class="flex items-center gap-6 text-sm font-bold text-slate-300">
                 <a href="{{ route('home') }}" class="hover:text-emerald-glow transition">Home</a>
                 <a href="{{ route('about') }}" class="hover:text-emerald-glow transition">About Us</a>

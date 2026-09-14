@@ -103,7 +103,7 @@ new #[Title('Product Categories')] class extends Component {
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <flux:heading size="xl">{{ __('Product Categories') }}</flux:heading>
-            <flux:subheading>{{ __('Manage item categories for Ashok Kumar Bans Store, Karnal') }}</flux:subheading>
+            <flux:subheading>{{ __('Manage item categories for Ashok Kumar Baans Store, Karnal') }}</flux:subheading>
         </div>
 
         @can('create', App\Models\ProductCategory::class)

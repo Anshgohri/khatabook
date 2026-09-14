@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>About Us - Ashok Kumar Bans Store, Karnal</title>
+    <title>About Us - Ashok Kumar Baans Store, Karnal</title>
 
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -91,7 +91,7 @@
     <!-- Top Announcement Bar -->
     <div class="w-full bg-gradient-to-r from-emerald-950 via-slate-950 to-amber-950 border-b border-emerald-500/30 py-2.5 px-4 text-center text-xs sm:text-sm font-black flex items-center justify-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950 shadow-md">
-            <span>🎋</span> ASHOK KUMAR BANS STORE
+            <span>🎋</span> ASHOK KUMAR BAANS STORE
         </span>
         <span class="text-slate-100 font-bold">
             Karnal, Haryana • Raw Bamboo Stock, Scaffolding Ghodi, Chaali & Siddhi Merchant
@@ -107,7 +107,7 @@
             <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-emerald-500/40 text-emerald-400 text-xs sm:text-sm font-black shadow-xl">
                 <span>TRUSTED BAMBOO MERCHANTS • KARNAL, HARYANA</span>
             </div>
-            <h1 class="text-4xl sm:text-6xl font-black text-white">About <span class="gradient-text-emerald">Ashok Kumar Bans Store</span></h1>
+            <h1 class="text-4xl sm:text-6xl font-black text-white">About <span class="gradient-text-emerald">Ashok Kumar Baans Store</span></h1>
             <p class="text-slate-200 text-base sm:text-xl font-semibold leading-relaxed">
                 Providing premium raw bamboo poles and custom construction scaffolding equipment for building contractors and retail buyers across Haryana.
             </p>
@@ -121,7 +121,7 @@
             <div class="glow-card p-8 sm:p-10 rounded-3xl lg:col-span-2 space-y-6 shadow-2xl">
                 <h2 class="text-3xl font-black text-white">Our Business Story</h2>
                 <p class="text-slate-200 text-base sm:text-lg leading-relaxed font-semibold">
-                    <strong>Ashok Kumar Bans Store</strong> is a premier bamboo merchant located in <strong>Karnal, Haryana</strong>, owned and operated under <strong>Ashok Kumar</strong>. We specialize in sourcing top-grade raw bamboos in standard 15 feet, 20 feet, and 25 feet lengths.
+                    <strong>Ashok Kumar Baans Store</strong> is a premier bamboo merchant located in <strong>Karnal, Haryana</strong>, owned and operated under <strong>Ashok Kumar</strong>. We specialize in sourcing top-grade raw bamboos in standard 15 feet, 20 feet, and 25 feet lengths.
                 </p>
                 <p class="text-slate-200 text-base sm:text-lg leading-relaxed font-semibold">
                     In addition to raw bamboo supply, we run a dedicated processing unit where skilled craftsmen manufacture construction essential scaffolding equipment:
@@ -150,7 +150,7 @@
                 <div class="glow-card p-7 rounded-3xl space-y-3">
                     <div class="text-4xl">📍</div>
                     <h3 class="text-xl font-black text-white">Location</h3>
-                    <p class="text-slate-200 text-sm font-semibold leading-relaxed">Ashok Kumar Bans Store<br>Karnal, Haryana - 132001</p>
+                    <p class="text-slate-200 text-sm font-semibold leading-relaxed">Ashok Kumar Baans Store<br>Karnal, Haryana - 132001</p>
                 </div>
 
                 <div class="glow-card p-7 rounded-3xl space-y-3">
@@ -172,7 +172,7 @@
             <h2 class="text-3xl sm:text-4xl font-black text-white">Need Raw Bamboo or Construction Scaffolding?</h2>
             <p class="text-slate-200 text-base font-semibold max-w-xl mx-auto">Get in touch with us today for bulk wholesale quotes, custom Ghodi/Chaali sizes, or store visits in Karnal.</p>
             <div class="pt-2">
-                <a href="{{ route('contact') }}" class="px-9 py-4 rounded-xl btn-emerald-glow text-base inline-block shadow-xl">Contact Ashok Kumar Bans Store</a>
+                <a href="{{ route('contact') }}" class="px-9 py-4 rounded-xl btn-emerald-glow text-base inline-block shadow-xl">Contact Ashok Kumar Baans Store</a>
             </div>
         </div>
     </main>
@@ -180,7 +180,7 @@
     <!-- Footer -->
     <footer class="w-full border-t border-slate-800 bg-slate-950 py-8 text-center text-sm text-slate-300">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Bans Store, Karnal. All rights reserved.</span>
+            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
             <div class="flex items-center gap-6 text-sm font-bold text-slate-300">
                 <a href="{{ route('home') }}" class="hover:text-emerald-400 transition">Home</a>
                 <a href="{{ route('about') }}" class="hover:text-emerald-400 transition">About Us</a>

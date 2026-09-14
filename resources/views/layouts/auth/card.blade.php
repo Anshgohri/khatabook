@@ -67,7 +67,7 @@
         <!-- Top Announcement Bar -->
         <div class="w-full bg-gradient-to-r from-emerald-950 via-slate-950 to-amber-950 border-b border-emerald-500/30 py-2.5 px-4 text-center text-xs sm:text-sm font-black flex items-center justify-center gap-2">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950 shadow-md">
-                <span>🎋</span> ASHOK KUMAR BANS STORE
+                <span>🎋</span> ASHOK KUMAR BAANS STORE
             </span>
             <span class="text-slate-100 font-bold">
                 House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001
@@ -83,7 +83,7 @@
                 </div>
                 <div>
                     <span class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-                        Ashok Kumar <span class="gradient-text-emerald">Bans Store</span>
+                        Ashok Kumar <span class="gradient-text-emerald">Baans Store</span>
                     </span>
                     <span class="block text-[10px] sm:text-xs gradient-text-amber font-bold tracking-wide">
                         Karnal, Haryana • Direct Bamboo Merchant
@@ -128,7 +128,7 @@
         <!-- Footer -->
         <footer class="w-full border-t border-slate-800 bg-slate-950 py-6 text-center text-sm text-slate-300 relative z-20">
             <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Bans Store, Karnal. All rights reserved.</span>
+                <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
                 <div class="flex items-center gap-6 text-sm font-bold text-slate-300">
                     <a href="{{ route('home') }}" class="hover:text-emerald-400 transition">Home</a>
                     <a href="{{ route('about') }}" class="hover:text-emerald-400 transition">About Us</a>

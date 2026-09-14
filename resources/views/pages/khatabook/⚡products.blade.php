@@ -268,7 +268,7 @@ new #[Title('Products & Inventory')] class extends Component {
             <flux:heading size="lg">{{ $editingId ? __('Edit product') : __('Add product') }}</flux:heading>
 
             <form wire:submit="saveProduct" class="flex flex-col gap-4">
-                <flux:input wire:model="name" :label="__('Name')" placeholder="e.g. Bans (Bamboo) or Finished Table" required />
+                <flux:input wire:model="name" :label="__('Name')" placeholder="e.g. Baans (Bamboo) or Finished Table" required />
 
                 <flux:select wire:model="type" :label="__('Item Type')" required>
                     <flux:select.option value="finished_good">{{ __('Finished Good (Sales Item)') }}</flux:select.option>
