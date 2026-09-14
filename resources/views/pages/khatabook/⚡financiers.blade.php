@@ -27,6 +27,7 @@ new #[Title('Financiers')] class extends Component {
     public string $name = '';
     public string $phone = '';
     public string $payout_type = 'daily'; // daily, weekly, monthly
+    public string $interest_type = 'interest_only'; // interest_only, principal_reducing
     public float $default_payment_amount = 0.0;
     public float $initial_loan_amount = 0.0;
     public string $status = 'active';
@@ -141,6 +142,7 @@ new #[Title('Financiers')] class extends Component {
 
         $this->reset(['editingFinancierId', 'name', 'phone', 'default_payment_amount', 'initial_loan_amount', 'notes']);
         $this->payout_type = 'daily';
+        $this->interest_type = 'interest_only';
         $this->status = 'active';
         $this->showFinancierModal = true;
     }
@@ -154,6 +156,7 @@ new #[Title('Financiers')] class extends Component {
         $this->name = $financier->name;
         $this->phone = (string) $financier->phone;
         $this->payout_type = $financier->payout_type;
+        $this->interest_type = $financier->interest_type ?? 'interest_only';
         $this->default_payment_amount = (float) $financier->default_payment_amount;
         $this->initial_loan_amount = 0.0;
         $this->status = $financier->status;
@@ -167,6 +170,7 @@ new #[Title('Financiers')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'payout_type' => ['required', 'in:daily,weekly,monthly'],
+            'interest_type' => ['required', 'in:interest_only,principal_reducing'],
             'default_payment_amount' => ['required', 'numeric', 'min:0'],
             'initial_loan_amount' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
@@ -350,9 +354,14 @@ new #[Title('Financiers')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $financier->phone ?? '-' }}</flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge :color="$financier->payout_type === 'daily' ? 'blue' : ($financier->payout_type === 'weekly' ? 'emerald' : 'purple')" size="sm">
-                            {{ ucfirst($financier->payout_type) }}
-                        </flux:badge>
+                        <div class="flex flex-col items-start gap-1">
+                            <flux:badge :color="$financier->payout_type === 'daily' ? 'blue' : ($financier->payout_type === 'weekly' ? 'emerald' : 'purple')" size="sm">
+                                {{ ucfirst($financier->payout_type) }}
+                            </flux:badge>
+                            <flux:badge :color="$financier->interest_type === 'interest_only' ? 'indigo' : 'sky'" size="sm">
+                                {{ $financier->interest_type === 'interest_only' ? __('Interest Only') : __('Principal Reduction') }}
+                            </flux:badge>
+                        </div>
                     </flux:table.cell>
                     <flux:table.cell>₹{{ number_format((float) $financier->default_payment_amount, 2) }} / {{ $financier->payout_type }}</flux:table.cell>
                     <flux:table.cell class="font-semibold text-orange-600 dark:text-orange-400">
@@ -408,6 +417,11 @@ new #[Title('Financiers')] class extends Component {
                     <flux:select.option value="daily">{{ __('Daily Paid') }}</flux:select.option>
                     <flux:select.option value="weekly">{{ __('Weekly Paid') }}</flux:select.option>
                     <flux:select.option value="monthly">{{ __('Monthly Paid') }}</flux:select.option>
+                </flux:select>
+
+                <flux:select wire:model="interest_type" :label="__('Loan Structure / EMI Mode')" required>
+                    <flux:select.option value="interest_only">{{ __('Interest Only (EMI is interest, principal stays same)') }}</flux:select.option>
+                    <flux:select.option value="principal_reducing">{{ __('Principal Reduction (EMI reduces loan balance)') }}</flux:select.option>
                 </flux:select>
 
                 <flux:input type="number" step="0.01" min="0" wire:model="default_payment_amount" :label="__('Default Payment Amount (₹)')" placeholder="e.g. 500 or 5000" required />

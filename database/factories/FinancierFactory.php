@@ -24,6 +24,7 @@ class FinancierFactory extends Factory
             'name' => fake()->company().' Finance',
             'phone' => fake()->phoneNumber(),
             'payout_type' => fake()->randomElement(['daily', 'monthly']),
+            'interest_type' => 'interest_only',
             'default_payment_amount' => fake()->randomElement([500.00, 1000.00, 5000.00]),
             'outstanding_balance' => 0.00,
             'status' => 'active',

@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string|null $phone
  * @property string $payout_type
+ * @property string $interest_type
  * @property string $default_payment_amount
  * @property string $outstanding_balance
  * @property string $status
@@ -29,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property User|null $financierUser
  * @property Collection<int, FinancierPayment> $payments
  */
-#[Fillable(['user_id', 'financier_user_id', 'name', 'phone', 'payout_type', 'default_payment_amount', 'outstanding_balance', 'status', 'notes'])]
+#[Fillable(['user_id', 'financier_user_id', 'name', 'phone', 'payout_type', 'interest_type', 'default_payment_amount', 'outstanding_balance', 'status', 'notes'])]
 class Financier extends Model
 {
     /** @use HasFactory<FinancierFactory> */
@@ -79,12 +80,20 @@ class Financier extends Model
             ->where('type', 'loan_received')
             ->sum('amount');
 
-        $totalPaid = (float) $this->payments()
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
-            ->sum('amount');
+        if ($this->interest_type === 'principal_reducing') {
+            $totalPrincipalDeducted = (float) $this->payments()
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid'])
+                ->sum('amount');
+        } else {
+            // Default: interest_only. Installment payments are interest payments, principal remains intact.
+            // Only explicit loan_repaid payments reduce principal balance.
+            $totalPrincipalDeducted = (float) $this->payments()
+                ->where('type', 'loan_repaid')
+                ->sum('amount');
+        }
 
         $this->update([
-            'outstanding_balance' => $totalLoanReceived - $totalPaid,
+            'outstanding_balance' => max(0.0, $totalLoanReceived - $totalPrincipalDeducted),
         ]);
     }
 
@@ -99,6 +108,32 @@ class Financier extends Model
     {
         return (float) $this->payments
             ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+            ->sum('amount');
+    }
+
+    public function getTotalInterestPaidAttribute(): float
+    {
+        if ($this->interest_type === 'principal_reducing') {
+            return (float) $this->payments
+                ->where('type', 'interest_payment')
+                ->sum('amount');
+        }
+
+        return (float) $this->payments
+            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'interest_payment'])
+            ->sum('amount');
+    }
+
+    public function getTotalPrincipalRepaidAttribute(): float
+    {
+        if ($this->interest_type === 'principal_reducing') {
+            return (float) $this->payments
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid'])
+                ->sum('amount');
+        }
+
+        return (float) $this->payments
+            ->where('type', 'loan_repaid')
             ->sum('amount');
     }
 }

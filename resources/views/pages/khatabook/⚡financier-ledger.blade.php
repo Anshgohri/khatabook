@@ -165,8 +165,11 @@ new #[Title('Financier Ledger')] class extends Component {
             </flux:button>
             <div>
                 <flux:heading size="xl">{{ $this->financier->name }} – {{ __('Ledger History') }}</flux:heading>
-                <flux:text class="mt-0.5 text-sm">
-                    {{ __('Frequency:') }} {{ ucfirst($this->financier->payout_type) }} (₹{{ number_format((float) $this->financier->default_payment_amount, 2) }})
+                <flux:text class="mt-0.5 text-sm flex items-center gap-2 flex-wrap">
+                    <span>{{ __('Frequency:') }} {{ ucfirst($this->financier->payout_type) }} (₹{{ number_format((float) $this->financier->default_payment_amount, 2) }})</span>
+                    <flux:badge :color="$this->financier->interest_type === 'interest_only' ? 'indigo' : 'sky'" size="sm">
+                        {{ $this->financier->interest_type === 'interest_only' ? __('Interest Only') : __('Principal Reduction') }}
+                    </flux:badge>
                     @if ($this->financier->phone)
                         • {{ $this->financier->phone }}
                     @endif

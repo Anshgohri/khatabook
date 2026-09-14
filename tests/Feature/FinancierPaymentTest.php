@@ -29,50 +29,54 @@ test('authenticated users can access the financiers page', function () {
     $response->assertOk();
 });
 
-test('can create financier and log daily and monthly payments correctly', function () {
+test('interest only financier like Nitin Panipat keeps principal intact when interest EMI is paid', function () {
     $user = User::factory()->create();
 
     $financier = Financier::factory()->create([
         'user_id' => $user->id,
-        'name' => 'Mahavir Finance',
-        'payout_type' => 'daily',
-        'default_payment_amount' => 500.00,
+        'name' => 'Nitin Panipat',
+        'payout_type' => 'monthly',
+        'interest_type' => 'interest_only',
+        'default_payment_amount' => 3000.00,
     ]);
 
-    // Record loan received of 50000
+    // Record loan received of 60,000
     FinancierPayment::create([
         'financier_id' => $financier->id,
         'user_id' => $user->id,
-        'date' => now()->subDays(5)->toDateString(),
+        'date' => now()->subMonths(2)->toDateString(),
         'type' => 'loan_received',
-        'amount' => 50000.00,
+        'amount' => 60000.00,
         'payment_method' => 'bank_transfer',
-        'notes' => '50k loan taken from Mahavir Finance',
+        'notes' => 'Opening 60k loan taken',
     ]);
 
-    // Record daily payment of 500
+    // Record monthly payment (interest EMI) of 3,000
     FinancierPayment::create([
         'financier_id' => $financier->id,
         'user_id' => $user->id,
         'date' => now()->toDateString(),
-        'type' => 'daily_payment',
-        'amount' => 500.00,
+        'type' => 'monthly_payment',
+        'amount' => 3000.00,
         'payment_method' => 'upi',
     ]);
 
     $financier->refresh();
 
-    // Balance should be 50,000 - 500 = 49,500
-    expect((float) $financier->outstanding_balance)->toEqual(49500.00);
+    // Principal loan balance remains 60,000 (no deductions placed from interest payment)
+    expect((float) $financier->outstanding_balance)->toEqual(60000.00);
+    // Total paid should reflect 3,000
+    expect((float) $financier->total_paid)->toEqual(3000.00);
 });
 
-test('can create weekly paid financier and log weekly payment', function () {
+test('principal reducing financier reduces balance on installment payment', function () {
     $user = User::factory()->create();
 
     $financier = Financier::factory()->create([
         'user_id' => $user->id,
         'name' => 'Weekly Micro Finance',
         'payout_type' => 'weekly',
+        'interest_type' => 'principal_reducing',
         'default_payment_amount' => 2000.00,
     ]);
 
