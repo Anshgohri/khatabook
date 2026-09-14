@@ -20,7 +20,7 @@ class FinancierPolicy
      */
     public function view(User $user, Financier $financier): bool
     {
-        return $financier->user_id === $user->id || $user->isManager();
+        return $financier->user_id === $user->id || $financier->financier_user_id === $user->id || $user->isManager();
     }
 
     /**
@@ -36,7 +36,7 @@ class FinancierPolicy
      */
     public function update(User $user, Financier $financier): bool
     {
-        return $financier->user_id === $user->id || $user->isManager();
+        return $financier->user_id === $user->id || $financier->financier_user_id === $user->id || $user->isManager();
     }
 
     /**

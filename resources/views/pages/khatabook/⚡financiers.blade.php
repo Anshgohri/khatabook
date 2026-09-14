@@ -1,10 +1,15 @@
 <?php
 
+use App\Enums\RoleName;
 use App\Models\Financier;
 use App\Models\FinancierPayment;
+use App\Models\Role;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -25,6 +30,7 @@ new #[Title('Financiers')] class extends Component {
     public bool $showFinancierModal = false;
     public ?int $editingFinancierId = null;
     public string $name = '';
+    public string $email = '';
     public string $phone = '';
     public string $payout_type = 'daily'; // daily, weekly, monthly
     public string $interest_type = 'interest_only'; // interest_only, principal_reducing
@@ -48,9 +54,18 @@ new #[Title('Financiers')] class extends Component {
     public ?int $ledgerFinancierId = null;
     public string $ledgerPeriod = 'this_month'; // this_month, this_week, this_year, all
 
-    public function mount(): void
+    public function mount()
     {
         $this->authorize('viewAny', Financier::class);
+
+        $user = Auth::user();
+        if ($user->isFinancier()) {
+            $financier = Financier::where('financier_user_id', $user->id)->first();
+            if ($financier) {
+                return $this->redirect(route('financiers.show', $financier->id), navigate: true);
+            }
+        }
+
         $this->payment_date = now()->toDateString();
     }
 
@@ -69,7 +84,8 @@ new #[Title('Financiers')] class extends Component {
     {
         $user = Auth::user();
         return (float) FinancierPayment::query()
-            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
             ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
             ->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
             ->sum('amount');
@@ -80,7 +96,8 @@ new #[Title('Financiers')] class extends Component {
     {
         $user = Auth::user();
         return (float) FinancierPayment::query()
-            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
             ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
             ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
             ->sum('amount');
@@ -91,7 +108,8 @@ new #[Title('Financiers')] class extends Component {
     {
         $user = Auth::user();
         return (float) FinancierPayment::query()
-            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
             ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
             ->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])
             ->sum('amount');
@@ -102,7 +120,8 @@ new #[Title('Financiers')] class extends Component {
     {
         $user = Auth::user();
         return (float) Financier::query()
-            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
             ->sum('outstanding_balance');
     }
 
@@ -112,11 +131,15 @@ new #[Title('Financiers')] class extends Component {
         $user = Auth::user();
 
         return Financier::query()
-            ->with(['payments'])
-            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->with(['payments', 'financierUser'])
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
             ->when($this->payoutType, fn ($query) => $query->where('payout_type', $this->payoutType))
-            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%"))
+            ->when($this->search, fn ($query) => $query->where(function ($sub) {
+                $sub->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('phone', 'like', "%{$this->search}%")
+                    ->orWhereHas('financierUser', fn ($q) => $q->where('email', 'like', "%{$this->search}%"));
+            }))
             ->latest()
             ->paginate(15);
     }
@@ -140,7 +163,7 @@ new #[Title('Financiers')] class extends Component {
     {
         $this->authorize('create', Financier::class);
 
-        $this->reset(['editingFinancierId', 'name', 'phone', 'default_payment_amount', 'initial_loan_amount', 'notes']);
+        $this->reset(['editingFinancierId', 'name', 'email', 'phone', 'default_payment_amount', 'initial_loan_amount', 'notes']);
         $this->payout_type = 'daily';
         $this->interest_type = 'interest_only';
         $this->status = 'active';
@@ -149,11 +172,12 @@ new #[Title('Financiers')] class extends Component {
 
     public function editFinancier(int $id): void
     {
-        $financier = Financier::findOrFail($id);
+        $financier = Financier::with('financierUser')->findOrFail($id);
         $this->authorize('update', $financier);
 
         $this->editingFinancierId = $financier->id;
         $this->name = $financier->name;
+        $this->email = (string) ($financier->financierUser?->email ?? '');
         $this->phone = (string) $financier->phone;
         $this->payout_type = $financier->payout_type;
         $this->interest_type = $financier->interest_type ?? 'interest_only';
@@ -169,8 +193,12 @@ new #[Title('Financiers')] class extends Component {
 
     public function saveFinancier(): void
     {
+        $existingFinancier = $this->editingFinancierId ? Financier::with('financierUser')->find($this->editingFinancierId) : null;
+        $financierUserId = $existingFinancier?->financier_user_id;
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($financierUserId)],
             'phone' => ['nullable', 'string', 'max:50'],
             'payout_type' => ['required', 'in:daily,weekly,monthly'],
             'interest_type' => ['required', 'in:interest_only,principal_reducing'],
@@ -181,12 +209,54 @@ new #[Title('Financiers')] class extends Component {
         ]);
 
         $initialLoan = (float) ($validated['initial_loan_amount'] ?? 0.0);
-        unset($validated['initial_loan_amount']);
+        $email = $validated['email'] ?? null;
+        unset($validated['initial_loan_amount'], $validated['email']);
+
+        $generatedPassword = null;
+
+        if ($email) {
+            $financierRole = Role::firstOrCreate(
+                ['name' => RoleName::Financier->value],
+                ['description' => 'Financier account']
+            );
+
+            if ($existingFinancier?->financierUser) {
+                $existingFinancier->financierUser->update([
+                    'name' => $validated['name'],
+                    'email' => $email,
+                    'phone' => $validated['phone'] ?? null,
+                ]);
+                $financierUserId = $existingFinancier->financierUser->id;
+            } else {
+                $userWithEmail = User::where('email', $email)->first();
+                if ($userWithEmail) {
+                    $financierUserId = $userWithEmail->id;
+                } else {
+                    $nameParts = array_filter(explode(' ', trim($validated['name'])));
+                    $firstName = strtolower(reset($nameParts) ?: 'financier');
+                    $generatedPassword = $firstName . '@123';
+
+                    $newUser = User::create([
+                        'name' => $validated['name'],
+                        'email' => $email,
+                        'phone' => $validated['phone'] ?? null,
+                        'password' => Hash::make($generatedPassword),
+                        'role_id' => $financierRole->id,
+                        'email_verified_at' => now(),
+                        'status' => 'active',
+                    ]);
+                    $financierUserId = $newUser->id;
+                }
+            }
+        }
 
         if ($this->editingFinancierId) {
             $financier = Financier::findOrFail($this->editingFinancierId);
             $this->authorize('update', $financier);
-            $financier->update($validated);
+            $financier->update([
+                ...$validated,
+                'financier_user_id' => $financierUserId,
+            ]);
 
             $initialLoanPayment = $financier->payments()->where('type', 'loan_received')->oldest()->first();
             if ($initialLoanPayment) {
@@ -213,6 +283,7 @@ new #[Title('Financiers')] class extends Component {
             $financier = Financier::create([
                 ...$validated,
                 'user_id' => Auth::id(),
+                'financier_user_id' => $financierUserId,
                 'outstanding_balance' => 0.00,
             ]);
 
@@ -231,7 +302,12 @@ new #[Title('Financiers')] class extends Component {
 
         $this->showFinancierModal = false;
         unset($this->financiers);
-        Flux::toast(variant: 'success', text: __('Financier saved successfully.'));
+
+        if ($generatedPassword) {
+            Flux::toast(variant: 'success', text: __('Financier saved. Login created for :email with password: :password', ['email' => $email, 'password' => $generatedPassword]));
+        } else {
+            Flux::toast(variant: 'success', text: __('Financier saved successfully.'));
+        }
     }
 
     public function openPaymentModal(int $financierId, ?string $defaultType = null): void
@@ -344,7 +420,7 @@ new #[Title('Financiers')] class extends Component {
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search financier name or phone...')" icon="magnifying-glass" />
+        <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search financier name, phone or email...')" icon="magnifying-glass" />
         
         <flux:select wire:model.live="payoutType" :placeholder="__('All Payout Types')">
             <flux:select.option value="">{{ __('All Payout Types') }}</flux:select.option>
@@ -375,6 +451,11 @@ new #[Title('Financiers')] class extends Component {
                         <a href="{{ route('financiers.show', $financier->id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold text-start">
                             {{ $financier->name }}
                         </a>
+                        @if ($financier->financierUser?->email)
+                            <div class="text-xs text-zinc-500 font-normal mt-0.5">
+                                ✉️ {{ $financier->financierUser->email }}
+                            </div>
+                        @endif
                     </flux:table.cell>
                     <flux:table.cell>{{ $financier->phone ?? '-' }}</flux:table.cell>
                     <flux:table.cell>
@@ -434,7 +515,8 @@ new #[Title('Financiers')] class extends Component {
             <flux:heading size="lg">{{ $editingFinancierId ? __('Edit Financier') : __('Add New Financier') }}</flux:heading>
 
             <form wire:submit="saveFinancier" class="flex flex-col gap-4">
-                <flux:input wire:model="name" :label="__('Financier / Company Name')" placeholder="e.g. Mahavir Finance" required />
+                <flux:input wire:model="name" :label="__('Financier / Company Name')" placeholder="e.g. Mahindra Finance" required />
+                <flux:input type="email" wire:model="email" :label="__('Financier Email (Dashboard Login)')" placeholder="e.g. mahindra@example.com" />
                 <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
                 
                 <flux:select wire:model="payout_type" :label="__('Payout Frequency')" required>

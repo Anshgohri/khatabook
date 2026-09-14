@@ -12,6 +12,7 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
+                    @if (! auth()->user()?->isFinancier())
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
@@ -23,11 +24,13 @@
                     <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses')" wire:navigate>
                         {{ __('Expenses') }}
                     </flux:sidebar.item>
+                    @endif
 
                     <flux:sidebar.item icon="archive-box" :href="route('products')" :current="request()->routeIs('products')" wire:navigate>
                         {{ __('Products') }}
                     </flux:sidebar.item>
 
+                    @if (! auth()->user()?->isFinancier())
                     <flux:sidebar.item icon="tag" :href="route('categories')" :current="request()->routeIs('categories')" wire:navigate>
                         {{ __('Categories') }}
                     </flux:sidebar.item>
@@ -37,13 +40,15 @@
                             {{ __('Employees') }}
                         </flux:sidebar.item>
                     @endcan
+                    @endif
 
                     @can('viewAny', App\Models\Financier::class)
-                        <flux:sidebar.item icon="building-library" :href="route('financiers')" :current="request()->routeIs('financiers')" wire:navigate>
-                            {{ __('Financiers') }}
+                        <flux:sidebar.item icon="building-library" :href="route('financiers')" :current="request()->routeIs('financiers*')" wire:navigate>
+                            {{ auth()->user()?->isFinancier() ? __('My Loans Given') : __('Financiers') }}
                         </flux:sidebar.item>
                     @endcan
 
+                    @if (! auth()->user()?->isFinancier())
                     @can('viewAny', App\Models\Supplier::class)
                         <flux:sidebar.item icon="truck" :href="route('suppliers')" :current="request()->routeIs('suppliers')" wire:navigate>
                             {{ __('Suppliers') }}
@@ -76,6 +81,7 @@
                         <flux:sidebar.item icon="envelope" :href="route('inquiries')" :current="request()->routeIs('inquiries')" wire:navigate>
                             {{ __('Contact Inquiries') }}
                         </flux:sidebar.item>
+                    @endif
                     @endif
 
                 </flux:sidebar.group>

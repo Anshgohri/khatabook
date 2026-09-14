@@ -189,3 +189,54 @@ test('can update initial loan amount when editing financier', function () {
     $financier->refresh();
     expect((float) $financier->outstanding_balance)->toEqual(75000.00);
 });
+
+test('creates dashboard user in users table with first name based password when email provided', function () {
+    $admin = User::factory()->create();
+    $this->actingAs($admin);
+
+    Livewire::test('pages::khatabook.financiers')
+        ->set('name', 'Mahindra Finance')
+        ->set('email', 'mahindra@example.com')
+        ->set('phone', '9876543210')
+        ->set('payout_type', 'monthly')
+        ->set('default_payment_amount', 3000.00)
+        ->call('saveFinancier')
+        ->assertHasNoErrors();
+
+    $userInDb = User::where('email', 'mahindra@example.com')->first();
+    expect($userInDb)->not->toBeNull();
+    expect($userInDb->isFinancier())->toBeTrue();
+    expect(Auth::attempt(['email' => 'mahindra@example.com', 'password' => 'mahindra@123']))->toBeTrue();
+
+    $financier = Financier::where('name', 'Mahindra Finance')->first();
+    expect($financier)->not->toBeNull();
+    expect($financier->financier_user_id)->toBe($userInDb->id);
+});
+
+test('financier role can only view products and their own loans', function () {
+    $financierRole = Role::firstOrCreate(['name' => RoleName::Financier->value]);
+    $financierUser = User::factory()->create(['role_id' => $financierRole->id]);
+
+    $financier = Financier::factory()->create([
+        'user_id' => User::factory()->create()->id,
+        'financier_user_id' => $financierUser->id,
+        'name' => 'Loan Partner',
+    ]);
+
+    $this->actingAs($financierUser);
+
+    // Products page accessible
+    $this->get(route('products'))->assertOk();
+
+    // Financier ledger page accessible
+    $this->get(route('financiers.show', $financier->id))->assertOk();
+
+    // Sales page forbidden for Financier
+    $this->get(route('sales'))->assertForbidden();
+
+    // Expenses page forbidden for Financier
+    $this->get(route('expenses'))->assertForbidden();
+
+    // Employees page forbidden for Financier
+    $this->get(route('employees'))->assertForbidden();
+});

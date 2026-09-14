@@ -9,6 +9,13 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Dashboard')] class extends Component {
+    public function mount()
+    {
+        $user = Auth::user();
+        if ($user->isFinancier()) {
+            return $this->redirect(route('financiers'), navigate: true);
+        }
+    }
     protected function scopedSales()
     {
         $user = Auth::user();

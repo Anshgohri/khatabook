@@ -37,7 +37,7 @@ new #[Title('Financier Ledger')] class extends Component {
 
     public function mount(Financier $financier): void
     {
-        $this->authorize('update', $financier);
+        $this->authorize('view', $financier);
         $this->financier = $financier;
         $this->payment_date = now()->toDateString();
     }
