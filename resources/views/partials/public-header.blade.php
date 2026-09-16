@@ -3,18 +3,8 @@
 <header x-data="{ mobileMenuOpen: false }" class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-6 relative z-40">
     <div class="flex items-center justify-between gap-2 sm:gap-4">
         <!-- Brand Logo -->
-        <a href="{{ route('home') }}" class="flex items-center gap-2.5 sm:gap-4 group min-w-0">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 p-2 sm:p-3 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-600 to-amber-500 flex items-center justify-center shadow-xl shadow-emerald-950/80 text-slate-950 font-black text-xl sm:text-2xl shrink-0 group-hover:scale-105 transition duration-300">
-                🎋
-            </div>
-            <div class="min-w-0">
-                <span class="text-base sm:text-2xl lg:text-3xl font-black tracking-tight text-white flex items-center gap-1 truncate">
-                    Ashok Kumar <span class="gradient-text-emerald">Baans Store</span>
-                </span>
-                <span class="block text-[10px] sm:text-xs gradient-text-amber font-bold tracking-wide truncate">
-                    Ashok Kumar • Karnal, Haryana
-                </span>
-            </div>
+        <a href="{{ route('home') }}" class="flex items-center group min-w-0">
+            <img src="{{ asset('images/logo.png') }}" alt="Ashok Kumar Baans Store" class="h-12 sm:h-16 w-auto rounded-xl shadow-lg shadow-emerald-900/30 group-hover:scale-105 transition duration-300" />
         </a>
 
         <!-- Desktop Nav Links -->

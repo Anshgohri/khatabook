@@ -3,15 +3,15 @@
 ])
 
 @if($sidebar)
-    <flux:sidebar.brand name="Ashok Kumar Baans Store" {{ $attributes }}>
-        <x-slot name="logo" class="flex aspect-square size-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-amber-500 text-slate-950 shadow-md">
-            <x-app-logo-icon />
+    <flux:sidebar.brand href="{{ route('dashboard') }}" {{ $attributes }}>
+        <x-slot name="logo">
+            <img src="{{ asset('images/logo.png') }}" alt="Ashok Kumar Baans Store Logo" class="h-10 w-auto rounded-lg shadow-sm" />
         </x-slot>
     </flux:sidebar.brand>
 @else
-    <flux:brand name="Ashok Kumar Baans Store" {{ $attributes }}>
-        <x-slot name="logo" class="flex aspect-square size-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-amber-500 text-slate-950 shadow-md">
-            <x-app-logo-icon />
+    <flux:brand href="{{ route('dashboard') }}" {{ $attributes }}>
+        <x-slot name="logo">
+            <img src="{{ asset('images/logo.png') }}" alt="Ashok Kumar Baans Store Logo" class="h-12 w-auto rounded-lg shadow-md" />
         </x-slot>
     </flux:brand>
 @endif
