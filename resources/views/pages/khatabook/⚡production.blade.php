@@ -289,7 +289,7 @@ new #[Title('Production Log')] class extends Component {
                     <flux:input type="date" wire:model="date" :label="__('Production Date')" required />
                 </div>
 
-                <flux:textarea wire:model="notes" :label="__('Remarks / Notes')" placeholder="e.g. Made 50 ladder frames using Assam baans" rows="2" />
+                <flux:textarea wire:model="notes" :label="__('Remarks / Notes')" placeholder="e.g. Made 50 ladder frames using Assam Baans" rows="2" />
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showModal', false)">{{ __('Cancel') }}</flux:button>
