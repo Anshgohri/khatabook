@@ -8,6 +8,7 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('sales/create', 'pages::khatabook.sales-form')->name('sales.create');
     Route::livewire('sales/{sale}/edit', 'pages::khatabook.sales-form')->name('sales.edit');
     Route::livewire('expenses', 'pages::khatabook.expenses')->name('expenses');
+    Route::livewire('expense-categories', 'pages::khatabook.expense-categories')->name('expense-categories');
     Route::livewire('products', 'pages::khatabook.products')->name('products');
     Route::livewire('categories', 'pages::khatabook.categories')->name('categories');
     Route::livewire('employees', 'pages::khatabook.employees')->name('employees');

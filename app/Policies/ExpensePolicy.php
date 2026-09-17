@@ -12,7 +12,7 @@ class ExpensePolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier();
+        return ! $user->isFinancier() && ! $user->isCustomer();
     }
 
     /**
@@ -20,7 +20,7 @@ class ExpensePolicy
      */
     public function view(User $user, Expense $expense): bool
     {
-        if ($user->isViewer() || $user->isManager()) {
+        if ($user->isSystemAdmin()) {
             return true;
         }
 
@@ -32,7 +32,7 @@ class ExpensePolicy
      */
     public function create(User $user): bool
     {
-        return $user->isManager() || $user->isStaff();
+        return ! $user->isFinancier() && ! $user->isViewer() && ! $user->isCustomer();
     }
 
     /**
@@ -40,11 +40,11 @@ class ExpensePolicy
      */
     public function update(User $user, Expense $expense): bool
     {
-        if ($user->isManager()) {
+        if ($user->isSystemAdmin()) {
             return true;
         }
 
-        return $user->isStaff() && $expense->user_id === $user->id;
+        return $expense->user_id === $user->id;
     }
 
     /**
@@ -52,6 +52,10 @@ class ExpensePolicy
      */
     public function delete(User $user, Expense $expense): bool
     {
-        return $user->isManager();
+        if ($user->isSystemAdmin()) {
+            return true;
+        }
+
+        return $expense->user_id === $user->id;
     }
 }

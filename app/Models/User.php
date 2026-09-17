@@ -87,9 +87,14 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(Sale::class, 'customer_id');
     }
 
+    public function isSystemAdmin(): bool
+    {
+        return $this->role?->name === RoleName::SystemAdmin->value || $this->role?->name === 'System Admin';
+    }
+
     public function isAdmin(): bool
     {
-        return $this->role?->name === RoleName::Admin->value;
+        return $this->isSystemAdmin() || $this->role?->name === RoleName::Admin->value;
     }
 
     public function isManager(): bool

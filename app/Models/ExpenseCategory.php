@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name'])]
+#[Fillable(['name', 'description', 'color', 'icon', 'type'])]
 class ExpenseCategory extends Model
 {
     /** @use HasFactory<ExpenseCategoryFactory> */

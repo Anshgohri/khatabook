@@ -27,7 +27,7 @@ new #[Title('Dashboard')] class extends Component {
     {
         $user = Auth::user();
 
-        return Expense::query()->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id));
+        return Expense::query()->when(! $user->isSystemAdmin(), fn($query) => $query->where('user_id', $user->id));
     }
 
     #[Computed]

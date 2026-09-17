@@ -24,6 +24,10 @@
                     <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses')" wire:navigate>
                         {{ __('Expenses') }}
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="folder-plus" :href="route('expense-categories')" :current="request()->routeIs('expense-categories')" wire:navigate>
+                        {{ __('Expense Categories') }}
+                    </flux:sidebar.item>
                     @endif
 
                     <flux:sidebar.item icon="archive-box" :href="route('products')" :current="request()->routeIs('products')" wire:navigate>
