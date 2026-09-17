@@ -299,6 +299,10 @@ new #[Title('Sales Form')] class extends Component {
                 ? $validated['customer_email']
                 : 'cust_'.time().'_'.rand(1000, 9999).'@khatabook.customer';
 
+            $nameParts = array_filter(explode(' ', trim($validated['customer_name'])));
+            $firstName = strtolower(reset($nameParts) ?: 'customer');
+            $defaultPassword = $firstName . '@123';
+
             $customerUser = User::create([
                 'name' => $validated['customer_name'],
                 'email' => $emailToUse,
@@ -306,7 +310,7 @@ new #[Title('Sales Form')] class extends Component {
                 'address' => $validated['customer_address'] ?: null,
                 'city' => $validated['customer_city'] ?: null,
                 'role_id' => $customerRole?->id,
-                'password' => bcrypt(Str::random(16)),
+                'password' => bcrypt($defaultPassword),
                 'status' => 'active',
             ]);
         }
