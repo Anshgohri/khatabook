@@ -7,9 +7,9 @@
 
     <title>Contact Us - Ashok Kumar Baans Store, Karnal</title>
 
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon.png?v=1">
+    <link rel="icon" href="/favicon.ico?v=1" sizes="any">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -150,10 +150,11 @@
                     <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-amber-500 text-amber-400 flex items-center justify-center text-3xl font-bold">
                         📞
                     </div>
-                    <h3 class="text-xl font-black text-white">Phone & Inquiries</h3>
+                    <h3 class="text-xl font-black text-white">Phone & Email Inquiries</h3>
                     <p class="text-slate-200 text-sm font-semibold leading-relaxed">
-                        <strong>Owner:</strong> Ashok Kumar<br>
-                        <strong>Wholesale & Bulk Orders:</strong> Open Daily
+                        <strong>Ashok Kumar:</strong> 9254998000, 9255523276<br>
+                        <strong>Ansh:</strong> 8950304888<br>
+                        <strong>Email:</strong> anshgohri8950@gmail.com
                     </p>
                 </div>
 

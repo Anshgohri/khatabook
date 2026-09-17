@@ -139,7 +139,24 @@ new #[Title('Sales')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $sale->user->name }}</flux:table.cell>
                     <flux:table.cell>
-                        <div class="flex gap-2">
+                        <div class="flex items-center gap-2">
+                            <flux:dropdown position="bottom" align="end">
+                                <flux:button size="sm" variant="subtle" icon="document-text">
+                                    {{ __('Invoice') }}
+                                </flux:button>
+                                <flux:menu>
+                                    <flux:menu.item icon="printer" :href="route('invoices.sale.print', $sale->id)" target="_blank">
+                                        {{ __('Print / Preview Invoice') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item icon="arrow-down-tray" :href="route('invoices.sale.download', $sale->id)">
+                                        {{ __('Download PDF') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item icon="eye" :href="route('invoices.sale.view', $sale->id)" target="_blank">
+                                        {{ __('View Stream PDF') }}
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+
                             @can('update', $sale)
                             <flux:button size="sm" variant="subtle" icon="pencil" :href="route('sales.edit', $sale->id)" wire:navigate>{{ __('Edit') }}</flux:button>
                             @endcan

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -7,6 +8,12 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('sales', 'pages::khatabook.sales')->name('sales');
     Route::livewire('sales/create', 'pages::khatabook.sales-form')->name('sales.create');
     Route::livewire('sales/{sale}/edit', 'pages::khatabook.sales-form')->name('sales.edit');
+    
+    // Invoice Routes
+    Route::get('invoices/sale/{sale}/view', [InvoiceController::class, 'showSaleInvoice'])->name('invoices.sale.view');
+    Route::get('invoices/sale/{sale}/download', [InvoiceController::class, 'downloadSaleInvoice'])->name('invoices.sale.download');
+    Route::get('invoices/sale/{sale}/print', [InvoiceController::class, 'printSaleInvoice'])->name('invoices.sale.print');
+
     Route::livewire('expenses', 'pages::khatabook.expenses')->name('expenses');
     Route::livewire('expense-categories', 'pages::khatabook.expense-categories')->name('expense-categories');
     Route::livewire('products', 'pages::khatabook.products')->name('products');
@@ -22,4 +29,5 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('reports', 'pages::khatabook.reports')->name('reports');
     Route::livewire('audit-log', 'pages::khatabook.audit-log')->name('audit-log');
     Route::livewire('inquiries', 'pages::khatabook.inquiries')->name('inquiries');
+    Route::livewire('store-settings', 'pages::khatabook.store-settings')->name('store-settings');
 });

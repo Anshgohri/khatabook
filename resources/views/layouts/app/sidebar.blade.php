@@ -85,6 +85,10 @@
                         <flux:sidebar.item icon="envelope" :href="route('inquiries')" :current="request()->routeIs('inquiries')" wire:navigate>
                             {{ __('Contact Inquiries') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="cog-6-tooth" :href="route('store-settings')" :current="request()->routeIs('store-settings')" wire:navigate>
+                            {{ __('Store Settings') }}
+                        </flux:sidebar.item>
                     @endif
                     @endif
 
