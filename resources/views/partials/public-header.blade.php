@@ -3,8 +3,25 @@
 <header x-data="{ mobileMenuOpen: false }" class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-6 relative z-40">
     <div class="flex items-center justify-between gap-2 sm:gap-4">
         <!-- Brand Logo -->
-        <a href="{{ route('home') }}" class="flex items-center group min-w-0">
-            <img src="{{ asset('images/logo.png') }}" alt="Ashok Kumar Baans Store" class="h-12 sm:h-16 w-auto rounded-xl shadow-lg shadow-emerald-900/30 group-hover:scale-105 transition duration-300" />
+        <a href="{{ route('home') }}" class="flex items-center gap-3 sm:gap-4 group min-w-0 shrink-0" aria-label="Ashok Kumar Baans Store">
+            <div class="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-slate-950 border-2 border-emerald-500/50 shadow-xl shadow-emerald-950/80 p-1 flex items-center justify-center group-hover:border-emerald-400 group-hover:scale-105 transition duration-300 shrink-0">
+                <img src="{{ asset('images/ak-emblem.png') }}" alt="AK Emblem" class="h-full w-full object-contain filter drop-shadow-md" />
+            </div>
+            <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white group-hover:text-emerald-300 transition">
+                        ASHOK KUMAR
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-extrabold text-xs tracking-wider uppercase hidden sm:inline-block">
+                        AK
+                    </span>
+                </div>
+                <span class="text-xs sm:text-sm font-extrabold text-emerald-400 tracking-wide flex items-center gap-1.5">
+                    <span>BAANS STORE</span>
+                    <span class="text-slate-500">•</span>
+                    <span class="text-amber-400 font-bold hidden sm:inline">Direct Bamboo Merchant</span>
+                </span>
+            </div>
         </a>
 
         <!-- Desktop Nav Links -->
@@ -58,10 +75,10 @@
         @click.away="mobileMenuOpen = false"
         class="hidden lg:hidden mt-3 p-5 sm:p-6 rounded-2xl bg-slate-950/95 border-2 border-emerald-500/40 shadow-2xl backdrop-blur-xl space-y-4">
         <nav class="flex flex-col gap-2.5 text-sm sm:text-base font-extrabold">
-            <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl transition {{ $active === 'home' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-200 hover:bg-slate-900' }}">Home</a>
-            <a href="{{ route('home') }}#products" onclick="document.getElementById('mobile-drawer').classList.add('hidden')" @click="mobileMenuOpen = false" class="px-4 py-2.5 rounded-xl text-slate-200 hover:bg-slate-900 transition">Products (Baans, Ghodi, Chaali, Siddhi)</a>
-            <a href="{{ route('about') }}" class="px-4 py-2.5 rounded-xl transition {{ $active === 'about' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-200 hover:bg-slate-900' }}">About Us</a>
-            <a href="{{ route('contact') }}" class="px-4 py-2.5 rounded-xl transition {{ $active === 'contact' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-200 hover:bg-slate-900' }}">Contact Us</a>
+            <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl transition {{ $active === 'home' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-200 hover:bg-slate-900' }}">{{ __('Home') }}</a>
+            <a href="{{ route('home') }}#products" onclick="document.getElementById('mobile-drawer').classList.add('hidden')" @click="mobileMenuOpen = false" class="px-4 py-2.5 rounded-xl text-slate-200 hover:bg-slate-900 transition">{{ __('Products') }}</a>
+            <a href="{{ route('about') }}" class="px-4 py-2.5 rounded-xl transition {{ $active === 'about' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-200 hover:bg-slate-900' }}">{{ __('About Us') }}</a>
+            <a href="{{ route('contact') }}" class="px-4 py-2.5 rounded-xl transition {{ $active === 'contact' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-200 hover:bg-slate-900' }}">{{ __('Contact Us') }}</a>
         </nav>
 
         <div class="pt-3 border-t border-slate-800 flex flex-col gap-2.5">

@@ -77,15 +77,15 @@
         <!-- Main Header / Navigation -->
         <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-4 relative z-30">
             <!-- Brand Logo -->
-            <a href="{{ route('home') }}" class="flex items-center gap-3 sm:gap-4 group" wire:navigate>
-                <div class="w-10 h-10 sm:w-12 sm:h-12 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-600 to-amber-500 flex items-center justify-center shadow-xl shadow-emerald-950/80 text-slate-950 font-black text-xl sm:text-2xl group-hover:scale-105 transition duration-300">
-                    🎋
+            <a href="{{ route('home') }}" class="flex items-center gap-3 sm:gap-4 group" wire:navigate aria-label="Ashok Kumar Baans Store">
+                <div class="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-slate-950 border-2 border-emerald-500/50 shadow-xl shadow-emerald-950/80 p-1 flex items-center justify-center group-hover:border-emerald-400 group-hover:scale-105 transition duration-300 shrink-0">
+                    <img src="{{ asset('images/ak-emblem.png') }}" alt="AK Emblem" class="h-full w-full object-contain filter drop-shadow-md" />
                 </div>
-                <div>
-                    <span class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-                        Ashok Kumar <span class="gradient-text-emerald">Baans Store</span>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-lg sm:text-2xl font-black tracking-tight text-white group-hover:text-emerald-300 transition">
+                        ASHOK KUMAR <span class="gradient-text-emerald">BAANS STORE</span>
                     </span>
-                    <span class="block text-[10px] sm:text-xs gradient-text-amber font-bold tracking-wide">
+                    <span class="text-[10px] sm:text-xs gradient-text-amber font-bold tracking-wide">
                         Karnal, Haryana • Direct Bamboo Merchant
                     </span>
                 </div>
