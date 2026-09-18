@@ -6,6 +6,7 @@ node_modules
 vendor
 public/build
 public/assets
+public/hot
 public/manifest.json
 public/fonts-manifest.json
 .env
