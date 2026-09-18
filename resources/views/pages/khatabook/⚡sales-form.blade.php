@@ -281,6 +281,9 @@ new #[Title('Sales Form')] class extends Component {
         }
 
         if ($customerUser) {
+            $wasDummyEmail = str_contains((string) $customerUser->email, '@khatabook.customer');
+            $hasNewRealEmail = ! empty($validated['customer_email']) && $wasDummyEmail;
+
             $updateData = [
                 'phone' => $validated['customer_phone'] ?: $customerUser->phone,
                 'address' => $validated['customer_address'] ?: $customerUser->address,
@@ -294,8 +297,17 @@ new #[Title('Sales Form')] class extends Component {
                 $updateData['email'] = $validated['customer_email'];
             }
             $customerUser->update($updateData);
+
+            if ($hasNewRealEmail) {
+                try {
+                    $customerUser->notify(new \App\Notifications\UserInvited);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed sending customer store invitation: '.$e->getMessage());
+                }
+            }
         } else {
-            $emailToUse = ! empty($validated['customer_email'])
+            $hasRealEmail = ! empty($validated['customer_email']);
+            $emailToUse = $hasRealEmail
                 ? $validated['customer_email']
                 : 'cust_'.time().'_'.rand(1000, 9999).'@khatabook.customer';
 
@@ -311,8 +323,16 @@ new #[Title('Sales Form')] class extends Component {
                 'city' => $validated['customer_city'] ?: null,
                 'role_id' => $customerRole?->id,
                 'password' => bcrypt($defaultPassword),
-                'status' => 'active',
+                'status' => $hasRealEmail ? 'invited' : 'active',
             ]);
+
+            if ($hasRealEmail) {
+                try {
+                    $customerUser->notify(new \App\Notifications\UserInvited);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed sending customer store invitation: '.$e->getMessage());
+                }
+            }
         }
 
         if ($this->editingId) {

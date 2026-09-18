@@ -164,6 +164,25 @@ new #[Title('Users')] class extends Component {
         unset($this->users);
         Flux::toast(variant: 'success', text: __('User email verified manually.'));
     }
+
+    public function resendInvite(int $userId): void
+    {
+        $target = User::findOrFail($userId);
+
+        $this->authorize('update', $target);
+
+        if (str_contains($target->email, '@khatabook.customer')) {
+            Flux::toast(variant: 'danger', text: __('Cannot send invite to a dummy email address. Please update user email first.'));
+            return;
+        }
+
+        try {
+            $target->notify(new \App\Notifications\UserInvited);
+            Flux::toast(variant: 'success', text: __('Invitation email sent to :email', ['email' => $target->email]));
+        } catch (\Throwable $e) {
+            Flux::toast(variant: 'danger', text: __('Failed to send invitation email. Please check mail settings.'));
+        }
+    }
 }; ?>
 
 <div class="flex flex-col gap-6">
@@ -244,6 +263,11 @@ new #[Title('Users')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2">
+                            @if (!str_contains($targetUser->email, '@khatabook.customer'))
+                            @can('update', $targetUser)
+                            <flux:button size="sm" variant="ghost" icon="envelope" wire:click="resendInvite({{ $targetUser->id }})" title="{{ __('Send Store Invitation Email') }}" />
+                            @endcan
+                            @endif
                             @can('update', $targetUser)
                             <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editUser({{ $targetUser->id }})" />
                             @endcan
