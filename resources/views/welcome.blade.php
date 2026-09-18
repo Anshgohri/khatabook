@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark scroll-smooth">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Ashok Kumar Baans Store, Karnal - Premium Bamboo, Ghodi, Chaali & Siddhi Merchant</title>
+    <title>Ashok Kumar Baans Store - Wholesale Bamboo, Ghodi, Chaali & Siddhi Merchant in Karnal</title>
+    <meta name="description" content="Wholesale supplier of 15ft, 20ft & 25ft raw bamboo poles, scaffolding Ghodi trestles, woven Chaali platforms, and Siddhi ladders in Karnal, Haryana.">
 
     <link rel="icon" type="image/png" href="/favicon.png?v=1">
     <link rel="icon" href="/favicon.ico?v=1" sizes="any">
@@ -24,480 +25,363 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #060911 !important;
-            color: #f8fafc !important;
-            overflow-x: hidden;
-        }
-
-        .hero-bg-overlay {
-            background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.28) 0%, rgba(245, 158, 11, 0.12) 35%, rgba(6, 9, 17, 0.94) 80%),
-                url('/images/bamboo_hero_bg.png') center/cover no-repeat;
-        }
-
-        .glow-card {
-            background: linear-gradient(145deg, rgba(20, 29, 47, 0.85) 0%, rgba(11, 16, 28, 0.95) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glow-card:hover {
-            border-color: rgba(16, 185, 129, 0.6);
-            box-shadow: 0 25px 60px -15px rgba(16, 185, 129, 0.35);
-        }
-
-        .btn-emerald-glow {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-            color: #022c22 !important;
-            font-weight: 800 !important;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.5) !important;
-        }
-
-        .btn-emerald-glow:hover {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 18px 35px -5px rgba(16, 185, 129, 0.7) !important;
-        }
-
-        .btn-glass-secondary {
-            background: rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(16px);
-            color: #ffffff !important;
-            border: 1px solid rgba(255, 255, 255, 0.22) !important;
-            font-weight: 700 !important;
-            transition: all 0.3s ease;
-        }
-
-        .btn-glass-secondary:hover {
-            background: rgba(255, 255, 255, 0.18) !important;
-            border-color: #10b981 !important;
-            transform: translateY(-2px);
-        }
-
-        .gradient-text-emerald {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #fbbf24 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .gradient-text-amber {
-            background: linear-gradient(135deg, #fef08a 0%, #fbbf24 50%, #f59e0b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .shop-slide {
-            display: none;
-            animation: fadeInSlide 0.5s ease-in-out forwards;
-        }
-
-        .shop-slide.active {
-            display: grid !important;
-        }
-
-        @keyframes fadeInSlide {
-            from {
-                opacity: 0;
-                transform: scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            background-color: #f8fafc;
+            color: #0f172a;
         }
     </style>
 </head>
 
-<body class="bg-[#060911] text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
 
-    <!-- Top Announcement Bar -->
-    <div class="w-full bg-gradient-to-r from-emerald-950 via-slate-950 to-amber-950 border-b border-emerald-500/30 py-2.5 px-4 text-center text-xs sm:text-sm font-black flex items-center justify-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950 shadow-md animate-pulse">
-            <span>🎋</span> ASHOK KUMAR BAANS STORE
-        </span>
-        <span class="text-slate-100 font-bold">
-            House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001 • Direct Bamboo Merchant
-        </span>
-    </div>
+    <!-- Navigation Header -->
+    @include('partials.public-header', ['active' => 'home', 'categories' => $categories])
 
-    <!-- Main Header / Navigation -->
-    @include('partials.public-header', ['active' => 'home'])
+    <!-- Hero Section (Light E-Commerce Theme) -->
+    <section class="relative bg-gradient-to-b from-emerald-50/70 via-white to-slate-50 border-b border-slate-200/60 py-12 lg:py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            <!-- Left Hero Content -->
+            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>DIRECT BAMBOO MERCHANT • KARNAL, HARYANA</span>
+                </div>
 
-    <!-- Real Bamboo Shop Hero Section -->
-    <section class="relative min-h-[65vh] flex items-center justify-center hero-bg-overlay px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div class="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-            <!-- Badge -->
-            <div class="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-emerald-500/50 text-emerald-400 text-xs sm:text-sm font-black shadow-2xl backdrop-blur-md">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>DIRECT BAMBOO MERCHANT IN KARNAL, HARYANA</span>
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+                    Wholesale Raw Bamboo, <span class="text-emerald-600 underline decoration-amber-400 decoration-4 underline-offset-4">Ghodi, Chaali & Siddhi</span>
+                </h1>
+
+                <p class="text-slate-600 text-base sm:text-lg font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                    Direct timber yard supplier of 15ft, 20ft & 25ft raw bamboo poles, heavy-duty scaffolding Ghodi trestles, woven Chaali platforms, and sturdy Siddhi ladders. Stock loaded directly at our Karnal yard.
+                </p>
+
+                <!-- Search Input Bar & Quick Action -->
+                <div class="pt-2 max-w-xl mx-auto lg:mx-0">
+                    <form action="{{ route('catalog.index') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-2.5 p-2 bg-white rounded-2xl shadow-lg border border-slate-200">
+                        <div class="relative flex-1 w-full">
+                            <span class="absolute left-3 top-3 text-slate-400">🔍</span>
+                            <input type="text" 
+                                   name="q" 
+                                   placeholder="Search products (e.g. Baans 15 Feet, Ghodi)..." 
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border-0 focus:outline-none focus:ring-0 text-slate-900 placeholder-slate-400 bg-transparent" />
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-black transition shadow-sm shrink-0">
+                            Search Products
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Trust Metrics Pills -->
+                <div class="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-bold text-slate-600">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-emerald-600 font-black">✓</span> Direct Wholesale Yard Rates
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-emerald-600 font-black">✓</span> Heavy Contractor Loading
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-emerald-600 font-black">✓</span> 15ft, 20ft, 25ft In Stock
+                    </div>
+                </div>
             </div>
 
-            <!-- Main Heading -->
-            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-tight">
-                Wholesale Raw Bamboo, <span class="gradient-text-emerald">Ghodi, Chaali & Siddhi</span>
-            </h1>
+            <!-- Right Hero Visual Showcase -->
+            <div class="lg:col-span-5 relative">
+                <div class="relative rounded-3xl bg-white p-4 border border-slate-200 shadow-xl overflow-hidden group">
+                    <div class="aspect-4/3 rounded-2xl overflow-hidden bg-slate-100 relative">
+                        <img src="{{ asset('images/bamboo_hero_bg.png') }}" 
+                             alt="Ashok Baans Store Yard" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                             onerror="this.src='/images/bamboo_raw_poles.png'" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-4 left-4 right-4 text-white">
+                            <span class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider">KARNAL YARD STOCK</span>
+                            <h3 class="text-lg font-black text-white mt-1">Ashok Kumar Baans Store</h3>
+                            <p class="text-xs text-slate-200 font-medium">House No 2755, Janak Puri, Karnal, Haryana</p>
+                        </div>
+                    </div>
 
-            <!-- Subtitle -->
-            <p class="text-slate-200 text-lg sm:text-2xl font-semibold max-w-3xl mx-auto leading-relaxed drop-shadow-md">
-                Ashok Kumar Baans Store in Karnal. Direct timber yard supplier of 15ft, 20ft & 25ft raw bamboo poles, heavy-duty scaffolding Ghodi trestles, woven Chaali platforms, and sturdy Siddhi ladders.
-            </p>
+                    <!-- Quick Badge Overlay -->
+                    <div class="mt-4 grid grid-cols-2 gap-3 text-center">
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="block text-lg font-black text-emerald-600">40+ Yrs</span>
+                            <span class="text-[11px] font-bold text-slate-500">Market Trust</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="block text-lg font-black text-emerald-600">{{ $totalProductsCount }} Items</span>
+                            <span class="text-[11px] font-bold text-slate-500">Admin Catalog</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            <!-- Hero Action Button -->
-            <div class="flex flex-wrap items-center justify-center gap-5 pt-2">
-                <a href="#contact" class="px-10 py-4 rounded-xl btn-emerald-glow text-base shadow-2xl flex items-center gap-3">
-                    <span>Contact Shop Owner</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+    <!-- Admin Categories Display Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+                <span class="text-xs font-black uppercase tracking-wider text-emerald-600">EXPLORE CATEGORIES</span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Shop by Categories</h2>
+            </div>
+            <a href="{{ route('catalog.index') }}" class="text-xs font-extrabold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 group">
+                <span>View All Categories</span>
+                <span class="group-hover:translate-x-1 transition">→</span>
+            </a>
+        </div>
+
+        <!-- Categories Cards Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            @forelse ($categories as $cat)
+                <a href="{{ route('catalog.index', ['category_id' => $cat->id]) }}" class="group bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-emerald-500 transition duration-300 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-black group-hover:scale-110 transition duration-300">
+                            @if(str_contains(strtolower($cat->name), 'raw'))
+                                🎋
+                            @elseif(str_contains(strtolower($cat->name), 'finished') || str_contains(strtolower($cat->name), 'ghodi'))
+                                🪜
+                            @elseif(str_contains(strtolower($cat->name), 'chaali'))
+                                🧱
+                            @else
+                                📦
+                            @endif
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
+                            {{ $cat->products_count }} {{ Str::plural('item', $cat->products_count) }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 group-hover:text-emerald-600 text-base transition truncate">{{ $cat->name }}</h3>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Browse admin added items</p>
+                    </div>
                 </a>
-            </div>
+            @empty
+                <!-- Fallback Default Categories if none added yet -->
+                <div class="col-span-full bg-white p-6 rounded-2xl border border-dashed border-slate-300 text-center text-slate-500 text-sm">
+                    No custom categories added by admin yet. Manage categories in the admin dashboard.
+                </div>
+            @endforelse
         </div>
     </section>
 
-    <!-- Big 1-by-1 Interactive Product Showcase Slider -->
-    <section id="products" class="w-full py-16 px-4 sm:px-6 lg:px-12">
-
-        <div class="text-center max-w-4xl mx-auto mb-10 space-y-3">
-            <span class="inline-block px-4 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 text-xs font-black uppercase tracking-widest">
-                REAL SHOP STORE GALLERY
-            </span>
-            <h2 class="text-3xl sm:text-5xl font-black text-white">Store Products (Ghodi, Chaali, Siddhi & Baans)</h2>
-            <p class="text-slate-300 text-base font-semibold">Real high-grade bamboo materials ready for immediate loading at our Karnal store yard.</p>
-        </div>
-
-        <!-- Big Slider Container Card -->
-        <div class="relative w-full glow-card rounded-3xl overflow-hidden shadow-2xl border-2 border-emerald-500/30 min-h-[600px] flex flex-col justify-between">
-
-            <!-- SLIDE 0: Bamboo Scaffolding Ghodi -->
-            <div id="shop-slide-0" class="shop-slide active grid-cols-1 lg:grid-cols-12 min-h-[600px]">
-                <div class="lg:col-span-8 h-96 lg:h-auto relative overflow-hidden bg-slate-950">
-                    <img src="/images/bamboo_ghodi.png" alt="Bamboo Scaffolding Ghodi" class="w-full h-full object-cover">
-                    <div class="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-amber-500 text-slate-950 text-xs font-black shadow-xl">
-                        PRODUCT 1 OF 4 • SCAFFOLDING GHODI
-                    </div>
-                </div>
-                <div class="lg:col-span-4 p-8 lg:p-12 flex flex-col justify-between space-y-6 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950">
-                    <div class="space-y-5">
-                        <span class="text-xs font-black uppercase tracking-wider text-amber-400">Scaffolding Equipment</span>
-                        <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">Bamboo Scaffolding Ghodi (Trestles)</h3>
-                        <p class="text-slate-200 text-base leading-relaxed font-semibold">
-                            Heavy-duty A-frame bamboo trestle structures (Ghodi) handcrafted by master bamboo artisans in Karnal. Engineered for heavy building scaffolding support, plastering, and tall structure masonry.
-                        </p>
-                        <ul class="space-y-2.5 text-sm text-slate-200 font-extrabold pt-2">
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Hand-bound high-tensile bamboo trestles</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Custom heights for construction sites</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Available for bulk contractor loading</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="pt-6 border-t border-slate-700/80 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs text-slate-400 font-bold">Category</span>
-                            <span class="text-base font-black text-amber-400">Scaffolding Ghodi</span>
-                        </div>
-                        <a href="#contact" class="px-7 py-3 rounded-xl btn-emerald-glow text-sm">Inquire Shop Rate</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SLIDE 1: Bamboo Chaali Platforms -->
-            <div id="shop-slide-1" class="shop-slide grid-cols-1 lg:grid-cols-12 min-h-[600px]">
-                <div class="lg:col-span-8 h-96 lg:h-auto relative overflow-hidden bg-slate-950">
-                    <img src="/images/bamboo_chaali.png" alt="Woven Bamboo Chaali Work Platforms" class="w-full h-full object-cover">
-                    <div class="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-sky-500 text-slate-950 text-xs font-black shadow-xl">
-                        PRODUCT 2 OF 4 • BAMBOO CHAALI
-                    </div>
-                </div>
-                <div class="lg:col-span-4 p-8 lg:p-12 flex flex-col justify-between space-y-6 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950">
-                    <div class="space-y-5">
-                        <span class="text-xs font-black uppercase tracking-wider text-sky-400">Scaffolding Platforms</span>
-                        <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">Woven Bamboo Chaali (Platform Mats)</h3>
-                        <p class="text-slate-200 text-base leading-relaxed font-semibold">
-                            Tightly woven, high-strength bamboo platform mats (Chaali) essential for safe high-rise scaffolding walks, worker footing, and construction plastering platforms.
-                        </p>
-                        <ul class="space-y-2.5 text-sm text-slate-200 font-extrabold pt-2">
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Tightly woven thick split bamboo mats</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Standard sizes for building scaffolding</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Heavy load-bearing capacity</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="pt-6 border-t border-slate-700/80 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs text-slate-400 font-bold">Category</span>
-                            <span class="text-base font-black text-sky-400">Bamboo Chaali</span>
-                        </div>
-                        <a href="#contact" class="px-7 py-3 rounded-xl btn-emerald-glow text-sm">Inquire Shop Rate</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SLIDE 2: Bamboo Siddhi Ladders -->
-            <div id="shop-slide-2" class="shop-slide grid-cols-1 lg:grid-cols-12 min-h-[600px]">
-                <div class="lg:col-span-8 h-96 lg:h-auto relative overflow-hidden bg-slate-950">
-                    <img src="/images/bamboo_siddhi.png" alt="Bamboo Siddhi Construction Ladders" class="w-full h-full object-cover">
-                    <div class="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-purple-500 text-slate-950 text-xs font-black shadow-xl">
-                        PRODUCT 3 OF 4 • BAMBOO SIDDHI
-                    </div>
-                </div>
-                <div class="lg:col-span-4 p-8 lg:p-12 flex flex-col justify-between space-y-6 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950">
-                    <div class="space-y-5">
-                        <span class="text-xs font-black uppercase tracking-wider text-purple-400">Construction Ladders</span>
-                        <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">Bamboo Siddhi (Ladders)</h3>
-                        <p class="text-slate-200 text-base leading-relaxed font-semibold">
-                            Extra sturdy single and double reach bamboo ladders (Siddhi) engineered for painters, electricians, masons, and construction site height reach.
-                        </p>
-                        <ul class="space-y-2.5 text-sm text-slate-200 font-extrabold pt-2">
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Single & Double extended height options</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Reinforced rungs for worker safety</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Lightweight & durable construction</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="pt-6 border-t border-slate-700/80 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs text-slate-400 font-bold">Category</span>
-                            <span class="text-base font-black text-purple-400">Bamboo Siddhi</span>
-                        </div>
-                        <a href="#contact" class="px-7 py-3 rounded-xl btn-emerald-glow text-sm">Inquire Shop Rate</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SLIDE 3: Raw Bamboo Poles -->
-            <div id="shop-slide-3" class="shop-slide grid-cols-1 lg:grid-cols-12 min-h-[600px]">
-                <div class="lg:col-span-8 h-96 lg:h-auto relative overflow-hidden bg-slate-950">
-                    <img src="/images/bamboo_raw_poles.png" alt="Raw Bamboo Poles 15ft 20ft 25ft" class="w-full h-full object-cover">
-                    <div class="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-emerald-500 text-slate-950 text-xs font-black shadow-xl">
-                        PRODUCT 4 OF 4 • RAW BAMBOO
-                    </div>
-                </div>
-                <div class="lg:col-span-4 p-8 lg:p-12 flex flex-col justify-between space-y-6 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950">
-                    <div class="space-y-5">
-                        <span class="text-xs font-black uppercase tracking-wider text-emerald-400">Raw Timber Supply</span>
-                        <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">Raw Bamboo Poles (15ft, 20ft, 25ft)</h3>
-                        <p class="text-slate-200 text-base leading-relaxed font-semibold">
-                            Premium Grade-A raw bamboo poles (Baans) stocked in standard 15 feet, 20 feet, and 25 feet sizes. Sourced directly for builders, scaffolding contractors, and agricultural usage.
-                        </p>
-                        <ul class="space-y-2.5 text-sm text-slate-200 font-extrabold pt-2">
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>15ft, 20ft, 25ft length bundles</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Thick-walled high strength poles</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-emerald-400">
-                                <span class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                                <span>Direct truckload dispatch from Karnal</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="pt-6 border-t border-slate-700/80 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs text-slate-400 font-bold">Category</span>
-                            <span class="text-base font-black text-emerald-400">Raw Bamboo Poles</span>
-                        </div>
-                        <a href="#contact" class="px-7 py-3 rounded-xl btn-emerald-glow text-sm">Inquire Shop Rate</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Navigation Controls Bar -->
-            <div class="p-6 bg-slate-950/90 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 z-20">
-                <div class="flex items-center gap-3">
-                    <button onclick="changeShopSlide(-1)" class="px-4 py-2.5 rounded-xl btn-glass-secondary hover:text-emerald-400 flex items-center gap-2 text-sm font-extrabold" aria-label="Previous Slide">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span>Previous</span>
-                    </button>
-                    <button onclick="changeShopSlide(1)" class="px-4 py-2.5 rounded-xl btn-glass-secondary hover:text-emerald-400 flex items-center gap-2 text-sm font-extrabold" aria-label="Next Slide">
-                        <span>Next Product</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-2 overflow-x-auto max-w-full">
-                    <button id="pill-0" onclick="showShopSlide(0)" class="pill-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition-all bg-amber-400 text-slate-950 shadow-md">1. Ghodi</button>
-                    <button id="pill-1" onclick="showShopSlide(1)" class="pill-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">2. Chaali</button>
-                    <button id="pill-2" onclick="showShopSlide(2)" class="pill-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">3. Siddhi</button>
-                    <button id="pill-3" onclick="showShopSlide(3)" class="pill-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">4. Raw Baans</button>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- About Us Section -->
-    <section id="about" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-        <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-emerald-500/40 text-emerald-400 text-xs sm:text-sm font-black shadow-xl">
-                <span>TRUSTED BAMBOO MERCHANTS • KARNAL, HARYANA</span>
-            </div>
-            <h2 class="text-4xl sm:text-5xl font-black text-white">About <span class="gradient-text-emerald">Ashok Kumar Baans Store</span></h2>
-            <p class="text-slate-300 text-base sm:text-lg font-semibold leading-relaxed">
-                Established in Karnal, Haryana, Ashok Kumar Baans Store has been supplying high-tensile scaffolding bamboo, custom Ghodi trestles, tightly woven Chaali platforms, and sturdy Siddhi ladders to contractors and builders for over four decades.
+    <!-- Featured Admin Products Section (4 to 6 Products Showcase) -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-slate-200/80">
+        <div class="text-center max-w-3xl mx-auto mb-10 space-y-2">
+            <span class="px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-black uppercase tracking-wider">STORE INVENTORY</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-slate-900">Featured Products</h2>
+            <p class="text-slate-600 text-sm font-semibold">
+                High quality bamboo stock, scaffolding Ghodi trestles, Chaali mats, and Siddhi ladders added directly by store admin.
             </p>
         </div>
 
-        <!-- Heritage & Core Highlights Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="glow-card p-8 rounded-3xl space-y-4 border border-emerald-500/20">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl font-black">
-                    🎋
+        <!-- 4 to 6 Products Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @forelse ($featuredProducts as $product)
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-lg transition duration-300 overflow-hidden flex flex-col justify-between group">
+                    
+                    <!-- Card Top Image -->
+                    <div class="relative h-56 bg-slate-100 overflow-hidden">
+                        @if ($product->image_path)
+                            <img src="{{ Storage::url($product->image_path) }}" 
+                                 alt="{{ $product->name }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                                 onerror="this.src='/images/bamboo_raw_poles.png'" />
+                        @else
+                            <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-slate-100 text-slate-400">
+                                <span class="text-5xl mb-2">🎋</span>
+                                <span class="text-xs font-bold text-slate-400">Ashok Baans Store Product</span>
+                            </div>
+                        @endif
+
+                        <!-- Badges Overlay -->
+                        <div class="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+                            @if ($product->category)
+                                <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-[10px] shadow-sm uppercase tracking-wider">
+                                    {{ $product->category->name }}
+                                </span>
+                            @endif
+                            <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 backdrop-blur-md text-white font-bold text-[10px]">
+                                {{ $product->type === 'raw_material' ? 'Raw Material' : 'Finished Good' }}
+                            </span>
+                        </div>
+
+                        <!-- Stock Badge -->
+                        <div class="absolute bottom-3 right-3">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black shadow-sm {{ $product->stock_level > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300' }}">
+                                {{ $product->stock_level > 0 ? 'In Stock (' . $product->stock_level . ' ' . ($product->unit ?? 'pcs') . ')' : 'Out of Stock' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card Body Content -->
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <h3 class="text-lg font-black text-slate-900 group-hover:text-emerald-600 transition leading-snug line-clamp-1">
+                                <a href="{{ route('catalog.show', $product->id) }}">
+                                    {{ $product->name }}
+                                </a>
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                                {{ $product->description ?: 'High quality bamboo stock supplied directly from Ashok Baans Store yard in Karnal.' }}
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Unit Rate</span>
+                                <span class="text-xl font-black text-emerald-700">
+                                    ₹{{ number_format((float) $product->unit_price, 2) }}
+                                    <span class="text-xs font-semibold text-slate-500">/ {{ $product->unit ?? 'pcs' }}</span>
+                                </span>
+                            </div>
+
+                            <a href="{{ route('catalog.show', $product->id) }}" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white text-xs font-extrabold transition shadow-sm flex items-center gap-1">
+                                <span>Details</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-xl font-black text-white">Master Artisans</h3>
-                <p class="text-slate-300 text-sm font-medium leading-relaxed">
-                    Handcrafted A-frame Ghodi trestles and Chaali mats created by skilled bamboo craftsmen in Karnal.
-                </p>
+            @empty
+                <div class="col-span-full py-12 bg-white rounded-2xl border border-dashed border-slate-300 text-center space-y-3">
+                    <span class="text-4xl">📦</span>
+                    <h4 class="text-lg font-bold text-slate-700">No Products Available Yet</h4>
+                    <p class="text-xs text-slate-500 max-w-sm mx-auto">Products added by the admin will automatically appear here on the home page.</p>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Prominent Show More / View All Products Button -->
+        <div class="mt-12 text-center">
+            <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base transition shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                <span>Show More Products (View All {{ $totalProductsCount }} Items)</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Why Choose Us & Store Advantages -->
+    <section class="bg-white border-y border-slate-200/80 py-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-12 space-y-2">
+                <span class="text-xs font-black uppercase tracking-wider text-emerald-600">DIRECT MERCHANT GUARANTEE</span>
+                <h2 class="text-3xl font-black text-slate-900">Why Buy from Ashok Baans Store?</h2>
             </div>
 
-            <div class="glow-card p-8 rounded-3xl space-y-4 border border-amber-500/20">
-                <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-3xl font-black">
-                    🚚
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-black">🎋</div>
+                    <h3 class="text-base font-extrabold text-slate-900">Direct Wholesale Rates</h3>
+                    <p class="text-xs text-slate-600 font-medium leading-relaxed">Direct merchant yard pricing without middleman margins for contractors and builders.</p>
                 </div>
-                <h3 class="text-xl font-black text-white">Contractor Bulk Loading</h3>
-                <p class="text-slate-300 text-sm font-medium leading-relaxed">
-                    Direct truckload loading and instant yard dispatch for construction sites across Haryana.
-                </p>
-            </div>
 
-            <div class="glow-card p-8 rounded-3xl space-y-4 border border-sky-500/20">
-                <div class="w-14 h-14 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-3xl font-black">
-                    📏
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-black">🚚</div>
+                    <h3 class="text-base font-extrabold text-slate-900">Instant Truckload Loading</h3>
+                    <p class="text-xs text-slate-600 font-medium leading-relaxed">Ready loading yard in Janak Puri, Karnal for fast dispatch across Haryana.</p>
                 </div>
-                <h3 class="text-xl font-black text-white">Standard Sizes</h3>
-                <p class="text-slate-300 text-sm font-medium leading-relaxed">
-                    15ft, 20ft, and 25ft raw bamboo poles stocked year-round for building scaffolding and masonry.
-                </p>
-            </div>
 
-            <div class="glow-card p-8 rounded-3xl space-y-4 border border-purple-500/20">
-                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-3xl font-black">
-                    🤝
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-2xl font-black">🪜</div>
+                    <h3 class="text-base font-extrabold text-slate-900">Master Craftsmen</h3>
+                    <p class="text-xs text-slate-600 font-medium leading-relaxed">Handcrafted A-frame Ghodi trestles and tightly woven Chaali platforms built to standard.</p>
                 </div>
-                <h3 class="text-xl font-black text-white">Direct Rates</h3>
-                <p class="text-slate-300 text-sm font-medium leading-relaxed">
-                    Fair direct wholesale shop pricing without middleman markups for contractors and retail buyers.
-                </p>
+
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl font-black">📋</div>
+                    <h3 class="text-base font-extrabold text-slate-900">Digital Billing</h3>
+                    <p class="text-xs text-slate-600 font-medium leading-relaxed">Instant GST invoice & digital ledger management for customer peace of mind.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Contact Us Section -->
-    <section id="contact" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full mb-16">
-        <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 border-2 border-emerald-500/40 text-emerald-400 text-xs sm:text-sm font-black shadow-xl">
-                <span>GET IN TOUCH WITH ASHOK KUMAR BAANS STORE</span>
-            </div>
-            <h2 class="text-4xl sm:text-5xl font-black text-white">Contact Us <span class="gradient-text-emerald">& Order Rates</span></h2>
-            <p class="text-slate-300 text-base sm:text-lg font-semibold leading-relaxed">
-                Have questions about bamboo rates, truckload orders, or custom Ghodi trestle sizes? Contact us directly or submit your inquiry below.
+    <!-- Contact & Rate Inquiry Section -->
+    <section id="contact" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
+        <div class="text-center max-w-3xl mx-auto space-y-3 mb-12">
+            <span class="px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">GET IN TOUCH</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-slate-900">Contact Us & Wholesale Rates</h2>
+            <p class="text-slate-600 text-sm font-semibold">
+                Have questions about bamboo rates, truckload orders, or custom Ghodi trestle sizes? Submit your inquiry directly to our Karnal office.
             </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
-            <!-- Shop Contact Information Details -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            <!-- Shop Contact Info -->
             <div class="lg:col-span-5 flex flex-col">
-                <div class="glow-card p-8 sm:p-10 rounded-3xl border-2 border-emerald-500/30 flex-1 flex flex-col justify-between space-y-6">
+                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex-1 flex flex-col justify-between space-y-6">
                     <div class="space-y-6">
-                        <div class="space-y-3 border-b border-slate-800 pb-6">
-                            <span class="text-xs font-black uppercase tracking-wider text-emerald-400">Direct Store Address</span>
-                            <h3 class="text-2xl font-black text-white">Ashok Kumar Baans Store</h3>
-                            <p class="text-slate-300 text-sm font-medium leading-relaxed">
+                        <div class="space-y-2 border-b border-slate-100 pb-5">
+                            <span class="text-xs font-black uppercase tracking-wider text-emerald-600">DIRECT STORE ADDRESS</span>
+                            <h3 class="text-xl font-black text-slate-900">Ashok Kumar Baans Store</h3>
+                            <p class="text-xs text-slate-600 font-medium leading-relaxed">
                                 House No 2755, Opposite Gaushala Road,<br>
                                 Janak Puri, Karnal, Haryana - 132001
                             </p>
                         </div>
 
-                        <div class="space-y-4">
-                            <span class="text-xs font-black uppercase tracking-wider text-amber-400">Phone & WhatsApp Contacts</span>
-                            <div class="space-y-3 text-slate-200 font-bold text-base">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xl">📞</span>
-                                    <span>Primary: <a href="tel:+919254998000" class="text-emerald-400 hover:underline">+91 92549 98000</a></span>
+                        <div class="space-y-3">
+                            <span class="text-xs font-black uppercase tracking-wider text-amber-600">PHONE CONTACTS</span>
+                            <div class="space-y-2 text-slate-700 font-bold text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span>📞</span>
+                                    <span>Primary: <a href="tel:+919254998000" class="text-emerald-700 hover:underline">+91 92549 98000</a></span>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xl">📱</span>
-                                    <span>Secondary: <a href="tel:+919255523276" class="text-emerald-400 hover:underline">+91 92555 23276</a></span>
+                                <div class="flex items-center gap-2">
+                                    <span>📱</span>
+                                    <span>Secondary: <a href="tel:+919255523276" class="text-emerald-700 hover:underline">+91 92555 23276</a></span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="space-y-3 pt-6 border-t border-slate-800">
-                        <span class="text-xs font-black uppercase tracking-wider text-sky-400">Yard Working Hours</span>
-                        <p class="text-slate-300 text-sm font-semibold">
-                            Monday – Sunday: <span class="text-white font-extrabold">6:00 AM – 10:00 PM</span>
+                    <div class="space-y-2 pt-5 border-t border-slate-100">
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-400">YARD WORKING HOURS</span>
+                        <p class="text-xs text-slate-700 font-semibold">
+                            Monday – Sunday: <span class="text-slate-900 font-extrabold">6:00 AM – 10:00 PM</span>
                         </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Contact & Product Inquiry Form -->
+            <!-- Inquiry Form -->
             <div class="lg:col-span-7 flex flex-col">
-                <div class="glow-card p-8 sm:p-12 rounded-3xl border-2 border-emerald-500/30 flex-1 flex flex-col justify-between space-y-6">
+                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex-1">
                     @if (session('success'))
-                    <div class="p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500 text-emerald-300 text-sm font-extrabold text-center">
+                    <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold text-center">
                         {{ session('success') }}
                     </div>
                     @endif
 
-                    <form action="{{ route('contact.store') }}" method="POST" class="space-y-6">
+                    <form action="{{ route('contact.store') }}" method="POST" class="space-y-5">
                         @csrf
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label for="name" class="block text-sm font-bold text-slate-200">Your Full Name *</label>
-                                <input type="text" id="name" name="name" required placeholder="e.g. Rajesh Sharma" class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div class="space-y-1.5">
+                                <label for="name" class="block text-xs font-bold text-slate-700">Full Name *</label>
+                                <input type="text" id="name" name="name" required placeholder="e.g. Rajesh Sharma" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
 
-                            <div class="space-y-2">
-                                <label for="phone" class="block text-sm font-bold text-slate-200">Phone Number *</label>
-                                <input type="tel" id="phone" name="phone" required placeholder="e.g. 98123 45678" class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+                            <div class="space-y-1.5">
+                                <label for="phone" class="block text-xs font-bold text-slate-700">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" required placeholder="e.g. 98123 45678" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label for="email" class="block text-sm font-bold text-slate-200">Email Address (Optional)</label>
-                                <input type="email" id="email" name="email" placeholder="name@example.com" class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div class="space-y-1.5">
+                                <label for="email" class="block text-xs font-bold text-slate-700">Email Address (Optional)</label>
+                                <input type="email" id="email" name="email" placeholder="name@example.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
 
-                            <div class="space-y-2">
-                                <label for="inquiry_type" class="block text-sm font-bold text-slate-200">Product / Inquiry Type *</label>
-                                <select id="inquiry_type" name="inquiry_type" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <div class="space-y-1.5">
+                                <label for="inquiry_type" class="block text-xs font-bold text-slate-700">Inquiry Product *</label>
+                                <select id="inquiry_type" name="inquiry_type" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     <option value="Scaffolding Ghodi">Scaffolding Ghodi (Trestles)</option>
                                     <option value="Bamboo Chaali">Woven Bamboo Chaali (Mats)</option>
                                     <option value="Bamboo Siddhi">Bamboo Siddhi (Ladders)</option>
@@ -507,15 +391,15 @@
                             </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <label for="message" class="block text-sm font-bold text-slate-200">Message / Requirement Details *</label>
-                            <textarea id="message" name="message" rows="4" required placeholder="Specify your quantity, bamboo lengths, site location in Haryana, or delivery timeframe..." class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition"></textarea>
+                        <div class="space-y-1.5">
+                            <label for="message" class="block text-xs font-bold text-slate-700">Requirement Details *</label>
+                            <textarea id="message" name="message" rows="3" required placeholder="Specify quantity, bamboo lengths, site location in Haryana..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
                         </div>
 
-                        <button type="submit" class="w-full py-4 rounded-xl btn-emerald-glow text-base shadow-xl flex items-center justify-center gap-2">
-                            <span>Submit Inquiry to Shop</span>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        <button type="submit" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition flex items-center justify-center gap-2">
+                            <span>Submit Inquiry to Store</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                         </button>
                     </form>
@@ -525,49 +409,18 @@
     </section>
 
     <!-- Footer -->
-    <footer class="w-full border-t border-slate-800 bg-slate-950 py-8 text-center text-sm text-slate-300 mt-auto">
+    <footer class="w-full border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-600 mt-auto">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
-            <div class="flex items-center gap-6 text-sm font-bold text-slate-300">
-                <a href="#" class="hover:text-emerald-400 transition">Home</a>
-                <a href="#products" class="hover:text-emerald-400 transition">Products</a>
-                <a href="#about" class="hover:text-emerald-400 transition">About Us</a>
-                <a href="#contact" class="hover:text-emerald-400 transition">Contact Us</a>
+            <span class="font-semibold">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
+            <div class="flex items-center gap-6 font-bold text-slate-600">
+                <a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Home</a>
+                <a href="{{ route('catalog.index') }}" class="hover:text-emerald-600 transition">Products Catalog</a>
+                <a href="{{ route('about') }}" class="hover:text-emerald-600 transition">About Us</a>
+                <a href="{{ route('contact') }}" class="hover:text-emerald-600 transition">Contact Us</a>
             </div>
-            <span class="text-emerald-400 font-extrabold">Ashok Kumar • Karnal, Haryana</span>
+            <span class="text-emerald-600 font-extrabold">Ashok Kumar • Karnal, Haryana</span>
         </div>
     </footer>
-
-    <!-- Zero-Dependency JavaScript Slider Controller -->
-    <script>
-        let currentShopSlideIndex = 0;
-        const totalShopSlides = 4;
-        const pillColors = ['bg-amber-400 text-slate-950 shadow-md', 'bg-sky-400 text-slate-950 shadow-md', 'bg-purple-400 text-slate-950 shadow-md', 'bg-emerald-400 text-slate-950 shadow-md'];
-
-        function showShopSlide(index) {
-            currentShopSlideIndex = (index + totalShopSlides) % totalShopSlides;
-            for (let i = 0; i < totalShopSlides; i++) {
-                const slide = document.getElementById('shop-slide-' + i);
-                const pill = document.getElementById('pill-' + i);
-                if (i === currentShopSlideIndex) {
-                    slide.classList.add('active');
-                    pill.className = 'pill-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ' + pillColors[i];
-                } else {
-                    slide.classList.remove('active');
-                    pill.className = 'pill-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition-all bg-slate-800 text-slate-300 hover:bg-slate-700';
-                }
-            }
-        }
-
-        function changeShopSlide(direction) {
-            showShopSlide(currentShopSlideIndex + direction);
-        }
-
-        // Auto-rotate every 6 seconds
-        setInterval(() => {
-            changeShopSlide(1);
-        }, 6000);
-    </script>
 </body>
 
 </html>

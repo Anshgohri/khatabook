@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\ContactInquiryController;
+use App\Http\Controllers\PublicCatalogController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
-Route::redirect('/about', '/#about')->name('about');
-Route::redirect('/contact', '/#contact')->name('contact');
+Route::get('/', [PublicCatalogController::class, 'index'])->name('home');
+Route::get('/catalog', [PublicCatalogController::class, 'catalog'])->name('catalog.index');
+Route::get('/catalog/{product}', [PublicCatalogController::class, 'show'])->name('catalog.show');
+
+Route::view('/about', 'about')->name('about');
+Route::view('/contact', 'contact')->name('contact');
 Route::view('/thank-you', 'thank-you')->name('thank-you');
 Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
 
