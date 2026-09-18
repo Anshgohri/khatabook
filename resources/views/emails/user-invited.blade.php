@@ -17,6 +17,19 @@ Accept Invitation & Join Store
 
 If you did not request or expect this invitation, you can safely ignore this email.
 
+<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #475569; line-height: 1.6;">
+    <strong style="color: #0f172a;">Store Contact Details:</strong><br>
+    @if (!empty($store['storePhone']))
+    📞 <strong>Phone:</strong> {{ $store['storePhone'] }}<br>
+    @endif
+    @if (!empty($store['storeEmail']))
+    ✉️ <strong>Email:</strong> {{ $store['storeEmail'] }}<br>
+    @endif
+    @if (!empty($store['storeAddress']))
+    📍 <strong>Address:</strong> {{ $store['storeAddress'] }}<br>
+    @endif
+</div>
+
 Thanks,<br>
 **{{ $store['storeName'] ?? config('app.name') }}**<br>
 <span style="font-size: 12px; color: #64748b;">{{ $store['storeSubtitle'] ?? '' }}</span>
