@@ -7,10 +7,9 @@ use App\Models\User;
 
 class SalePolicy
 {
-
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier();
+        return ! $user->isFinancier() && ! $user->isCustomer();
     }
 
     /**
@@ -18,8 +17,12 @@ class SalePolicy
      */
     public function view(User $user, Sale $sale): bool
     {
-        if ($user->isViewer() || $user->isManager()) {
+        if ($user->isViewer() || $user->isManager() || $user->isAdmin()) {
             return true;
+        }
+
+        if ($user->isCustomer()) {
+            return $sale->customer_id === $user->id;
         }
 
         return $sale->user_id === $user->id;

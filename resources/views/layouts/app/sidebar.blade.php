@@ -12,7 +12,13 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    @if (! auth()->user()?->isFinancier())
+                    @if (auth()->user()?->isCustomer())
+                    <flux:sidebar.item icon="shopping-bag" :href="route('my-orders')" :current="request()->routeIs('my-orders')" wire:navigate>
+                        {{ __('My Orders & Purchases') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
@@ -34,7 +40,7 @@
                         {{ __('Products') }}
                     </flux:sidebar.item>
 
-                    @if (! auth()->user()?->isFinancier())
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
                     <flux:sidebar.item icon="tag" :href="route('categories')" :current="request()->routeIs('categories')" wire:navigate>
                         {{ __('Categories') }}
                     </flux:sidebar.item>
@@ -52,7 +58,7 @@
                         </flux:sidebar.item>
                     @endcan
 
-                    @if (! auth()->user()?->isFinancier())
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
                     @can('viewAny', App\Models\Supplier::class)
                         <flux:sidebar.item icon="truck" :href="route('suppliers')" :current="request()->routeIs('suppliers')" wire:navigate>
                             {{ __('Suppliers') }}

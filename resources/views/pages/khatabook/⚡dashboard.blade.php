@@ -15,6 +15,9 @@ new #[Title('Dashboard')] class extends Component {
         if ($user->isFinancier()) {
             return $this->redirect(route('financiers'), navigate: true);
         }
+        if ($user->isCustomer()) {
+            return $this->redirect(route('my-orders'), navigate: true);
+        }
     }
     protected function scopedSales()
     {

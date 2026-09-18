@@ -12,7 +12,7 @@ class ProductCategoryPolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier();
+        return ! $user->isFinancier() && ! $user->isCustomer();
     }
 
     /**

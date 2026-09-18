@@ -20,7 +20,7 @@ class ExpensePolicy
      */
     public function view(User $user, Expense $expense): bool
     {
-        if ($user->isSystemAdmin()) {
+        if ($user->isAdmin() || $user->isManager() || $user->isViewer()) {
             return true;
         }
 
@@ -40,11 +40,11 @@ class ExpensePolicy
      */
     public function update(User $user, Expense $expense): bool
     {
-        if ($user->isSystemAdmin()) {
+        if ($user->isAdmin() || $user->isManager()) {
             return true;
         }
 
-        return $expense->user_id === $user->id;
+        return $user->isStaff() && $expense->user_id === $user->id;
     }
 
     /**
@@ -52,10 +52,6 @@ class ExpensePolicy
      */
     public function delete(User $user, Expense $expense): bool
     {
-        if ($user->isSystemAdmin()) {
-            return true;
-        }
-
-        return $expense->user_id === $user->id;
+        return $user->isAdmin() || $user->isManager();
     }
 }

@@ -4,10 +4,10 @@ use App\Enums\RoleName;
 use App\Models\Sale;
 use App\Models\User;
 
-test('roles except financier can view the sales list', function (RoleName $role) {
+test('roles except financier and customer can view the sales list', function (RoleName $role) {
     $user = User::factory()->role($role)->create();
 
-    if ($role === RoleName::Financier) {
+    if ($role === RoleName::Financier || $role === RoleName::Customer) {
         expect($user->can('viewAny', Sale::class))->toBeFalse();
     } else {
         expect($user->can('viewAny', Sale::class))->toBeTrue();
