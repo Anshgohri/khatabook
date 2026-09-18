@@ -6,6 +6,15 @@
 :{$PORT:8080} {
 	root * public/
 	encode zstd br gzip
+
+	# Cache compiled Vite build assets aggressively (1 year)
+	@buildAssets path /build/*
+	header @buildAssets Cache-Control "public, max-age=31536000, immutable"
+
+	# Cache images and static media
+	@media path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.webp *.avif
+	header @media Cache-Control "public, max-age=86400"
+
 	php_server
 	log {
 		output stderr
