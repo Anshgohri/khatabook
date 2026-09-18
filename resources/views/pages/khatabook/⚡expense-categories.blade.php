@@ -143,7 +143,7 @@ new #[Title('Expense Categories')] class extends Component {
                     📂 {{ __('Dynamic Categories') }}
                 </span>
             </div>
-            <flux:subheading>{{ __('Manage dynamic expense category scopes, colors, icons, and descriptions for Ashok Kumar Baans Store') }}</flux:subheading>
+            <flux:subheading>{{ __('Manage dynamic expense category scopes, colors, icons, and descriptions for your store') }}</flux:subheading>
         </div>
 
         @if (auth()->user()?->isSystemAdmin())

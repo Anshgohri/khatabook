@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactInquiry;
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -23,6 +24,8 @@ class ContactInquiryController extends Controller
 
         ContactInquiry::create($validated);
 
-        return redirect()->route('thank-you')->with('success', 'Your inquiry has been submitted successfully to Ashok Kumar Baans Store.');
+        $storeName = Setting::get('store_name', config('khatabook.store_name', 'our store'));
+
+        return redirect()->route('thank-you')->with('success', sprintf('Your inquiry has been submitted successfully to %s.', $storeName));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -33,10 +34,14 @@ class UserInvited extends Notification
             ['user' => $notifiable->getKey()],
         );
 
+        $store = Setting::getStoreDetails();
+
         return (new MailMessage)
-            ->subject('You have been invited to Bamboo Khatabook')
-            ->line('An administrator has created an account for you on Bamboo Khatabook.')
-            ->action('Accept Invitation', $url)
-            ->line('This invitation link will expire in 7 days.');
+            ->subject('You have been invited to '.$store['storeName'])
+            ->markdown('emails.user-invited', [
+                'user' => $notifiable,
+                'url' => $url,
+                'store' => $store,
+            ]);
     }
 }
