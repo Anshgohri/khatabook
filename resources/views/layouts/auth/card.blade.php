@@ -1,140 +1,81 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         @include('partials.head')
 
         <style>
+            [x-cloak] {
+                display: none !important;
+            }
             body {
                 font-family: 'Poppins', sans-serif;
-                background-color: #060911 !important;
-                color: #f8fafc !important;
-                overflow-x: hidden;
+                background-color: #f8fafc;
+                color: #0f172a;
             }
-            .hero-bg-overlay {
-                background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.28) 0%, rgba(245, 158, 11, 0.12) 35%, rgba(6, 9, 17, 0.94) 80%),
-                            url('/images/bamboo_hero_bg.png') center/cover no-repeat;
+            .auth-card {
+                background-color: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
             }
-            .glow-card {
-                background: linear-gradient(145deg, rgba(15, 23, 42, 0.95) 0%, rgba(6, 9, 17, 0.98) 100%);
-                backdrop-filter: blur(24px);
-                border: 1px solid rgba(255, 255, 255, 0.18);
-                box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.85);
-            }
-            .glow-card label, 
-            .glow-card [data-flux-label],
-            .glow-card [data-slot="label"] {
-                color: #f8fafc !important;
+            .auth-card label, 
+            .auth-card [data-flux-label],
+            .auth-card [data-slot="label"] {
+                color: #334155 !important;
                 font-weight: 700 !important;
-                font-size: 0.875rem !important;
+                font-size: 0.8125rem !important;
             }
-            .glow-card input[type="text"],
-            .glow-card input[type="email"],
-            .glow-card input[type="password"] {
-                background-color: rgba(15, 23, 42, 0.9) !important;
-                color: #ffffff !important;
-                border: 1px solid rgba(255, 255, 255, 0.22) !important;
+            .auth-card input[type="text"],
+            .auth-card input[type="email"],
+            .auth-card input[type="password"] {
+                background-color: #f8fafc !important;
+                color: #0f172a !important;
+                border: 1px solid #cbd5e1 !important;
                 border-radius: 0.75rem !important;
             }
-            .glow-card input::placeholder {
+            .auth-card input::placeholder {
                 color: #94a3b8 !important;
             }
-            .glow-card input:focus {
-                border-color: #34d399 !important;
-                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35) !important;
+            .auth-card input:focus {
+                background-color: #ffffff !important;
+                border-color: #10b981 !important;
+                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
             }
-            .glow-card p, 
-            .glow-card span,
-            .glow-card [data-flux-subheading],
-            .glow-card [data-flux-description] {
-                color: #cbd5e1 !important;
+            .auth-card p, 
+            .auth-card span,
+            .auth-card [data-flux-subheading],
+            .auth-card [data-flux-description] {
+                color: #64748b !important;
             }
-            .glow-card h1, .glow-card h2, .glow-card h3 {
-                color: #ffffff !important;
-            }
-            .gradient-text-emerald {
-                background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #fbbf24 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-            .gradient-text-amber {
-                background: linear-gradient(135deg, #fef08a 0%, #fbbf24 50%, #f59e0b 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+            .auth-card h1, .auth-card h2, .auth-card h3,
+            .auth-card [data-flux-heading] {
+                color: #0f172a !important;
+                font-weight: 900 !important;
             }
         </style>
     </head>
-    <body class="bg-[#060911] text-slate-100 min-h-screen flex flex-col hero-bg-overlay selection:bg-emerald-500 selection:text-black">
-        <!-- Top Announcement Bar -->
-        <div class="w-full bg-gradient-to-r from-emerald-950 via-slate-950 to-amber-950 border-b border-emerald-500/30 py-2.5 px-4 text-center text-xs sm:text-sm font-black flex items-center justify-center gap-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950 shadow-md">
-                <span>🎋</span> ASHOK KUMAR BAANS STORE
-            </span>
-            <span class="text-slate-100 font-bold">
-                House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001
-            </span>
-        </div>
-
-        <!-- Main Header / Navigation -->
-        <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-4 relative z-30">
-            <!-- Brand Logo -->
-            <a href="{{ route('home') }}" class="flex items-center gap-3 sm:gap-4 group" wire:navigate aria-label="Ashok Kumar Baans Store">
-                <div class="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-slate-950 border-2 border-emerald-500/50 shadow-xl shadow-emerald-950/80 p-1 flex items-center justify-center group-hover:border-emerald-400 group-hover:scale-105 transition duration-300 shrink-0">
-                    <img src="{{ asset('images/ak-emblem.png') }}" alt="AK Emblem" class="h-full w-full object-contain filter drop-shadow-md" />
-                </div>
-                <div class="flex flex-col min-w-0">
-                    <span class="text-lg sm:text-2xl font-black tracking-tight text-white group-hover:text-emerald-300 transition">
-                        ASHOK KUMAR <span class="gradient-text-emerald">BAANS STORE</span>
-                    </span>
-                    <span class="text-[10px] sm:text-xs gradient-text-amber font-bold tracking-wide">
-                        Karnal, Haryana • Direct Bamboo Merchant
-                    </span>
-                </div>
-            </a>
-
-            <!-- Navigation Links -->
-            <div class="flex items-center flex-wrap gap-4 sm:gap-6">
-                <nav class="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-extrabold">
-                    <a href="{{ route('home') }}" class="text-slate-300 hover:text-emerald-400 transition">Home</a>
-                    <a href="{{ url('/#about') }}" class="text-slate-300 hover:text-emerald-400 transition">About Us</a>
-                    <a href="{{ url('/#contact') }}" class="text-slate-300 hover:text-emerald-400 transition">Contact Us</a>
-                </nav>
-
-                @auth
-                    <a href="{{ route('dashboard') }}" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-black text-xs sm:text-sm bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/20 transition transform hover:-translate-y-0.5 flex items-center gap-2" wire:navigate>
-                        <span>📊</span> Open Khatabook Dashboard
-                    </a>
-                @else
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <a href="{{ route('login') }}" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-xs sm:text-sm {{ request()->routeIs('login') ? 'text-emerald-400 bg-slate-800/80 border border-emerald-500/30' : 'text-slate-200 hover:text-white hover:bg-slate-800/80' }} transition" wire:navigate>
-                            Log in
-                        </a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="px-4 py-1.5 sm:px-5 sm:py-2 rounded-full font-black text-xs sm:text-sm {{ request()->routeIs('register') ? 'bg-emerald-400 text-slate-950 shadow-lg' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950' }} transition transform hover:-translate-y-0.5" wire:navigate>
-                                Register Store Account
-                            </a>
-                        @endif
-                    </div>
-                @endauth
-            </div>
-        </header>
+    <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+        
+        <!-- Header -->
+        @include('partials.public-header', ['active' => 'login'])
 
         <!-- Form Card Section -->
-        <div class="flex-1 flex items-center justify-center p-6 md:p-10 relative z-20">
-            <div class="w-full max-w-md glow-card p-8 sm:p-10 rounded-3xl space-y-6">
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 flex items-center justify-center">
+            <div class="w-full max-w-md auth-card p-6 sm:p-10 rounded-3xl space-y-6">
                 {{ $slot }}
             </div>
-        </div>
+        </main>
 
         <!-- Footer -->
-        <footer class="w-full border-t border-slate-800 bg-slate-950 py-6 text-center text-sm text-slate-300 relative z-20">
+        <footer class="w-full border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-600 mt-auto">
             <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span class="font-bold text-white">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
-                <div class="flex items-center gap-6 text-sm font-bold text-slate-300">
-                    <a href="{{ route('home') }}" class="hover:text-emerald-400 transition">Home</a>
-                    <a href="{{ route('about') }}" class="hover:text-emerald-400 transition">About Us</a>
-                    <a href="{{ route('contact') }}" class="hover:text-emerald-400 transition">Contact Us</a>
+                <span class="font-semibold">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
+                <div class="flex items-center gap-6 font-bold text-slate-600">
+                    <a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Home</a>
+                    <a href="{{ route('catalog.index') }}" class="hover:text-emerald-600 transition">Products Catalog</a>
+                    <a href="{{ route('about') }}" class="hover:text-emerald-600 transition">About Us</a>
+                    <a href="{{ route('contact') }}" class="hover:text-emerald-600 transition">Contact Us</a>
                 </div>
-                <span class="text-emerald-400 font-extrabold">Ashok Kumar • Karnal, Haryana</span>
+                <span class="text-emerald-600 font-extrabold">Ashok Kumar • Karnal, Haryana</span>
             </div>
         </footer>
 

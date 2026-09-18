@@ -11,11 +11,11 @@
         @endif
 
         <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        <x-auth-session-status class="text-center text-xs font-bold text-emerald-700" :status="session('status')" />
 
         <x-passkey-verify />
 
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-5">
             @csrf
 
             <!-- Email Address -->
@@ -43,7 +43,7 @@
                 />
 
                 @if (Route::has('password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0 text-emerald-400 hover:text-emerald-300" :href="route('password.request')" wire:navigate>
+                    <flux:link class="absolute top-0 text-xs end-0 text-emerald-600 font-bold hover:text-emerald-700 hover:underline" :href="route('password.request')" wire:navigate>
                         {{ __('Forgot password?') }}
                     </flux:link>
                 @endif
@@ -52,17 +52,17 @@
             <!-- Remember Me -->
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
-            <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
+            <div class="flex items-center justify-end pt-2">
+                <flux:button variant="primary" type="submit" class="w-full !bg-emerald-600 hover:!bg-emerald-700 !text-white font-black py-3 rounded-xl shadow-xs" data-test="login-button">
                     {{ __('Log in') }}
                 </flux:button>
             </div>
         </form>
 
         @if (Route::has('register'))
-            <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-slate-300 font-semibold pt-4 border-t border-slate-800">
+            <div class="space-x-1 rtl:space-x-reverse text-center text-xs text-slate-600 font-semibold pt-4 border-t border-slate-200">
                 <span>{{ __("Don't have an account?") }}</span>
-                <flux:link :href="route('register')" wire:navigate class="text-emerald-400 font-black hover:underline">{{ __('Register here') }}</flux:link>
+                <flux:link :href="route('register')" wire:navigate class="text-emerald-600 font-extrabold hover:underline">{{ __('Register here') }}</flux:link>
             </div>
         @endif
     </div>
