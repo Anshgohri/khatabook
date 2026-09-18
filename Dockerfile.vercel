@@ -18,7 +18,7 @@ RUN npm run build
 FROM dunglas/frankenphp:php8.5-alpine AS runtime
 WORKDIR /app
 
-RUN install-php-extensions pdo_pgsql bcmath
+RUN install-php-extensions pdo_pgsql bcmath gd
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . .
