@@ -280,6 +280,8 @@ new #[Title('Sales Form')] class extends Component {
             }
         }
 
+        $emailFailed = false;
+
         if ($customerUser) {
             $wasDummyEmail = str_contains((string) $customerUser->email, '@khatabook.customer');
             $hasNewRealEmail = ! empty($validated['customer_email']) && $wasDummyEmail;
@@ -296,13 +298,21 @@ new #[Title('Sales Form')] class extends Component {
             if (! empty($validated['customer_email'])) {
                 $updateData['email'] = $validated['customer_email'];
             }
+
+            if ($hasNewRealEmail || ($customerUser->status === 'invited' && ! str_contains((string) ($updateData['email'] ?? $customerUser->email), '@khatabook.customer'))) {
+                $updateData['status'] = 'invited';
+            }
+
             $customerUser->update($updateData);
 
-            if ($hasNewRealEmail) {
+            $shouldSendInvite = ($hasNewRealEmail || $customerUser->status === 'invited') && ! str_contains((string) $customerUser->email, '@khatabook.customer');
+
+            if ($shouldSendInvite) {
                 try {
                     $customerUser->notify(new \App\Notifications\UserInvited);
                 } catch (\Throwable $e) {
                     \Illuminate\Support\Facades\Log::error('Failed sending customer store invitation: '.$e->getMessage());
+                    $emailFailed = true;
                 }
             }
         } else {
@@ -331,6 +341,7 @@ new #[Title('Sales Form')] class extends Component {
                     $customerUser->notify(new \App\Notifications\UserInvited);
                 } catch (\Throwable $e) {
                     \Illuminate\Support\Facades\Log::error('Failed sending customer store invitation: '.$e->getMessage());
+                    $emailFailed = true;
                 }
             }
         }
@@ -366,6 +377,10 @@ new #[Title('Sales Form')] class extends Component {
         $sale->syncItemsAndInventory($validated['saleItems']);
 
         Flux::toast(variant: 'success', text: __('Sale saved successfully.'));
+
+        if ($emailFailed) {
+            Flux::toast(variant: 'warning', text: __('Sale saved, but failed to send email notification to customer. Please check mail settings.'));
+        }
 
         return $this->redirect(route('sales'), navigate: true);
     }

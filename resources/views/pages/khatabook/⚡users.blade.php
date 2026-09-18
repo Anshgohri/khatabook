@@ -177,7 +177,9 @@ new #[Title('Users')] class extends Component {
         }
 
         try {
+            $target->forceFill(['status' => 'invited'])->save();
             $target->notify(new \App\Notifications\UserInvited);
+            unset($this->users);
             Flux::toast(variant: 'success', text: __('Invitation email sent to :email', ['email' => $target->email]));
         } catch (\Throwable $e) {
             Flux::toast(variant: 'danger', text: __('Failed to send invitation email. Please check mail settings.'));

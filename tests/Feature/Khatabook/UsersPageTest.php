@@ -137,3 +137,18 @@ test('inviting a user with a duplicate email address fails validation', function
         ->call('inviteUser')
         ->assertHasErrors(['invite_email']);
 });
+
+test('admin can resend invite to a user and user status is set to invited', function () {
+    Notification::fake();
+
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $targetUser = User::factory()->create(['status' => 'active', 'email' => 'target@example.com']);
+
+    Livewire::actingAs($admin)
+        ->test('pages::khatabook.users')
+        ->call('resendInvite', $targetUser->id)
+        ->assertHasNoErrors();
+
+    expect($targetUser->fresh()->status)->toBe('invited');
+    Notification::assertSentTo($targetUser, UserInvited::class);
+});

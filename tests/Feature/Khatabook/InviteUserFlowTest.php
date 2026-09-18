@@ -39,10 +39,12 @@ test('a valid signed invite link is accessible for an invited user', function ()
     $this->get($url)->assertOk();
 });
 
-test('an already active user cannot reuse an invite link', function () {
+test('an already active user accessing an invite link is redirected to login', function () {
     $user = User::factory()->role(RoleName::Staff)->create(['status' => 'active']);
 
     $url = URL::temporarySignedRoute('invite.accept', now()->addDays(7), ['user' => $user->id]);
 
-    $this->get($url)->assertNotFound();
+    $this->get($url)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status');
 });

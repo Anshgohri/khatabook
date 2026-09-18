@@ -17,8 +17,14 @@ new #[Layout('layouts::auth')] #[Title('Accept invitation')] class extends Compo
 
     public string $password_confirmation = '';
 
-    public function mount(User $user): void
+    public function mount(User $user)
     {
+        if ($user->status === 'active') {
+            session()->flash('status', __('Your account is already active. Please log in with your password.'));
+
+            return redirect()->route('login');
+        }
+
         abort_unless($user->status === 'invited', 404);
 
         $this->user = $user;

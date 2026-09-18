@@ -4,6 +4,8 @@ use App\Enums\RoleName;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
+use App\Notifications\UserInvited;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 test('guests are redirected to the login page', function () {
@@ -319,4 +321,27 @@ test('saving a sale with phone and email belonging to different customers fails 
         ->set('payment_status', 'paid')
         ->call('save')
         ->assertHasErrors(['customer_email']);
+});
+
+test('saving a sale for a customer with a real email sends invitation notification', function () {
+    Notification::fake();
+
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    Livewire::actingAs($staff)
+        ->test('pages::khatabook.sales-form')
+        ->set('date', now()->toDateString())
+        ->set('customer_name', 'Email Customer')
+        ->set('customer_email', 'newcustomer@example.com')
+        ->set('saleItems', [
+            ['product_id' => '', 'quantity' => 1, 'unit_price' => 500, 'total_price' => 500],
+        ])
+        ->set('payment_status', 'paid')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $customer = User::where('email', 'newcustomer@example.com')->first();
+    expect($customer)->not->toBeNull();
+    expect($customer->status)->toBe('invited');
+    Notification::assertSentTo($customer, UserInvited::class);
 });
