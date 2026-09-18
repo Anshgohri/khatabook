@@ -150,6 +150,20 @@ new #[Title('Users')] class extends Component {
         unset($this->users);
         Flux::toast(variant: 'success', text: __('User deleted.'));
     }
+
+    public function verifyUserEmail(int $userId): void
+    {
+        $target = User::findOrFail($userId);
+
+        $this->authorize('update', $target);
+
+        $target->forceFill([
+            'email_verified_at' => now(),
+        ])->save();
+
+        unset($this->users);
+        Flux::toast(variant: 'success', text: __('User email verified manually.'));
+    }
 }; ?>
 
 <div class="flex flex-col gap-6">
@@ -168,7 +182,8 @@ new #[Title('Users')] class extends Component {
                 <flux:table.column>{{ __('Contact Details') }}</flux:table.column>
                 <flux:table.column>{{ __('Address / City') }}</flux:table.column>
                 <flux:table.column>{{ __('Role') }}</flux:table.column>
-                <flux:table.column>{{ __('Status') }}</flux:table.column>
+                <flux:table.column>{{ __('Email Status') }}</flux:table.column>
+                <flux:table.column>{{ __('Account Status') }}</flux:table.column>
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
 
@@ -203,6 +218,24 @@ new #[Title('Users')] class extends Component {
                         <flux:badge :color="match ($targetUser->role?->name) { 'Admin' => 'purple', 'Manager' => 'blue', 'ROLE_CUSTOMER' => 'emerald', default => 'zinc' }" size="sm">
                             {{ $targetUser->role?->name ?? __('None') }}
                         </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        @if ($targetUser->hasVerifiedEmail())
+                        <flux:badge color="green" size="sm" icon="check-circle">
+                            {{ __('Verified') }}
+                        </flux:badge>
+                        @else
+                        <div class="flex items-center gap-1.5">
+                            <flux:badge color="amber" size="sm" icon="exclamation-circle">
+                                {{ __('Unverified') }}
+                            </flux:badge>
+                            @if (auth()->user()?->isAdmin() || auth()->user()?->isSystemAdmin())
+                            <flux:button size="xs" variant="subtle" color="emerald" wire:click="verifyUserEmail({{ $targetUser->id }})" wire:confirm="{{ __('Manually mark this user\'s email as verified?') }}">
+                                {{ __('Verify') }}
+                            </flux:button>
+                            @endif
+                        </div>
+                        @endif
                     </flux:table.cell>
                     <flux:table.cell>
                         <flux:badge :color="match ($targetUser->status) { 'active' => 'green', 'invited' => 'amber', default => 'red' }" size="sm">

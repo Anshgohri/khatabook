@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\RoleName;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Features;
+use Livewire\Livewire;
 
 beforeEach(function () {
     $this->skipUnlessFortifyHas(Features::emailVerification());
@@ -69,4 +71,23 @@ test('already verified user visiting verification link is redirected without fir
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     Event::assertNotDispatched(Verified::class);
+});
+
+test('unverified user accessing protected dashboard is redirected to verification notice', function () {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('verification.notice'));
+});
+
+test('system admin can manually verify user email on users page', function () {
+    $admin = User::factory()->role(RoleName::SystemAdmin)->create();
+    $unverifiedUser = User::factory()->unverified()->create();
+
+    Livewire::actingAs($admin)
+        ->test('pages::khatabook.users')
+        ->call('verifyUserEmail', $unverifiedUser->id);
+
+    expect($unverifiedUser->fresh()->hasVerifiedEmail())->toBeTrue();
 });

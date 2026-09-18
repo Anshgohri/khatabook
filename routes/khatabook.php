@@ -3,12 +3,12 @@
 use App\Http\Controllers\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::khatabook.dashboard')->name('dashboard');
     Route::livewire('sales', 'pages::khatabook.sales')->name('sales');
     Route::livewire('sales/create', 'pages::khatabook.sales-form')->name('sales.create');
     Route::livewire('sales/{sale}/edit', 'pages::khatabook.sales-form')->name('sales.edit');
-    
+
     // Invoice Routes
     Route::get('invoices/sale/{sale}/view', [InvoiceController::class, 'showSaleInvoice'])->name('invoices.sale.view');
     Route::get('invoices/sale/{sale}/download', [InvoiceController::class, 'downloadSaleInvoice'])->name('invoices.sale.download');
