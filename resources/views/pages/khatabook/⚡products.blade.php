@@ -94,6 +94,11 @@ new #[Title('Products & Inventory')] class extends Component {
 
     public function saveProduct(): void
     {
+        if ($this->image && method_exists($this->image, 'exists') && ! $this->image->exists()) {
+            $this->addError('image', __('The uploaded image is no longer available on the server. Please select the file again.'));
+            return;
+        }
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'product_category_id' => ['nullable', 'exists:product_categories,id'],

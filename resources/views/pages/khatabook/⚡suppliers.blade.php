@@ -207,6 +207,11 @@ new #[Title('Suppliers')] class extends Component {
         $supplier = Supplier::findOrFail($this->paymentSupplierId);
         $this->authorize('update', $supplier);
 
+        if ($this->bill_image && method_exists($this->bill_image, 'exists') && ! $this->bill_image->exists()) {
+            $this->addError('bill_image', __('The uploaded receipt file is no longer available on the server. Please select the file again.'));
+            return;
+        }
+
         $validated = $this->validate([
             'type' => ['required', 'in:raw_material_purchase,payment_made'],
             'amount' => ['required', 'numeric', 'min:0.01'],

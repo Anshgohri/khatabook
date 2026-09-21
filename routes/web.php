@@ -19,5 +19,9 @@ Route::livewire('invite/{user}', 'pages::auth.accept-invite')
     ->middleware('signed')
     ->name('invite.accept');
 
+if (app()->environment('local')) {
+    Route::get('/test-error/{code}', fn ($code) => abort((int) $code));
+}
+
 require __DIR__.'/settings.php';
 require __DIR__.'/khatabook.php';

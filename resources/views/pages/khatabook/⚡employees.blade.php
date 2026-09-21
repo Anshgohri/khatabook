@@ -195,6 +195,11 @@ new #[Title('Employees')] class extends Component {
         $employee = Employee::findOrFail($this->paymentEmployeeId);
         $this->authorize('update', $employee);
 
+        if ($this->bill_image && method_exists($this->bill_image, 'exists') && ! $this->bill_image->exists()) {
+            $this->addError('bill_image', __('The uploaded receipt file is no longer available on the server. Please select the file again.'));
+            return;
+        }
+
         $validated = $this->validate([
             'type' => ['required', 'in:daily_pay,advance_given,advance_repaid,salary_deduction'],
             'amount' => ['required', 'numeric', 'min:0.01'],

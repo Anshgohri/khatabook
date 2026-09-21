@@ -134,6 +134,11 @@ new #[Title('Expenses')] class extends Component {
 
     public function save(): void
     {
+        if ($this->bill_image && method_exists($this->bill_image, 'exists') && ! $this->bill_image->exists()) {
+            $this->addError('bill_image', __('The uploaded receipt file is no longer available on the server. Please select the file again.'));
+            return;
+        }
+
         $validated = $this->validate([
             'date' => ['required', 'date'],
             'expense_category_id' => ['required', 'exists:expense_categories,id'],

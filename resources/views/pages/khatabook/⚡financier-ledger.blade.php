@@ -113,6 +113,11 @@ new #[Title('Financier Ledger')] class extends Component {
     {
         $this->authorize('update', $this->financier);
 
+        if ($this->bill_image && method_exists($this->bill_image, 'exists') && ! $this->bill_image->exists()) {
+            $this->addError('bill_image', __('The uploaded receipt file is no longer available on the server. Please select the file again.'));
+            return;
+        }
+
         $validated = $this->validate([
             'type' => ['required', 'in:daily_payment,weekly_payment,monthly_payment,loan_received,loan_repaid,interest_payment'],
             'amount' => ['required', 'numeric', 'min:0.01'],
