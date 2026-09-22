@@ -7,6 +7,10 @@ php artisan key:generate --force 2>/dev/null || true
 echo "Running migrations..."
 php artisan migrate --force 2>/dev/null || echo "Migrations failed but continuing..."
 
+echo "Ensuring storage directories and symlink..."
+mkdir -p storage/app/public
+php artisan storage:link --force 2>/dev/null || true
+
 echo "Optimizing framework caches..."
 rm -f public/hot
 php artisan config:cache 2>/dev/null || true

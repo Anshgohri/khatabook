@@ -211,7 +211,7 @@ new #[Title('Employees')] class extends Component {
 
         $billPath = null;
         if ($this->bill_image) {
-            $billPath = $this->bill_image->store('bills', 'public');
+            $billPath = $this->bill_image->store('bills');
         }
 
         EmployeePayment::create([

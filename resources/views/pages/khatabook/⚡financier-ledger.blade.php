@@ -129,7 +129,7 @@ new #[Title('Financier Ledger')] class extends Component {
 
         $billPath = null;
         if ($this->bill_image) {
-            $billPath = $this->bill_image->store('bills', 'public');
+            $billPath = $this->bill_image->store('bills');
         }
 
         FinancierPayment::create([

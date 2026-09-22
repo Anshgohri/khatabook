@@ -1,9 +1,11 @@
 <?php
 
+use App\Enums\RoleName;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Financier;
 use App\Models\FinancierPayment;
+use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use App\Models\User;
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    Storage::fake('public');
+    Storage::fake();
 });
 
 test('user can upload a bill image when saving a supplier payment entry', function () {
@@ -36,7 +38,7 @@ test('user can upload a bill image when saving a supplier payment entry', functi
 
     expect($payment)->not->toBeNull();
     expect($payment->bill_path)->not->toBeNull();
-    Storage::disk('public')->assertExists($payment->bill_path);
+    Storage::disk()->assertExists($payment->bill_path);
 });
 
 test('user can upload a bill image when recording a financier payment', function () {
@@ -59,7 +61,7 @@ test('user can upload a bill image when recording a financier payment', function
 
     expect($payment)->not->toBeNull();
     expect($payment->bill_path)->not->toBeNull();
-    Storage::disk('public')->assertExists($payment->bill_path);
+    Storage::disk()->assertExists($payment->bill_path);
 });
 
 test('user can upload a receipt photo when creating an expense entry', function () {
@@ -82,5 +84,40 @@ test('user can upload a receipt photo when creating an expense entry', function 
 
     expect($expense)->not->toBeNull();
     expect($expense->bill_path)->not->toBeNull();
-    Storage::disk('public')->assertExists($expense->bill_path);
+    Storage::disk()->assertExists($expense->bill_path);
+});
+
+test('user can upload a product image when creating a product', function () {
+    $user = User::factory()->role(RoleName::Admin)->create();
+    $file = UploadedFile::fake()->image('product.jpg');
+
+    Livewire::actingAs($user)
+        ->test('pages::khatabook.products')
+        ->set('name', 'Bamboo Chair')
+        ->set('unit_price', 1500)
+        ->set('type', 'finished_good')
+        ->set('unit', 'pcs')
+        ->set('image', $file)
+        ->call('saveProduct');
+
+    $product = Product::where('name', 'Bamboo Chair')->first();
+
+    expect($product)->not->toBeNull();
+    expect($product->image_path)->not->toBeNull();
+    Storage::disk()->assertExists($product->image_path);
+});
+
+test('storage route serves file stored in public disk', function () {
+    Storage::disk('public')->put('products/test_image.jpg', 'fake-image-binary-content');
+
+    $response = $this->get('/storage/products/test_image.jpg');
+
+    $response->assertStatus(200);
+    expect(file_get_contents($response->getFile()->getPathname()))->toBe('fake-image-binary-content');
+});
+
+test('storage route returns 404 for missing file', function () {
+    $response = $this->get('/storage/products/non_existent.jpg');
+
+    $response->assertStatus(404);
 });

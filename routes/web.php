@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\PublicCatalogController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', [PublicCatalogController::class, 'index'])->name('home');
 Route::get('/catalog', [PublicCatalogController::class, 'catalog'])->name('catalog.index');
@@ -25,3 +26,14 @@ if (app()->environment('local')) {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/khatabook.php';
+
+Route::get('/storage/{path}', function (string $path) {
+    $normalized = str_replace(['..', "\0"], '', $path);
+    $disk = Storage::disk('public');
+
+    if (! $disk->exists($normalized)) {
+        abort(404);
+    }
+
+    return response()->file($disk->path($normalized));
+})->where('path', '.*')->name('storage.local');

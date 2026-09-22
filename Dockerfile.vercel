@@ -36,7 +36,9 @@ COPY Caddyfile /etc/frankenphp/Caddyfile
 COPY entrypoint.sh /entrypoint.sh
 
 RUN composer dump-autoload --optimize --classmap-authoritative \
-    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache \
+    && mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache \
+    && rm -rf public/storage \
+    && ln -sfn ../storage/app/public public/storage \
     && rm -f public/hot \
     && touch storage/logs/laravel.log \
     && ln -sf ../storage/logs/laravel.log public/laravel.log \

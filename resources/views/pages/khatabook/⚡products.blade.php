@@ -20,7 +20,7 @@ new #[Title('Products & Inventory')] class extends Component {
 
     public string $name = '';
 
-    public string $product_category_id = '';
+    public ?string $product_category_id = null;
 
     public float $unit_price = 0;
 
@@ -99,6 +99,8 @@ new #[Title('Products & Inventory')] class extends Component {
             return;
         }
 
+        $this->product_category_id = $this->product_category_id ?: null;
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'product_category_id' => ['nullable', 'exists:product_categories,id'],
@@ -112,7 +114,7 @@ new #[Title('Products & Inventory')] class extends Component {
         $validated['product_category_id'] = $validated['product_category_id'] ?: null;
 
         if ($this->image) {
-            $imagePath = $this->image->store('products', 'public');
+            $imagePath = $this->image->store('products');
             $validated['image_path'] = $imagePath;
         }
 
