@@ -30,8 +30,8 @@ class PublicCatalogController extends Controller
             });
         }
 
-        // Display top 6 featured products on landing page
-        $featuredProducts = $query->latest()->take(6)->get();
+        // Display top 12 featured products on landing page
+        $featuredProducts = $query->latest()->take(12)->get();
 
         $totalProductsCount = Product::count();
 

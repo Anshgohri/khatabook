@@ -14,13 +14,13 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
             background-color: #f8fafc;
             color: #0f172a;
         }
@@ -120,18 +120,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="w-full border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-600 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="font-semibold">© {{ date('Y') }} Ashok Kumar Baans Store, Karnal. All rights reserved.</span>
-            <div class="flex items-center gap-6 font-bold text-slate-600">
-                <a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Home</a>
-                <a href="{{ route('catalog.index') }}" class="hover:text-emerald-600 transition">Products Catalog</a>
-                <a href="{{ route('about') }}" class="hover:text-emerald-600 transition">About Us</a>
-                <a href="{{ route('contact') }}" class="hover:text-emerald-600 transition">Contact Us</a>
-            </div>
-            <span class="text-emerald-600 font-extrabold">Ashok Kumar • Karnal, Haryana</span>
-        </div>
-    </footer>
+    @include('partials.public-footer')
 </body>
 
 </html>

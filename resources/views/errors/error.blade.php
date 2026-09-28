@@ -1,55 +1,56 @@
 @php
-    $status = $status ?? (isset($exception) && method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : 500);
+$status = $status ?? (isset($exception) && method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : 500);
 
-    $messageOverride = isset($exception) && $exception->getMessage() ? $exception->getMessage() : null;
+$messageOverride = isset($exception) && $exception->getMessage() ? $exception->getMessage() : null;
 
-    $details = match ((int) $status) {
-        401 => [
-            'title' => __('Authentication Required'),
-            'subtitle' => __('HTTP 401 Unauthorized'),
-            'icon' => '🔑',
-            'message' => $messageOverride ?: __('You must be logged in to access this page. Please sign in to continue.'),
-        ],
-        403 => [
-            'title' => __('Access Forbidden'),
-            'subtitle' => __('HTTP 403 Forbidden'),
-            'icon' => '🔒',
-            'message' => $messageOverride ?: __('You do not have permission to view or manage this resource. Please contact your store manager.'),
-        ],
-        404 => [
-            'title' => __('Page Not Found'),
-            'subtitle' => __('HTTP 404 Not Found'),
-            'icon' => '🔍',
-            'message' => $messageOverride ?: __('The page or resource you are looking for could not be found or has been moved to a new web address.'),
-        ],
-        419 => [
-            'title' => __('Page Session Expired'),
-            'subtitle' => __('HTTP 419 Page Expired'),
-            'icon' => '⏱️',
-            'message' => $messageOverride ?: __('Your security session has expired due to inactivity. Please refresh the page and try again.'),
-        ],
-        429 => [
-            'title' => __('Too Many Requests'),
-            'subtitle' => __('HTTP 429 Rate Limit Exceeded'),
-            'icon' => '⚡',
-            'message' => $messageOverride ?: __('You have sent too many requests in a short amount of time. Please wait a few moments before trying again.'),
-        ],
-        503 => [
-            'title' => __('Service Unavailable'),
-            'subtitle' => __('HTTP 503 Maintenance'),
-            'icon' => '🚧',
-            'message' => $messageOverride ?: __('The system is currently undergoing scheduled maintenance or system updates. Please check back shortly.'),
-        ],
-        default => [
-            'title' => __('Internal Server Error'),
-            'subtitle' => __('HTTP ' . $status . ' Server Error'),
-            'icon' => '🛠️',
-            'message' => $messageOverride ?: __('An unexpected error occurred while processing your request. Our system log has captured the details.'),
-        ],
-    };
+$details = match ((int) $status) {
+401 => [
+'title' => __('Authentication Required'),
+'subtitle' => __('HTTP 401 Unauthorized'),
+'icon' => '🔑',
+'message' => $messageOverride ?: __('You must be logged in to access this page. Please sign in to continue.'),
+],
+403 => [
+'title' => __('Access Forbidden'),
+'subtitle' => __('HTTP 403 Forbidden'),
+'icon' => '🔒',
+'message' => $messageOverride ?: __('You do not have permission to view or manage this resource. Please contact your store manager.'),
+],
+404 => [
+'title' => __('Page Not Found'),
+'subtitle' => __('HTTP 404 Not Found'),
+'icon' => '🔍',
+'message' => $messageOverride ?: __('The page or resource you are looking for could not be found or has been moved to a new web address.'),
+],
+419 => [
+'title' => __('Page Session Expired'),
+'subtitle' => __('HTTP 419 Page Expired'),
+'icon' => '⏱️',
+'message' => $messageOverride ?: __('Your security session has expired due to inactivity. Please refresh the page and try again.'),
+],
+429 => [
+'title' => __('Too Many Requests'),
+'subtitle' => __('HTTP 429 Rate Limit Exceeded'),
+'icon' => '⚡',
+'message' => $messageOverride ?: __('You have sent too many requests in a short amount of time. Please wait a few moments before trying again.'),
+],
+503 => [
+'title' => __('Service Unavailable'),
+'subtitle' => __('HTTP 503 Maintenance'),
+'icon' => '🚧',
+'message' => $messageOverride ?: __('The system is currently undergoing scheduled maintenance or system updates. Please check back shortly.'),
+],
+default => [
+'title' => __('Internal Server Error'),
+'subtitle' => __('HTTP ' . $status . ' Server Error'),
+'icon' => '🛠️',
+'message' => $messageOverride ?: __('An unexpected error occurred while processing your request. Our system log has captured the details.'),
+],
+};
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -61,18 +62,19 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
             background-color: #f8fafc;
             color: #0f172a;
         }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
 
     <!-- Header Navigation -->
@@ -81,7 +83,7 @@
     <!-- Hero / Error Section -->
     <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 flex items-center justify-center">
         <div class="w-full text-center space-y-8">
-            
+
             <!-- Status Code Badge & Emoji Icon -->
             <div class="relative inline-block">
                 <span class="text-8xl sm:text-[11rem] font-black tracking-tighter bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 bg-clip-text text-transparent select-none drop-shadow-xs leading-none">
@@ -115,15 +117,15 @@
                     </button>
 
                     @auth
-                        <a href="{{ route('dashboard') }}" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm">
-                            <flux:icon icon="home" class="w-4 h-4" />
-                            <span>{{ __('Return to Dashboard') }}</span>
-                        </a>
+                    <a href="{{ route('dashboard') }}" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <flux:icon icon="home" class="w-4 h-4" />
+                        <span>{{ __('Return to Dashboard') }}</span>
+                    </a>
                     @else
-                        <a href="{{ route('home') }}" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm">
-                            <flux:icon icon="home" class="w-4 h-4" />
-                            <span>{{ __('Back to Store Home') }}</span>
-                        </a>
+                    <a href="{{ route('home') }}" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <flux:icon icon="home" class="w-4 h-4" />
+                        <span>{{ __('Back to Store Home') }}</span>
+                    </a>
                     @endauth
 
                     <a href="{{ route('contact') }}" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-md transition flex items-center justify-center gap-2 text-xs sm:text-sm">
@@ -151,4 +153,5 @@
 
     @fluxScripts
 </body>
+
 </html>
