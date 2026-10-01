@@ -91,10 +91,10 @@ new #[Title('Expenses')] class extends Component {
 
         return Expense::query()
             ->with(['user', 'category'])
-            // If NOT System Admin, restrict strictly to logged in user's expenses
-            ->when(! $user->isSystemAdmin(), fn($query) => $query->where('user_id', $user->id))
-            // If System Admin selects a specific user/admin filter
-            ->when($user->isSystemAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
+            // If NOT Admin, restrict strictly to logged in user's expenses
+            ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
+            // If Admin selects a specific user filter
+            ->when($user->isAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
             ->when($this->search, fn($query) => $query->where('description', 'like', "%{$this->search}%"))
             ->when($this->categoryId, fn($query) => $query->where('expense_category_id', $this->categoryId))
             ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
@@ -195,7 +195,7 @@ new #[Title('Expenses')] class extends Component {
     // Dynamic Category Management Methods
     public function openCategoryModal(?int $id = null): void
     {
-        if (! Auth::user()?->isSystemAdmin()) {
+        if (! Auth::user()?->isAdmin()) {
             abort(403);
         }
 
@@ -219,7 +219,7 @@ new #[Title('Expenses')] class extends Component {
 
     public function saveCategory(): void
     {
-        if (! Auth::user()?->isSystemAdmin()) {
+        if (! Auth::user()?->isAdmin()) {
             abort(403);
         }
 
@@ -262,7 +262,7 @@ new #[Title('Expenses')] class extends Component {
 
     public function deleteCategory(int $categoryId): void
     {
-        if (! Auth::user()?->isSystemAdmin()) {
+        if (! Auth::user()?->isAdmin()) {
             abort(403);
         }
 
@@ -303,7 +303,7 @@ new #[Title('Expenses')] class extends Component {
         </div>
 
         <div class="flex items-center gap-2">
-            @if (auth()->user()?->isSystemAdmin())
+            @if (auth()->user()?->isAdmin())
                 <flux:button variant="subtle" icon="folder-plus" wire:click="openCategoryModal">
                     {{ __('Dynamic Categories') }}
                 </flux:button>
@@ -318,7 +318,7 @@ new #[Title('Expenses')] class extends Component {
     </div>
 
     <!-- Filter Controls -->
-    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isSystemAdmin() ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} items-end">
+    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isAdmin() ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} items-end">
         <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search description...')" icon="magnifying-glass" />
 
         <flux:select wire:model.live="categoryId" :placeholder="__('All Categories')">
@@ -330,7 +330,7 @@ new #[Title('Expenses')] class extends Component {
             @endforeach
         </flux:select>
 
-        @if (auth()->user()?->isSystemAdmin())
+        @if (auth()->user()?->isAdmin())
             <flux:select wire:model.live="filterUserId" :placeholder="__('All Admins / Users')">
                 <flux:select.option value="">{{ __('All Admins / Users') }}</flux:select.option>
                 @foreach ($this->allUsers as $u)
@@ -430,7 +430,7 @@ new #[Title('Expenses')] class extends Component {
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <flux:label>{{ __('Category') }}</flux:label>
-                        @if (auth()->user()?->isSystemAdmin())
+                        @if (auth()->user()?->isAdmin())
                             <button type="button" wire:click="openCategoryModal" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
                                 <span>+ New Category</span>
                             </button>
@@ -469,8 +469,8 @@ new #[Title('Expenses')] class extends Component {
         </div>
     </flux:modal>
 
-    <!-- System Admin Dynamic Category Management Modal -->
-    @if (auth()->user()?->isSystemAdmin())
+    <!-- Admin Dynamic Category Management Modal -->
+    @if (auth()->user()?->isAdmin())
         <flux:modal wire:model.self="showCategoryModal" class="md:w-[540px]">
             <div class="flex flex-col gap-6">
                 <div>
