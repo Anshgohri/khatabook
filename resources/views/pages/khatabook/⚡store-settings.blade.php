@@ -202,4 +202,64 @@ new #[Title('Store Settings')] class extends Component {
             </div>
         </div>
     </div>
+
+    {{-- ─── Database Backup Section (System Admin Only) ─────────────────────── --}}
+    @if (auth()->user()?->isSystemAdmin())
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-red-200 dark:border-red-900/60 shadow-sm overflow-hidden">
+        {{-- Header --}}
+        <div class="flex items-center gap-3 px-6 py-4 bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/60">
+            <span class="text-2xl">🛡️</span>
+            <div>
+                <h3 class="font-extrabold text-base text-red-800 dark:text-red-300">{{ __('Database Backup & Recovery') }}</h3>
+                <p class="text-xs text-red-600 dark:text-red-400 mt-0.5">{{ __('System Admin access only — downloads a full SQL dump of all business data.') }}</p>
+            </div>
+            <span class="ml-auto px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 uppercase tracking-wider">
+                Admin Only
+            </span>
+        </div>
+
+        <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-5">
+            {{-- Info --}}
+            <div class="flex-1 flex flex-col gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                    <div class="flex flex-col gap-0.5 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{{ __('Driver') }}</span>
+                        <span class="font-bold text-zinc-800 dark:text-zinc-100 uppercase">{{ config('database.default') }}</span>
+                    </div>
+                    <div class="flex flex-col gap-0.5 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{{ __('Format') }}</span>
+                        <span class="font-bold text-zinc-800 dark:text-zinc-100">.sql</span>
+                    </div>
+                    <div class="flex flex-col gap-0.5 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 col-span-2 sm:col-span-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{{ __('Includes') }}</span>
+                        <span class="font-bold text-zinc-800 dark:text-zinc-100 text-xs">{{ __('All tables + data') }}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300">
+                    <span class="text-base shrink-0 mt-0.5">⚠️</span>
+                    <span>{{ __('This file contains ALL your business records including sales, customers, financiers, and expenses. Store it securely and never share it publicly.') }}</span>
+                </div>
+            </div>
+
+            {{-- Download Button --}}
+            <div class="shrink-0 flex flex-col items-center gap-2">
+                <a
+                    href="{{ route('admin.database.backup') }}"
+                    id="db-backup-download-btn"
+                    class="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl font-bold text-sm bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow-lg hover:shadow-red-500/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    {{ __('Download Backup') }}
+                </a>
+                <span class="text-[10px] text-zinc-400 dark:text-zinc-500 text-center">
+                    {{ now()->format('d M Y') }} • {{ strtoupper(config('database.default')) }}
+                </span>
+            </div>
+        </div>
+    </div>
+    @endif
+
 </div>

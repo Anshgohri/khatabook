@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SalesExcelController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Excel Export / Sync Routes
     Route::get('sales/export/excel', [SalesExcelController::class, 'download'])->name('sales.export.excel');
+
+    // Database Backup
+    Route::get('admin/database/backup', [DatabaseBackupController::class, 'download'])->name('admin.database.backup');
 
     Route::livewire('expenses', 'pages::khatabook.expenses')->name('expenses');
     Route::livewire('expense-categories', 'pages::khatabook.expense-categories')->name('expense-categories');
