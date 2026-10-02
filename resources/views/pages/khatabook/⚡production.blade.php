@@ -3,6 +3,7 @@
 use App\Models\Employee;
 use App\Models\Product;
 use App\Models\ProductionLog;
+use App\Models\ProductionLogItem;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -17,23 +18,9 @@ new #[Title('Production Log')] class extends Component {
     #[Url]
     public string $search = '';
 
-    // Modal state
-    public bool $showModal = false;
-    public ?int $editingLogId = null;
-
-    public ?int $employee_id = null;
-    public ?int $finished_product_id = null;
-    public float $finished_quantity = 1.0;
-    public ?int $raw_material_id = null;
-    public float $raw_quantity_consumed = 0.0;
-    public float $worker_wage = 0.0;
-    public string $date = '';
-    public string $notes = '';
-
     public function mount(): void
     {
         $this->authorize('viewAny', ProductionLog::class);
-        $this->date = now()->toDateString();
     }
 
     public function updatingSearch(): void
@@ -42,44 +29,16 @@ new #[Title('Production Log')] class extends Component {
     }
 
     #[Computed]
-    public function employees()
-    {
-        $user = Auth::user();
-        return Employee::query()
-            ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get();
-    }
-
-    #[Computed]
-    public function finishedProducts()
-    {
-        return Product::query()
-            ->finished()
-            ->orderBy('name')
-            ->get();
-    }
-
-    #[Computed]
-    public function rawMaterials()
-    {
-        return Product::query()
-            ->rawMaterial()
-            ->orderBy('name')
-            ->get();
-    }
-
-    #[Computed]
     public function productionLogs()
     {
         $user = Auth::user();
 
         return ProductionLog::query()
-            ->with(['employee', 'finishedProduct', 'rawMaterial'])
+            ->with(['employee', 'items.finishedProduct', 'items.rawMaterial', 'finishedProduct', 'rawMaterial'])
             ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
             ->when($this->search, function ($q) {
                 $q->whereHas('employee', fn ($e) => $e->where('name', 'like', "%{$this->search}%"))
+                  ->orWhereHas('items.finishedProduct', fn ($fp) => $fp->where('name', 'like', "%{$this->search}%"))
                   ->orWhereHas('finishedProduct', fn ($fp) => $fp->where('name', 'like', "%{$this->search}%"));
             })
             ->latest('date')
@@ -91,9 +50,11 @@ new #[Title('Production Log')] class extends Component {
     public function totalFinishedThisMonth(): float
     {
         $user = Auth::user();
-        return (float) ProductionLog::query()
-            ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
-            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+        return (float) ProductionLogItem::query()
+            ->whereHas('productionLog', function ($q) use ($user) {
+                $q->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+                  ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()]);
+            })
             ->sum('quantity_produced');
     }
 
@@ -105,85 +66,6 @@ new #[Title('Production Log')] class extends Component {
             ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
             ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
             ->sum('worker_wage');
-    }
-
-    public function createLog(): void
-    {
-        $this->authorize('create', ProductionLog::class);
-        $this->reset(['editingLogId', 'employee_id', 'finished_product_id', 'finished_quantity', 'raw_material_id', 'raw_quantity_consumed', 'worker_wage', 'notes']);
-        $this->date = now()->toDateString();
-        $this->finished_quantity = 1.0;
-        $this->showModal = true;
-    }
-
-    public function editLog(int $id): void
-    {
-        $log = ProductionLog::findOrFail($id);
-        $this->authorize('update', $log);
-
-        $this->editingLogId = $log->id;
-        $this->employee_id = $log->employee_id;
-        $this->finished_product_id = $log->finished_product_id;
-        $this->finished_quantity = (float) $log->quantity_produced;
-        $this->raw_material_id = $log->raw_material_id;
-        $this->raw_quantity_consumed = (float) $log->raw_material_consumed_qty;
-        $this->worker_wage = (float) $log->worker_wage;
-        $this->date = $log->date ? $log->date->format('Y-m-d') : now()->toDateString();
-        $this->notes = (string) ($log->notes ?? '');
-        $this->showModal = true;
-    }
-
-    public function saveLog(): void
-    {
-        $validated = $this->validate([
-            'employee_id' => ['required', 'exists:employees,id'],
-            'finished_product_id' => ['required', 'exists:products,id'],
-            'finished_quantity' => ['required', 'numeric', 'min:0.01'],
-            'raw_material_id' => ['nullable', 'exists:products,id'],
-            'raw_quantity_consumed' => ['nullable', 'numeric', 'min:0'],
-            'worker_wage' => ['nullable', 'numeric', 'min:0'],
-            'date' => ['required', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        if ($this->editingLogId) {
-            $log = ProductionLog::findOrFail($this->editingLogId);
-            $this->authorize('update', $log);
-
-            $log->update([
-                'employee_id' => $validated['employee_id'],
-                'finished_product_id' => $validated['finished_product_id'],
-                'quantity_produced' => (int) $validated['finished_quantity'],
-                'raw_material_id' => $validated['raw_material_id'] ?: null,
-                'raw_material_consumed_qty' => (int) ($validated['raw_quantity_consumed'] ?? 0),
-                'worker_wage' => $validated['worker_wage'] ?? 0.0,
-                'date' => $validated['date'],
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            Flux::toast(variant: 'success', text: __('Production log updated successfully. Stock levels & employee wages adjusted!'));
-        } else {
-            $this->authorize('create', ProductionLog::class);
-
-            ProductionLog::create([
-                'user_id' => Auth::id(),
-                'employee_id' => $validated['employee_id'],
-                'finished_product_id' => $validated['finished_product_id'],
-                'quantity_produced' => (int) $validated['finished_quantity'],
-                'raw_material_id' => $validated['raw_material_id'] ?: null,
-                'raw_material_consumed_qty' => (int) ($validated['raw_quantity_consumed'] ?? 0),
-                'worker_wage' => $validated['worker_wage'] ?? 0.0,
-                'date' => $validated['date'],
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            Flux::toast(variant: 'success', text: __('Production log created. Stock levels & employee wages updated automatically!'));
-        }
-
-        $this->showModal = false;
-        unset($this->productionLogs);
-        unset($this->totalFinishedThisMonth);
-        unset($this->totalWagesPaidThisMonth);
     }
 
     public function deleteLog(int $id): void
@@ -207,7 +89,7 @@ new #[Title('Production Log')] class extends Component {
         </div>
 
         @can('create', App\Models\ProductionLog::class)
-        <flux:button variant="primary" icon="plus" wire:click="createLog">{{ __('Log Production Entry') }}</flux:button>
+        <flux:button variant="primary" icon="plus" href="{{ route('production.create') }}" wire:navigate>{{ __('Log Production Entry') }}</flux:button>
         @endcan
     </div>
 
@@ -253,13 +135,44 @@ new #[Title('Production Log')] class extends Component {
                     <flux:table.cell class="font-medium whitespace-nowrap">{{ $log->date->format('d M Y') }}</flux:table.cell>
                     <flux:table.cell class="font-semibold">{{ $log->employee->name ?? '-' }}</flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge color="indigo" size="sm">{{ $log->finishedProduct->name ?? '-' }}</flux:badge>
+                        @if ($log->items->count() > 0)
+                            <div class="flex flex-col gap-1">
+                                @foreach ($log->items as $item)
+                                    <div class="flex items-center gap-1.5">
+                                        <flux:badge color="indigo" size="sm">{{ $item->finishedProduct->name ?? '-' }}</flux:badge>
+                                        <span class="text-xs text-zinc-500 font-medium">({{ $item->quantity_produced }} {{ $item->finishedProduct->unit ?? 'pcs' }})</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <flux:badge color="indigo" size="sm">{{ $log->finishedProduct->name ?? '-' }}</flux:badge>
+                        @endif
                     </flux:table.cell>
                     <flux:table.cell class="font-bold text-green-600 dark:text-green-400">
-                        +{{ $log->quantity_produced }} {{ $log->finishedProduct->unit ?? 'pcs' }}
+                        @if ($log->items->count() > 0)
+                            +{{ $log->items->sum('quantity_produced') }} pcs
+                        @else
+                            +{{ $log->quantity_produced }} {{ $log->finishedProduct->unit ?? 'pcs' }}
+                        @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        @if ($log->rawMaterial)
+                        @if ($log->items->count() > 0)
+                            <div class="flex flex-col gap-1">
+                                @php $hasRaw = false; @endphp
+                                @foreach ($log->items as $item)
+                                    @if ($item->rawMaterial && $item->raw_material_consumed_qty > 0)
+                                        @php $hasRaw = true; @endphp
+                                        <div class="text-xs">
+                                            <span class="text-red-600 dark:text-red-400 font-semibold">-{{ $item->raw_material_consumed_qty }} {{ $item->rawMaterial->unit ?? 'pcs' }}</span>
+                                            <span class="text-zinc-500">({{ $item->rawMaterial->name }})</span>
+                                        </div>
+                                    @endif
+                                @endforeach
+                                @if (! $hasRaw)
+                                    <span class="text-zinc-400">-</span>
+                                @endif
+                            </div>
+                        @elseif ($log->rawMaterial)
                             <span class="text-red-600 dark:text-red-400 font-semibold">-{{ $log->raw_material_consumed_qty }} {{ $log->rawMaterial->unit ?? 'pcs' }}</span>
                             <span class="text-xs text-zinc-500 block">({{ $log->rawMaterial->name }})</span>
                         @else
@@ -273,7 +186,7 @@ new #[Title('Production Log')] class extends Component {
                     <flux:table.cell>
                         <div class="flex items-center gap-1">
                             @can('update', $log)
-                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editLog({{ $log->id }})" />
+                            <flux:button size="sm" variant="ghost" icon="pencil" href="{{ route('production.edit', $log) }}" wire:navigate />
                             @endcan
                             @can('delete', $log)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteLog({{ $log->id }})" wire:confirm="{{ __('Delete this production entry? This will revert stock levels & worker payment!') }}" />
@@ -283,61 +196,13 @@ new #[Title('Production Log')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="8" class="text-center text-zinc-500 py-6">{{ __('No production entries logged yet. Click "Log Production Entry" to add one.') }}</flux:table.cell>
+                    <flux:table.cell colspan="8" class="text-center text-zinc-500 py-6">{{ __('No production entries logged yet. Click "Log Production Entry" to add one.') }}</flux:cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
         </flux:table>
     </div>
-
-    <!-- Modal -->
-    <flux:modal wire:model.self="showModal" class="md:w-[500px]">
-        <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ $editingLogId ? __('Edit Production Entry') : __('Log Daily Production & Wages') }}</flux:heading>
-
-            <form wire:submit="saveLog" class="flex flex-col gap-4">
-                <flux:select wire:model="employee_id" :label="__('Worker / Employee')" required>
-                    <flux:select.option value="">{{ __('Select Worker (e.g. Talib)') }}</flux:select.option>
-                    @foreach ($this->employees as $emp)
-                        <flux:select.option :value="$emp->id">{{ $emp->name }} ({{ ucfirst($emp->wage_type) }})</flux:select.option>
-                    @endforeach
-                </flux:select>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <flux:select wire:model="finished_product_id" :label="__('Finished Product Made')" required>
-                        <flux:select.option value="">{{ __('Select Product') }}</flux:select.option>
-                        @foreach ($this->finishedProducts as $fp)
-                            <flux:select.option :value="$fp->id">{{ $fp->name }} (Stock: {{ $fp->stock_level }})</flux:select.option>
-                        @endforeach
-                    </flux:select>
-
-                    <flux:input type="number" step="0.01" min="0.01" wire:model="finished_quantity" :label="__('Quantity Produced')" required />
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <flux:select wire:model="raw_material_id" :label="__('Raw Material Consumed (Optional)')">
-                        <flux:select.option value="">{{ __('None / N/A') }}</flux:select.option>
-                        @foreach ($this->rawMaterials as $rm)
-                            <flux:select.option :value="$rm->id">{{ $rm->name }} (Stock: {{ $rm->stock_level }})</flux:select.option>
-                        @endforeach
-                    </flux:select>
-
-                    <flux:input type="number" step="0.01" min="0" wire:model="raw_quantity_consumed" :label="__('Raw Qty Used')" />
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <flux:input type="number" step="0.01" min="0" wire:model="worker_wage" :label="__('Worker Daily Wage (₹)')" placeholder="e.g. 500" />
-                    <flux:input type="date" wire:model="date" :label="__('Production Date')" required />
-                </div>
-
-                <flux:textarea wire:model="notes" :label="__('Remarks / Notes')" placeholder="e.g. Made 50 ladder frames using Assam Baans" rows="2" />
-
-                <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="ghost" wire:click="$set('showModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ $editingLogId ? __('Update Production Log') : __('Save Production Log') }}</flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
 </div>
+
+
 

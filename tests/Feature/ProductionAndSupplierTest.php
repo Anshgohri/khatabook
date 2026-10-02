@@ -112,6 +112,7 @@ test('finished products dropdown filters products where category is finished', f
 
     $finishedProduct = Product::create([
         'product_category_id' => $finishedCategory->id,
+        'type' => 'finished_good',
         'name' => 'Finished Chair',
         'unit_price' => 500,
         'unit' => 'pcs',
@@ -120,6 +121,7 @@ test('finished products dropdown filters products where category is finished', f
 
     $rawMaterial = Product::create([
         'product_category_id' => $rawCategory->id,
+        'type' => 'raw_material',
         'name' => 'Raw Timber',
         'unit_price' => 200,
         'unit' => 'pcs',
@@ -179,11 +181,15 @@ test('updating production log adjusts stock levels and worker wages correctly', 
     expect($finishedProduct->fresh()->stock_level)->toBe(15);
     expect($rawMaterial->fresh()->stock_level)->toBe(90);
 
-    // Update log: finished qty 8 (was 5), raw qty 12 (was 10), wage 600 (was 400)
-    $log->update([
-        'quantity_produced' => 8,
-        'raw_material_consumed_qty' => 12,
-        'worker_wage' => 600.00,
+    // Update log via syncItemsAndInventory: finished qty 8 (was 5), raw qty 12 (was 10), wage 600 (was 400)
+    $log->update(['worker_wage' => 600.00]);
+    $log->syncItemsAndInventory([
+        [
+            'finished_product_id' => $finishedProduct->id,
+            'quantity_produced' => 8,
+            'raw_material_id' => $rawMaterial->id,
+            'raw_quantity_consumed' => 12,
+        ],
     ]);
 
     // Stock should be updated: finished = 10 + 8 = 18; raw = 100 - 12 = 88
@@ -194,26 +200,35 @@ test('updating production log adjusts stock levels and worker wages correctly', 
     expect((float) $worker->payments->first()->amount)->toEqual(600.00);
 });
 
-test('admin can update production log via livewire component', function () {
+test('admin can log multiple finished products in a single daily entry', function () {
     $user = User::factory()->create();
     $category = ProductCategory::factory()->create();
 
     $rawMaterial = Product::create([
         'product_category_id' => $category->id,
         'type' => 'raw_material',
-        'name' => 'Baans',
-        'unit_price' => 100,
-        'unit' => 'pcs',
+        'name' => 'Baans (Bamboo)',
+        'unit_price' => 150.00,
+        'unit' => 'bundle',
         'stock_level' => 100,
     ]);
 
-    $finishedProduct = Product::create([
+    $p1 = Product::create([
         'product_category_id' => $category->id,
         'type' => 'finished_good',
-        'name' => 'Ghodi',
-        'unit_price' => 500,
+        'name' => '5 feet Ghodi',
+        'unit_price' => 600.00,
         'unit' => 'pcs',
         'stock_level' => 5,
+    ]);
+
+    $p2 = Product::create([
+        'product_category_id' => $category->id,
+        'type' => 'finished_good',
+        'name' => '6 feet Ghodi',
+        'unit_price' => 700.00,
+        'unit' => 'pcs',
+        'stock_level' => 2,
     ]);
 
     $worker = Employee::factory()->create([
@@ -221,29 +236,35 @@ test('admin can update production log via livewire component', function () {
         'name' => 'Talib Khan',
     ]);
 
-    $log = ProductionLog::create([
-        'user_id' => $user->id,
-        'employee_id' => $worker->id,
-        'finished_product_id' => $finishedProduct->id,
-        'quantity_produced' => 4,
-        'raw_material_id' => $rawMaterial->id,
-        'raw_material_consumed_qty' => 5,
-        'worker_wage' => 300.00,
-        'date' => now()->toDateString(),
-        'notes' => 'Original note',
-    ]);
-
     $this->actingAs($user);
 
-    Livewire::test('pages::khatabook.production')
-        ->call('editLog', $log->id)
-        ->set('finished_quantity', 10)
-        ->set('worker_wage', 750.00)
-        ->set('notes', 'Updated production note')
-        ->call('saveLog');
+    Livewire::test('pages::khatabook.production-form')
+        ->set('employee_id', $worker->id)
+        ->set('date', now()->toDateString())
+        ->set('worker_wage', 1128.00)
+        ->set('notes', 'Daily batch for 5ft and 6ft')
+        ->set('items', [
+            [
+                'finished_product_id' => $p1->id,
+                'quantity_produced' => 10,
+                'raw_material_id' => $rawMaterial->id,
+                'raw_quantity_consumed' => 15,
+            ],
+            [
+                'finished_product_id' => $p2->id,
+                'quantity_produced' => 6,
+                'raw_material_id' => $rawMaterial->id,
+                'raw_quantity_consumed' => 8,
+            ],
+        ])
+        ->call('save');
 
-    $log->refresh();
-    expect($log->quantity_produced)->toBe(10);
-    expect((float) $log->worker_wage)->toEqual(750.00);
-    expect($log->notes)->toBe('Updated production note');
+    $log = ProductionLog::latest('id')->first();
+    expect($log->items)->toHaveCount(2);
+    expect((float) $log->worker_wage)->toEqual(1128.00);
+
+    // Stock levels should be updated: p1 (5+10 = 15), p2 (2+6 = 8), raw (100 - 23 = 77)
+    expect($p1->fresh()->stock_level)->toBe(15);
+    expect($p2->fresh()->stock_level)->toBe(8);
+    expect($rawMaterial->fresh()->stock_level)->toBe(77);
 });
