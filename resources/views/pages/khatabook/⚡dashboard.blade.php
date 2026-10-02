@@ -2,6 +2,7 @@
 
 use App\Models\Expense;
 use App\Models\Sale;
+use App\Services\CacheService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -19,6 +20,7 @@ new #[Title('Dashboard')] class extends Component {
             return $this->redirect(route('my-orders'), navigate: true);
         }
     }
+
     protected function scopedSales()
     {
         $user = Auth::user();
@@ -36,25 +38,41 @@ new #[Title('Dashboard')] class extends Component {
     #[Computed]
     public function salesToday(): float
     {
-        return (float) $this->scopedSales()->whereDate('date', today())->sum('total_amount');
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.sales_today', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedSales()->whereDate('date', today())->sum('total_amount');
+        });
     }
 
     #[Computed]
     public function salesMonth(): float
     {
-        return (float) $this->scopedSales()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('total_amount');
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.sales_month', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedSales()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('total_amount');
+        });
     }
 
     #[Computed]
     public function salesYear(): float
     {
-        return (float) $this->scopedSales()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('total_amount');
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.sales_year', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedSales()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('total_amount');
+        });
     }
 
     #[Computed]
     public function expensesMonth(): float
     {
-        return (float) $this->scopedExpenses()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.expenses_month', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedExpenses()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        });
     }
 
     #[Computed]
@@ -92,6 +110,9 @@ new #[Title('Dashboard')] class extends Component {
 
     public function refreshDashboard(): void
     {
+        // Bust cache before unsetting computed properties
+        CacheService::invalidateUser(Auth::id());
+
         unset($this->salesToday, $this->salesMonth, $this->salesYear, $this->expensesMonth, $this->profitMargin, $this->cashFlow, $this->unreadNotificationsCount, $this->recentNotifications);
 
         $this->dispatch('dashboard-refreshed', ...$this->chartsPayload());
@@ -108,53 +129,66 @@ new #[Title('Dashboard')] class extends Component {
 
     protected function salesTrendData(): array
     {
-        $days = collect(range(13, 0))->map(fn($i) => now()->subDays($i)->toDateString());
+        $userId = Auth::id();
 
-        $totals = $this->scopedSales()
-            ->whereDate('date', '>=', now()->subDays(13)->toDateString())
-            ->selectRaw('date, sum(total_amount) as total')
-            ->groupBy('date')
-            ->pluck('total', 'date');
+        return CacheService::rememberForUser('dashboard.sales_trend', $userId, CacheService::STATS_TTL, function () {
+            $days = collect(range(13, 0))->map(fn($i) => now()->subDays($i)->toDateString());
 
-        return [
-            'labels' => $days->map(fn($day) => Carbon::parse($day)->format('d M'))->all(),
-            'values' => $days->map(fn($day) => (float) ($totals[$day] ?? 0))->all(),
-        ];
+            $totals = $this->scopedSales()
+                ->whereDate('date', '>=', now()->subDays(13)->toDateString())
+                ->selectRaw('date, sum(total_amount) as total')
+                ->groupBy('date')
+                ->pluck('total', 'date');
+
+            return [
+                'labels' => $days->map(fn($day) => Carbon::parse($day)->format('d M'))->all(),
+                'values' => $days->map(fn($day) => (float) ($totals[$day] ?? 0))->all(),
+            ];
+        });
     }
 
     protected function expenseBreakdownData(): array
     {
-        $rows = $this->scopedExpenses()
-            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-            ->with('category')
-            ->selectRaw('expense_category_id, sum(amount) as total')
-            ->groupBy('expense_category_id')
-            ->get();
+        $userId = Auth::id();
 
-        return [
-            'labels' => $rows->map(fn($row) => $row->category->name)->all(),
-            'values' => $rows->map(fn($row) => (float) $row->total)->all(),
-        ];
+        return CacheService::rememberForUser('dashboard.expense_breakdown', $userId, CacheService::STATS_TTL, function () {
+            $rows = $this->scopedExpenses()
+                ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+                ->with('category')
+                ->selectRaw('expense_category_id, sum(amount) as total')
+                ->groupBy('expense_category_id')
+                ->get();
+
+            return [
+                'labels' => $rows->map(fn($row) => $row->category->name)->all(),
+                'values' => $rows->map(fn($row) => (float) $row->total)->all(),
+            ];
+        });
     }
 
     protected function topItemsData(): array
     {
-        $rows = $this->scopedSales()
-            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-            ->selectRaw('items_sold, sum(total_amount) as total')
-            ->groupBy('items_sold')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get();
+        $userId = Auth::id();
 
-        return [
-            'labels' => $rows->pluck('items_sold')->all(),
-            'values' => $rows->pluck('total')->map(fn($value) => (float) $value)->all(),
-        ];
+        return CacheService::rememberForUser('dashboard.top_items', $userId, CacheService::STATS_TTL, function () {
+            $rows = $this->scopedSales()
+                ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+                ->selectRaw('items_sold, sum(total_amount) as total')
+                ->groupBy('items_sold')
+                ->orderByDesc('total')
+                ->limit(6)
+                ->get();
+
+            return [
+                'labels' => $rows->pluck('items_sold')->all(),
+                'values' => $rows->pluck('total')->map(fn($value) => (float) $value)->all(),
+            ];
+        });
     }
 }; ?>
 
-<div class="flex flex-col gap-6" wire:poll.15s="refreshDashboard">
+
+<div class="flex flex-col gap-6" wire:poll.60s="refreshDashboard">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <flux:heading size="xl">{{ __('Dashboard') }}</flux:heading>
 

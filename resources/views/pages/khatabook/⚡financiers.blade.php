@@ -5,6 +5,7 @@ use App\Models\Financier;
 use App\Models\FinancierPayment;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\CacheService;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -83,46 +84,58 @@ new #[Title('Financiers')] class extends Component {
     public function paymentsThisWeek(): float
     {
         $user = Auth::user();
-        return (float) FinancierPayment::query()
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
-            ->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
-            ->sum('amount');
+
+        return CacheService::rememberForUser('financiers.payments_week', $user->id, CacheService::STATS_TTL, function () use ($user) {
+            return (float) FinancierPayment::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
+                ->sum('amount');
+        });
     }
 
     #[Computed]
     public function paymentsThisMonth(): float
     {
         $user = Auth::user();
-        return (float) FinancierPayment::query()
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
-            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-            ->sum('amount');
+
+        return CacheService::rememberForUser('financiers.payments_month', $user->id, CacheService::STATS_TTL, function () use ($user) {
+            return (float) FinancierPayment::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+                ->sum('amount');
+        });
     }
 
     #[Computed]
     public function paymentsThisYear(): float
     {
         $user = Auth::user();
-        return (float) FinancierPayment::query()
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
-            ->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])
-            ->sum('amount');
+
+        return CacheService::rememberForUser('financiers.payments_year', $user->id, CacheService::STATS_TTL, function () use ($user) {
+            return (float) FinancierPayment::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])
+                ->sum('amount');
+        });
     }
 
     #[Computed]
     public function totalOutstandingBalance(): float
     {
         $user = Auth::user();
-        return (float) Financier::query()
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
-            ->sum('outstanding_balance');
+
+        return CacheService::rememberForUser('financiers.outstanding', $user->id, CacheService::STATS_TTL, function () use ($user) {
+            return (float) Financier::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
+                ->sum('outstanding_balance');
+        });
     }
 
     #[Computed]

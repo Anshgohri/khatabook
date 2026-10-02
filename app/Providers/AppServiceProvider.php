@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Expense;
 use App\Models\Sale;
 use App\Models\User;
+use App\Observers\ExpenseObserver;
 use App\Observers\SaleExcelObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -68,5 +70,6 @@ class AppServiceProvider extends ServiceProvider
     protected function configureObservers(): void
     {
         Sale::observe(SaleExcelObserver::class);
+        Expense::observe(ExpenseObserver::class);
     }
 }
