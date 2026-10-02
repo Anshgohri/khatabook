@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\SalesExcelController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -14,6 +15,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('invoices/sale/{sale}/view', [InvoiceController::class, 'showSaleInvoice'])->name('invoices.sale.view');
     Route::get('invoices/sale/{sale}/download', [InvoiceController::class, 'downloadSaleInvoice'])->name('invoices.sale.download');
     Route::get('invoices/sale/{sale}/print', [InvoiceController::class, 'printSaleInvoice'])->name('invoices.sale.print');
+
+    // Excel Export / Sync Routes
+    Route::get('sales/export/excel', [SalesExcelController::class, 'download'])->name('sales.export.excel');
 
     Route::livewire('expenses', 'pages::khatabook.expenses')->name('expenses');
     Route::livewire('expense-categories', 'pages::khatabook.expense-categories')->name('expense-categories');

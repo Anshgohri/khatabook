@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Sale;
 use App\Models\User;
+use App\Observers\SaleExcelObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureAuthorization();
+        $this->configureObservers();
     }
 
     /**
@@ -57,5 +60,13 @@ class AppServiceProvider extends ServiceProvider
     protected function configureAuthorization(): void
     {
         Gate::before(fn (User $user) => $user->isAdmin() ?: null);
+    }
+
+    /**
+     * Register Eloquent model observers.
+     */
+    protected function configureObservers(): void
+    {
+        Sale::observe(SaleExcelObserver::class);
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Sale;
+use App\Services\ExcelSyncService;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -62,15 +63,41 @@ new #[Title('Sales')] class extends Component {
         unset($this->sales);
         Flux::toast(variant: 'success', text: __('Sale deleted.'));
     }
+
+    #[Computed]
+    public function lastExcelSync(): ?string
+    {
+        return app(ExcelSyncService::class)->lastSyncedAt();
+    }
 }; ?>
 
 <div class="flex flex-col gap-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <flux:heading size="xl">{{ __('Sales') }}</flux:heading>
 
-        @can('create', Sale::class)
-        <flux:button variant="primary" icon="plus" :href="route('sales.create')" wire:navigate>{{ __('Add sale') }}</flux:button>
-        @endcan
+        <div class="flex items-center gap-2 flex-wrap">
+            {{-- Excel Export / Backup Button --}}
+            <a
+                href="{{ route('sales.export.excel') }}"
+                class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors"
+                title="{{ __('Download synced Excel backup of all sales') }}"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                {{ __('Export Excel') }}
+            </a>
+
+            @if ($this->lastExcelSync)
+                <span class="text-xs text-zinc-400 dark:text-zinc-500 hidden sm:block">
+                    {{ __('Last synced:') }} {{ $this->lastExcelSync }}
+                </span>
+            @endif
+
+            @can('create', Sale::class)
+            <flux:button variant="primary" icon="plus" :href="route('sales.create')" wire:navigate>{{ __('Add sale') }}</flux:button>
+            @endcan
+        </div>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
