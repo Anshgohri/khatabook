@@ -7,6 +7,7 @@ use App\Models\ProductionLog;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use App\Models\User;
+use Livewire\Livewire;
 
 test('purchasing raw material from supplier updates supplier balance correctly', function () {
     $user = User::factory()->create();
@@ -133,4 +134,116 @@ test('finished products dropdown filters products where category is finished', f
 
     expect($rawMaterials->pluck('id'))->toContain($rawMaterial->id);
     expect($rawMaterials->pluck('id'))->not()->toContain($finishedProduct->id);
+});
+
+test('updating production log adjusts stock levels and worker wages correctly', function () {
+    $user = User::factory()->create();
+    $category = ProductCategory::factory()->create();
+
+    $rawMaterial = Product::create([
+        'product_category_id' => $category->id,
+        'type' => 'raw_material',
+        'name' => 'Baans',
+        'unit_price' => 100,
+        'unit' => 'pcs',
+        'stock_level' => 100,
+    ]);
+
+    $finishedProduct = Product::create([
+        'product_category_id' => $category->id,
+        'type' => 'finished_good',
+        'name' => 'Stool',
+        'unit_price' => 500,
+        'unit' => 'pcs',
+        'stock_level' => 10,
+    ]);
+
+    $worker = Employee::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Talib',
+    ]);
+
+    $log = ProductionLog::create([
+        'user_id' => $user->id,
+        'employee_id' => $worker->id,
+        'finished_product_id' => $finishedProduct->id,
+        'quantity_produced' => 5,
+        'raw_material_id' => $rawMaterial->id,
+        'raw_material_consumed_qty' => 10,
+        'worker_wage' => 400.00,
+        'date' => now()->toDateString(),
+        'notes' => 'Initial batch',
+    ]);
+
+    // Initial stock: finished = 10 + 5 = 15; raw = 100 - 10 = 90
+    expect($finishedProduct->fresh()->stock_level)->toBe(15);
+    expect($rawMaterial->fresh()->stock_level)->toBe(90);
+
+    // Update log: finished qty 8 (was 5), raw qty 12 (was 10), wage 600 (was 400)
+    $log->update([
+        'quantity_produced' => 8,
+        'raw_material_consumed_qty' => 12,
+        'worker_wage' => 600.00,
+    ]);
+
+    // Stock should be updated: finished = 10 + 8 = 18; raw = 100 - 12 = 88
+    expect($finishedProduct->fresh()->stock_level)->toBe(18);
+    expect($rawMaterial->fresh()->stock_level)->toBe(88);
+
+    $worker->refresh();
+    expect((float) $worker->payments->first()->amount)->toEqual(600.00);
+});
+
+test('admin can update production log via livewire component', function () {
+    $user = User::factory()->create();
+    $category = ProductCategory::factory()->create();
+
+    $rawMaterial = Product::create([
+        'product_category_id' => $category->id,
+        'type' => 'raw_material',
+        'name' => 'Baans',
+        'unit_price' => 100,
+        'unit' => 'pcs',
+        'stock_level' => 100,
+    ]);
+
+    $finishedProduct = Product::create([
+        'product_category_id' => $category->id,
+        'type' => 'finished_good',
+        'name' => 'Ghodi',
+        'unit_price' => 500,
+        'unit' => 'pcs',
+        'stock_level' => 5,
+    ]);
+
+    $worker = Employee::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Talib Khan',
+    ]);
+
+    $log = ProductionLog::create([
+        'user_id' => $user->id,
+        'employee_id' => $worker->id,
+        'finished_product_id' => $finishedProduct->id,
+        'quantity_produced' => 4,
+        'raw_material_id' => $rawMaterial->id,
+        'raw_material_consumed_qty' => 5,
+        'worker_wage' => 300.00,
+        'date' => now()->toDateString(),
+        'notes' => 'Original note',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::khatabook.production')
+        ->call('editLog', $log->id)
+        ->set('finished_quantity', 10)
+        ->set('worker_wage', 750.00)
+        ->set('notes', 'Updated production note')
+        ->call('saveLog');
+
+    $log->refresh();
+    expect($log->quantity_produced)->toBe(10);
+    expect((float) $log->worker_wage)->toEqual(750.00);
+    expect($log->notes)->toBe('Updated production note');
 });

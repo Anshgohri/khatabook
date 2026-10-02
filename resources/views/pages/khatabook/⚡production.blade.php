@@ -116,6 +116,23 @@ new #[Title('Production Log')] class extends Component {
         $this->showModal = true;
     }
 
+    public function editLog(int $id): void
+    {
+        $log = ProductionLog::findOrFail($id);
+        $this->authorize('update', $log);
+
+        $this->editingLogId = $log->id;
+        $this->employee_id = $log->employee_id;
+        $this->finished_product_id = $log->finished_product_id;
+        $this->finished_quantity = (float) $log->quantity_produced;
+        $this->raw_material_id = $log->raw_material_id;
+        $this->raw_quantity_consumed = (float) $log->raw_material_consumed_qty;
+        $this->worker_wage = (float) $log->worker_wage;
+        $this->date = $log->date ? $log->date->format('Y-m-d') : now()->toDateString();
+        $this->notes = (string) ($log->notes ?? '');
+        $this->showModal = true;
+    }
+
     public function saveLog(): void
     {
         $validated = $this->validate([
@@ -129,25 +146,44 @@ new #[Title('Production Log')] class extends Component {
             'notes' => ['nullable', 'string'],
         ]);
 
-        $this->authorize('create', ProductionLog::class);
+        if ($this->editingLogId) {
+            $log = ProductionLog::findOrFail($this->editingLogId);
+            $this->authorize('update', $log);
 
-        ProductionLog::create([
-            'user_id' => Auth::id(),
-            'employee_id' => $validated['employee_id'],
-            'finished_product_id' => $validated['finished_product_id'],
-            'quantity_produced' => (int) $validated['finished_quantity'],
-            'raw_material_id' => $validated['raw_material_id'] ?: null,
-            'raw_material_consumed_qty' => (int) ($validated['raw_quantity_consumed'] ?? 0),
-            'worker_wage' => $validated['worker_wage'] ?? 0.0,
-            'date' => $validated['date'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
+            $log->update([
+                'employee_id' => $validated['employee_id'],
+                'finished_product_id' => $validated['finished_product_id'],
+                'quantity_produced' => (int) $validated['finished_quantity'],
+                'raw_material_id' => $validated['raw_material_id'] ?: null,
+                'raw_material_consumed_qty' => (int) ($validated['raw_quantity_consumed'] ?? 0),
+                'worker_wage' => $validated['worker_wage'] ?? 0.0,
+                'date' => $validated['date'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            Flux::toast(variant: 'success', text: __('Production log updated successfully. Stock levels & employee wages adjusted!'));
+        } else {
+            $this->authorize('create', ProductionLog::class);
+
+            ProductionLog::create([
+                'user_id' => Auth::id(),
+                'employee_id' => $validated['employee_id'],
+                'finished_product_id' => $validated['finished_product_id'],
+                'quantity_produced' => (int) $validated['finished_quantity'],
+                'raw_material_id' => $validated['raw_material_id'] ?: null,
+                'raw_material_consumed_qty' => (int) ($validated['raw_quantity_consumed'] ?? 0),
+                'worker_wage' => $validated['worker_wage'] ?? 0.0,
+                'date' => $validated['date'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            Flux::toast(variant: 'success', text: __('Production log created. Stock levels & employee wages updated automatically!'));
+        }
 
         $this->showModal = false;
         unset($this->productionLogs);
         unset($this->totalFinishedThisMonth);
         unset($this->totalWagesPaidThisMonth);
-        Flux::toast(variant: 'success', text: __('Production log created. Stock levels & employee wages updated automatically!'));
     }
 
     public function deleteLog(int $id): void
@@ -235,9 +271,14 @@ new #[Title('Production Log')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell class="text-xs text-zinc-500">{{ $log->notes ?? '-' }}</flux:table.cell>
                     <flux:table.cell>
-                        @can('delete', $log)
-                        <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteLog({{ $log->id }})" wire:confirm="{{ __('Delete this production entry? This will revert stock levels & worker payment!') }}" />
-                        @endcan
+                        <div class="flex items-center gap-1">
+                            @can('update', $log)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editLog({{ $log->id }})" />
+                            @endcan
+                            @can('delete', $log)
+                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteLog({{ $log->id }})" wire:confirm="{{ __('Delete this production entry? This will revert stock levels & worker payment!') }}" />
+                            @endcan
+                        </div>
                     </flux:table.cell>
                 </flux:table.row>
                 @empty
@@ -252,7 +293,7 @@ new #[Title('Production Log')] class extends Component {
     <!-- Modal -->
     <flux:modal wire:model.self="showModal" class="md:w-[500px]">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ __('Log Daily Production & Wages') }}</flux:heading>
+            <flux:heading size="lg">{{ $editingLogId ? __('Edit Production Entry') : __('Log Daily Production & Wages') }}</flux:heading>
 
             <form wire:submit="saveLog" class="flex flex-col gap-4">
                 <flux:select wire:model="employee_id" :label="__('Worker / Employee')" required>
@@ -293,9 +334,10 @@ new #[Title('Production Log')] class extends Component {
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Save Production Log') }}</flux:button>
+                    <flux:button type="submit" variant="primary">{{ $editingLogId ? __('Update Production Log') : __('Save Production Log') }}</flux:button>
                 </div>
             </form>
         </div>
     </flux:modal>
 </div>
+
