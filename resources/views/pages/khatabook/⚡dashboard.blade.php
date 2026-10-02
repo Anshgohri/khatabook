@@ -1,7 +1,12 @@
 <?php
 
+use App\Models\EmployeePayment;
 use App\Models\Expense;
+use App\Models\Financier;
+use App\Models\FinancierPayment;
 use App\Models\Sale;
+use App\Models\Supplier;
+use App\Models\SupplierPayment;
 use App\Services\CacheService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +38,33 @@ new #[Title('Dashboard')] class extends Component {
         $user = Auth::user();
 
         return Expense::query()->when(! $user->isSystemAdmin(), fn($query) => $query->where('user_id', $user->id));
+    }
+
+    protected function scopedFinancierPayments()
+    {
+        $user = Auth::user();
+
+        return FinancierPayment::query()
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment']);
+    }
+
+    protected function scopedSupplierPayments()
+    {
+        $user = Auth::user();
+
+        return SupplierPayment::query()
+            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->where('type', 'payment_made');
+    }
+
+    protected function scopedEmployeePayments()
+    {
+        $user = Auth::user();
+
+        return EmployeePayment::query()
+            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id));
     }
 
     #[Computed]
@@ -90,6 +122,123 @@ new #[Title('Dashboard')] class extends Component {
     }
 
     #[Computed]
+    public function financiersPaidToday(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.financiers_today', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedFinancierPayments()->whereDate('date', today())->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function financiersPaidMonth(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.financiers_month', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedFinancierPayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function financiersPaidYear(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.financiers_year', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedFinancierPayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function financiersOutstanding(): float
+    {
+        $userId = Auth::id();
+        $user = Auth::user();
+
+        return CacheService::rememberForUser('dashboard.financiers_outstanding', $userId, CacheService::STATS_TTL, function () use ($user) {
+            return (float) Financier::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
+                ->sum('outstanding_balance');
+        });
+    }
+
+    #[Computed]
+    public function suppliersPaidToday(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.suppliers_today', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedSupplierPayments()->whereDate('date', today())->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function suppliersPaidMonth(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.suppliers_month', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedSupplierPayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function suppliersPaidYear(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.suppliers_year', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedSupplierPayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function suppliersOutstanding(): float
+    {
+        $userId = Auth::id();
+        $user = Auth::user();
+
+        return CacheService::rememberForUser('dashboard.suppliers_outstanding', $userId, CacheService::STATS_TTL, function () use ($user) {
+            return (float) Supplier::query()
+                ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+                ->sum('outstanding_balance');
+        });
+    }
+
+    #[Computed]
+    public function employeesPaidToday(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.employees_today', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedEmployeePayments()->whereDate('date', today())->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function employeesPaidMonth(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.employees_month', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedEmployeePayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function employeesPaidYear(): float
+    {
+        $userId = Auth::id();
+
+        return CacheService::rememberForUser('dashboard.employees_year', $userId, CacheService::STATS_TTL, function () {
+            return (float) $this->scopedEmployeePayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
+        });
+    }
+
+    #[Computed]
     public function unreadNotificationsCount(): int
     {
         return Auth::user()->unreadNotifications()->count();
@@ -113,7 +262,27 @@ new #[Title('Dashboard')] class extends Component {
         // Bust cache before unsetting computed properties
         CacheService::invalidateUser(Auth::id());
 
-        unset($this->salesToday, $this->salesMonth, $this->salesYear, $this->expensesMonth, $this->profitMargin, $this->cashFlow, $this->unreadNotificationsCount, $this->recentNotifications);
+        unset(
+            $this->salesToday,
+            $this->salesMonth,
+            $this->salesYear,
+            $this->expensesMonth,
+            $this->profitMargin,
+            $this->cashFlow,
+            $this->financiersPaidToday,
+            $this->financiersPaidMonth,
+            $this->financiersPaidYear,
+            $this->financiersOutstanding,
+            $this->suppliersPaidToday,
+            $this->suppliersPaidMonth,
+            $this->suppliersPaidYear,
+            $this->suppliersOutstanding,
+            $this->employeesPaidToday,
+            $this->employeesPaidMonth,
+            $this->employeesPaidYear,
+            $this->unreadNotificationsCount,
+            $this->recentNotifications
+        );
 
         $this->dispatch('dashboard-refreshed', ...$this->chartsPayload());
     }
@@ -188,72 +357,192 @@ new #[Title('Dashboard')] class extends Component {
 }; ?>
 
 
-<div class="flex flex-col gap-6" wire:poll.60s="refreshDashboard">
+<div class="flex flex-col gap-8" wire:poll.60s="refreshDashboard">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <flux:heading size="xl">{{ __('Dashboard') }}</flux:heading>
+        <div>
+            <flux:heading size="xl">{{ __('Dashboard & Financial Overview') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Real-time financial metrics, payouts to financiers, supplier outflows, and sales analytics.') }}</flux:text>
+        </div>
 
-        <flux:dropdown position="bottom" align="end">
-            <flux:button icon="bell" variant="ghost" data-test="notifications-button">
-                @if ($this->unreadNotificationsCount > 0)
-                <flux:badge color="red" size="sm">{{ $this->unreadNotificationsCount }}</flux:badge>
-                @endif
+        <div class="flex items-center gap-3">
+            <flux:button variant="subtle" icon="arrow-path" wire:click="refreshDashboard">
+                {{ __('Refresh Stats') }}
             </flux:button>
 
-            <flux:menu class="w-80">
-                <div class="flex items-center justify-between px-3 py-2">
-                    <flux:heading size="sm">{{ __('Notifications') }}</flux:heading>
+            <flux:dropdown position="bottom" align="end">
+                <flux:button icon="bell" variant="ghost" data-test="notifications-button">
                     @if ($this->unreadNotificationsCount > 0)
-                    <flux:link class="text-xs cursor-pointer" wire:click.prevent="markAllNotificationsRead">{{ __('Mark all read') }}</flux:link>
+                    <flux:badge color="red" size="sm">{{ $this->unreadNotificationsCount }}</flux:badge>
                     @endif
-                </div>
+                </flux:button>
 
-                <flux:menu.separator />
+                <flux:menu class="w-80">
+                    <div class="flex items-center justify-between px-3 py-2">
+                        <flux:heading size="sm">{{ __('Notifications') }}</flux:heading>
+                        @if ($this->unreadNotificationsCount > 0)
+                        <flux:link class="text-xs cursor-pointer" wire:click.prevent="markAllNotificationsRead">{{ __('Mark all read') }}</flux:link>
+                        @endif
+                    </div>
 
-                @forelse ($this->recentNotifications as $notification)
-                <div class="px-3 py-2 text-sm {{ $notification->read_at ? 'text-zinc-400' : 'text-zinc-800 dark:text-white' }}">
-                    {{ $notification->data['message'] ?? '' }}
-                </div>
-                @empty
-                <div class="px-3 py-2 text-sm text-zinc-500">{{ __('No notifications yet.') }}</div>
-                @endforelse
-            </flux:menu>
-        </flux:dropdown>
+                    <flux:menu.separator />
+
+                    @forelse ($this->recentNotifications as $notification)
+                    <div class="px-3 py-2 text-sm {{ $notification->read_at ? 'text-zinc-400' : 'text-zinc-800 dark:text-white' }}">
+                        {{ $notification->data['message'] ?? '' }}
+                    </div>
+                    @empty
+                    <div class="px-3 py-2 text-sm text-zinc-500">{{ __('No notifications yet.') }}</div>
+                    @endforelse
+                </flux:menu>
+            </flux:dropdown>
+        </div>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Sales today') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->salesToday, 2) }}</flux:heading>
-        </flux:card>
+    {{-- ─── 1. Primary Revenue & Profit Overview ────────────────────────────── --}}
+    <div class="flex flex-col gap-3">
+        <flux:heading size="lg" class="flex items-center gap-2">
+            <flux:icon name="banknotes" class="w-5 h-5 text-emerald-500" />
+            {{ __('Sales & Cash Flow Summary') }}
+        </flux:heading>
 
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Sales this month') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->salesMonth, 2) }}</flux:heading>
-        </flux:card>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500">
+                <flux:text size="sm">{{ __('Sales Today') }}</flux:text>
+                <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->salesToday, 2) }}</flux:heading>
+            </flux:card>
 
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Sales this year') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->salesYear, 2) }}</flux:heading>
-        </flux:card>
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500">
+                <flux:text size="sm">{{ __('Sales This Month') }}</flux:text>
+                <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->salesMonth, 2) }}</flux:heading>
+            </flux:card>
 
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Expenses this month') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->expensesMonth, 2) }}</flux:heading>
-        </flux:card>
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500">
+                <flux:text size="sm">{{ __('Sales This Year') }}</flux:text>
+                <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->salesYear, 2) }}</flux:heading>
+            </flux:card>
 
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Profit margin') }}</flux:text>
-            <flux:heading size="lg">{{ $this->profitMargin }}%</flux:heading>
-        </flux:card>
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-rose-500">
+                <flux:text size="sm">{{ __('Expenses This Month') }}</flux:text>
+                <flux:heading size="lg" class="text-rose-600 dark:text-rose-400">₹{{ number_format($this->expensesMonth, 2) }}</flux:heading>
+            </flux:card>
 
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Cash flow') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->cashFlow, 2) }}</flux:heading>
-        </flux:card>
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-indigo-500">
+                <flux:text size="sm">{{ __('Profit Margin') }}</flux:text>
+                <flux:heading size="lg" class="text-indigo-600 dark:text-indigo-400">{{ $this->profitMargin }}%</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-blue-500">
+                <flux:text size="sm">{{ __('Net Cash Flow (This Month)') }}</flux:text>
+                <flux:heading size="lg" class="{{ $this->cashFlow >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400' }}">
+                    ₹{{ number_format($this->cashFlow, 2) }}
+                </flux:heading>
+            </flux:card>
+        </div>
     </div>
 
+    {{-- ─── 2. Financier Payouts (Requested Section) ───────────────────────── --}}
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <flux:heading size="lg" class="flex items-center gap-2">
+                <flux:icon name="currency-rupee" class="w-5 h-5 text-purple-500" />
+                {{ __('Financier Payouts & Loan Repayments') }}
+            </flux:heading>
+            <flux:button size="sm" variant="subtle" icon="arrow-right" :href="route('financiers')" wire:navigate>
+                {{ __('Manage Financiers') }}
+            </flux:button>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-purple-500">
+                <flux:text size="sm">{{ __('Paid to Financiers Today') }}</flux:text>
+                <flux:heading size="lg" class="text-purple-600 dark:text-purple-400">₹{{ number_format($this->financiersPaidToday, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-purple-500">
+                <flux:text size="sm">{{ __('Paid to Financiers (This Month)') }}</flux:text>
+                <flux:heading size="lg" class="text-purple-600 dark:text-purple-400">₹{{ number_format($this->financiersPaidMonth, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-purple-500">
+                <flux:text size="sm">{{ __('Paid to Financiers (This Year)') }}</flux:text>
+                <flux:heading size="lg" class="text-purple-600 dark:text-purple-400">₹{{ number_format($this->financiersPaidYear, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-amber-500 bg-amber-50/30 dark:bg-amber-950/10">
+                <flux:text size="sm">{{ __('Total Outstanding Financier Balance') }}</flux:text>
+                <flux:heading size="lg" class="text-amber-600 dark:text-amber-400">₹{{ number_format($this->financiersOutstanding, 2) }}</flux:heading>
+            </flux:card>
+        </div>
+    </div>
+
+    {{-- ─── 3. Supplier Payments & Raw Material Outflows ────────────────────── --}}
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <flux:heading size="lg" class="flex items-center gap-2">
+                <flux:icon name="truck" class="w-5 h-5 text-orange-500" />
+                {{ __('Supplier & Raw Material Payments') }}
+            </flux:heading>
+            <flux:button size="sm" variant="subtle" icon="arrow-right" :href="route('suppliers')" wire:navigate>
+                {{ __('Manage Suppliers') }}
+            </flux:button>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-orange-500">
+                <flux:text size="sm">{{ __('Paid to Suppliers Today') }}</flux:text>
+                <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">₹{{ number_format($this->suppliersPaidToday, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-orange-500">
+                <flux:text size="sm">{{ __('Paid to Suppliers (This Month)') }}</flux:text>
+                <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">₹{{ number_format($this->suppliersPaidMonth, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-orange-500">
+                <flux:text size="sm">{{ __('Paid to Suppliers (This Year)') }}</flux:text>
+                <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">₹{{ number_format($this->suppliersPaidYear, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10">
+                <flux:text size="sm">{{ __('Total Balance Owed to Suppliers') }}</flux:text>
+                <flux:heading size="lg" class="text-red-600 dark:text-red-400">₹{{ number_format($this->suppliersOutstanding, 2) }}</flux:heading>
+            </flux:card>
+        </div>
+    </div>
+
+    {{-- ─── 4. Employee Payroll & Wages ───────────────────────────────────── --}}
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <flux:heading size="lg" class="flex items-center gap-2">
+                <flux:icon name="users" class="w-5 h-5 text-teal-500" />
+                {{ __('Employee Payroll & Wage Payments') }}
+            </flux:heading>
+            <flux:button size="sm" variant="subtle" icon="arrow-right" :href="route('employees')" wire:navigate>
+                {{ __('Manage Employees') }}
+            </flux:button>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-teal-500">
+                <flux:text size="sm">{{ __('Paid to Employees Today') }}</flux:text>
+                <flux:heading size="lg" class="text-teal-600 dark:text-teal-400">₹{{ number_format($this->employeesPaidToday, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-teal-500">
+                <flux:text size="sm">{{ __('Paid to Employees (This Month)') }}</flux:text>
+                <flux:heading size="lg" class="text-teal-600 dark:text-teal-400">₹{{ number_format($this->employeesPaidMonth, 2) }}</flux:heading>
+            </flux:card>
+
+            <flux:card class="flex flex-col gap-1 border-l-4 border-l-teal-500">
+                <flux:text size="sm">{{ __('Paid to Employees (This Year)') }}</flux:text>
+                <flux:heading size="lg" class="text-teal-600 dark:text-teal-400">₹{{ number_format($this->employeesPaidYear, 2) }}</flux:heading>
+            </flux:card>
+        </div>
+    </div>
+
+    {{-- ─── 5. Analytics & Charts ────────────────────────────────────────── --}}
     <div
-        class="grid gap-6 lg:grid-cols-2"
+        class="grid gap-6 lg:grid-cols-2 mt-2"
         wire:ignore
         x-data="khatabookCharts(@js($this->chartsPayload()))"
         x-on:dashboard-refreshed.window="update($event.detail)">
