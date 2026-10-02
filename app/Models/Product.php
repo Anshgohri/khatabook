@@ -34,14 +34,8 @@ class Product extends Model
     public function scopeFinished(Builder $query): Builder
     {
         return $query->where(function ($q) {
-            $q->whereHas('category', fn ($cat) => $cat->where('name', 'like', '%finished%'))
-                ->orWhere(function ($sub) {
-                    $sub->where('type', 'finished_good')
-                        ->where(function ($c) {
-                            $c->whereNull('product_category_id')
-                                ->orWhereDoesntHave('category');
-                        });
-                });
+            $q->where('type', 'finished_good')
+              ->orWhereHas('category', fn ($cat) => $cat->where('name', 'like', '%finished%'));
         });
     }
 
@@ -51,14 +45,8 @@ class Product extends Model
     public function scopeRawMaterial(Builder $query): Builder
     {
         return $query->where(function ($q) {
-            $q->whereHas('category', fn ($cat) => $cat->where('name', 'like', '%raw%'))
-                ->orWhere(function ($sub) {
-                    $sub->where('type', 'raw_material')
-                        ->where(function ($c) {
-                            $c->whereNull('product_category_id')
-                                ->orWhereDoesntHave('category');
-                        });
-                });
+            $q->where('type', 'raw_material')
+              ->orWhereHas('category', fn ($cat) => $cat->where('name', 'like', '%raw%'));
         });
     }
 

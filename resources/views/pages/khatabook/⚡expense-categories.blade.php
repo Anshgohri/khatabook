@@ -57,8 +57,8 @@ new #[Title('Expense Categories')] class extends Component {
 
     public function openModal(?int $id = null): void
     {
-        if (! auth()->user()?->isSystemAdmin()) {
-            Flux::toast(variant: 'danger', text: __('Only System Admin can manage expense categories.'));
+        if (! auth()->user()?->isAdmin()) {
+            Flux::toast(variant: 'danger', text: __('Only Admin can manage expense categories.'));
             return;
         }
 
@@ -82,8 +82,8 @@ new #[Title('Expense Categories')] class extends Component {
 
     public function saveCategory(): void
     {
-        if (! auth()->user()?->isSystemAdmin()) {
-            Flux::toast(variant: 'danger', text: __('Only System Admin can manage expense categories.'));
+        if (! auth()->user()?->isAdmin()) {
+            Flux::toast(variant: 'danger', text: __('Only Admin can manage expense categories.'));
             return;
         }
 
@@ -116,8 +116,8 @@ new #[Title('Expense Categories')] class extends Component {
 
     public function deleteCategory(int $categoryId): void
     {
-        if (! auth()->user()?->isSystemAdmin()) {
-            Flux::toast(variant: 'danger', text: __('Only System Admin can delete expense categories.'));
+        if (! auth()->user()?->isAdmin()) {
+            Flux::toast(variant: 'danger', text: __('Only Admin can delete expense categories.'));
             return;
         }
 
@@ -146,7 +146,7 @@ new #[Title('Expense Categories')] class extends Component {
             <flux:subheading>{{ __('Manage dynamic expense category scopes, colors, icons, and descriptions for your store') }}</flux:subheading>
         </div>
 
-        @if (auth()->user()?->isSystemAdmin())
+        @if (auth()->user()?->isAdmin())
             <flux:button variant="primary" icon="plus" wire:click="openModal(null)">
                 {{ __('Add Expense Category') }}
             </flux:button>
@@ -210,7 +210,7 @@ new #[Title('Expense Categories')] class extends Component {
 
                     <flux:table.cell>
                         <div class="flex gap-2 justify-end">
-                            @if (auth()->user()?->isSystemAdmin())
+                            @if (auth()->user()?->isAdmin())
                                 <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openModal({{ $category->id }})" title="{{ __('Edit') }}" />
                                 <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteCategory({{ $category->id }})" wire:confirm="{{ __('Delete this expense category?') }}" title="{{ __('Delete') }}" />
                             @endif
@@ -229,7 +229,7 @@ new #[Title('Expense Categories')] class extends Component {
     </div>
 
     <!-- Category Modal -->
-    @if (auth()->user()?->isSystemAdmin())
+    @if (auth()->user()?->isAdmin())
         <flux:modal wire:model.self="showCategoryModal" class="md:w-[520px]">
             <div class="flex flex-col gap-6">
                 <div>
