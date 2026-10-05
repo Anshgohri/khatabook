@@ -51,6 +51,24 @@ new #[Title('Users')] class extends Component {
     #[Computed]
     public function roles()
     {
+        $descriptions = [
+            \App\Enums\RoleName::SystemAdmin->value => 'System Admin with full unrestricted access to all expenses, users, categories, and settings.',
+            \App\Enums\RoleName::Admin->value => 'Full access to all data and settings.',
+            \App\Enums\RoleName::Manager->value => 'Can view and edit sales, expenses, and non-manager user accounts.',
+            \App\Enums\RoleName::Staff->value => 'Can create sales and expenses, and view their own records.',
+            \App\Enums\RoleName::Viewer->value => 'Read-only access to dashboards and reports.',
+            \App\Enums\RoleName::Employee->value => 'Employee account for viewing payments and advance details.',
+            \App\Enums\RoleName::Financier->value => 'Financier account for tracking daily/monthly payout details.',
+            \App\Enums\RoleName::Customer->value => 'Customer account for tracking customer sales and details.',
+        ];
+
+        foreach (\App\Enums\RoleName::cases() as $role) {
+            Role::firstOrCreate(
+                ['name' => $role->value],
+                ['description' => $descriptions[$role->value] ?? null]
+            );
+        }
+
         return Role::query()->orderBy('name')->get();
     }
 
@@ -236,7 +254,7 @@ new #[Title('Users')] class extends Component {
                         </div>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge :color="match ($targetUser->role?->name) { 'Admin' => 'purple', 'Manager' => 'blue', 'ROLE_CUSTOMER' => 'emerald', default => 'zinc' }" size="sm">
+                        <flux:badge :color="match ($targetUser->role?->name) { 'System Admin' => 'indigo', 'Admin' => 'purple', 'Manager' => 'blue', 'ROLE_CUSTOMER' => 'emerald', default => 'zinc' }" size="sm">
                             {{ $targetUser->role?->name ?? __('None') }}
                         </flux:badge>
                     </flux:table.cell>
