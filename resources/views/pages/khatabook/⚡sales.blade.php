@@ -20,6 +20,9 @@ new #[Title('Sales')] class extends Component {
     public string $paymentStatus = '';
 
     #[Url]
+    public string $datePreset = '';
+
+    #[Url]
     public string $dateFrom = '';
 
     #[Url]
@@ -35,6 +38,36 @@ new #[Title('Sales')] class extends Component {
         if (in_array($property, ['search', 'paymentStatus', 'dateFrom', 'dateTo'], true)) {
             $this->resetPage();
         }
+    }
+
+    public function updatedDatePreset(): void
+    {
+        switch ($this->datePreset) {
+            case 'today':
+                $this->dateFrom = now()->toDateString();
+                $this->dateTo = now()->toDateString();
+                break;
+            case 'yesterday':
+                $this->dateFrom = now()->subDay()->toDateString();
+                $this->dateTo = now()->subDay()->toDateString();
+                break;
+            case 'week':
+                $this->dateFrom = now()->startOfWeek()->toDateString();
+                $this->dateTo = now()->endOfWeek()->toDateString();
+                break;
+            case 'month':
+                $this->dateFrom = now()->startOfMonth()->toDateString();
+                $this->dateTo = now()->endOfMonth()->toDateString();
+                break;
+            case 'custom':
+                // Do not change dates for custom
+                break;
+            default:
+                $this->dateFrom = '';
+                $this->dateTo = '';
+                break;
+        }
+        $this->resetPage();
     }
 
     #[Computed]
@@ -158,7 +191,7 @@ new #[Title('Sales')] class extends Component {
     </div>
     @endif
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
         <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search customer or product...')" icon="magnifying-glass" />
 
         <flux:select wire:model.live="paymentStatus" :placeholder="__('All payment statuses')">
@@ -167,9 +200,20 @@ new #[Title('Sales')] class extends Component {
             <flux:select.option value="partial">{{ __('Partial') }}</flux:select.option>
             <flux:select.option value="unpaid">{{ __('Unpaid') }}</flux:select.option>
         </flux:select>
+        
+        <flux:select wire:model.live="datePreset" :label="__('Date Range')">
+            <flux:select.option value="">{{ __('All Time') }}</flux:select.option>
+            <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
+            <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
+            <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
+            <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
+        </flux:select>
 
+        @if ($datePreset === 'custom')
         <flux:input type="date" wire:model.live="dateFrom" :label="__('From')" />
         <flux:input type="date" wire:model.live="dateTo" :label="__('To')" />
+        @endif
     </div>
 
     <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
