@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['sale_id', 'product_id', 'quantity', 'unit_price', 'total_price'])]
+#[Fillable(['sale_id', 'product_id', 'quantity', 'unit_price', 'unit_cost_price', 'total_price'])]
 class SaleItem extends Model
 {
     use HasFactory;
@@ -20,6 +20,7 @@ class SaleItem extends Model
         return [
             'quantity' => 'integer',
             'unit_price' => 'decimal:2',
+            'unit_cost_price' => 'decimal:2',
             'total_price' => 'decimal:2',
         ];
     }
@@ -45,7 +46,8 @@ class SaleItem extends Model
      */
     public function totalCost(): float
     {
-        $cost = (float) ($this->product?->cost_price ?? 0);
+        // Use the saved unit cost price if available, otherwise fallback to current product cost
+        $cost = (float) ($this->unit_cost_price ?? $this->product?->cost_price ?? 0);
 
         return (float) ($this->quantity * $cost);
     }

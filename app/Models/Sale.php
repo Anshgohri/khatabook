@@ -116,6 +116,7 @@ class Sale extends Model
                 'product_id' => $productId,
                 'quantity' => $qty,
                 'unit_price' => $unitPrice,
+                'unit_cost_price' => $product ? $product->cost_price : null,
                 'total_price' => $totalPrice,
             ]);
 
