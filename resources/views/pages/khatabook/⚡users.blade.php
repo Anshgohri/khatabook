@@ -95,10 +95,16 @@ new #[Title('Users')] class extends Component {
             'invite_phone.unique' => __('The phone number has already been registered to another user.'),
         ]);
 
+        $selectedRole = Role::findOrFail($validated['invite_role_id']);
+        if ($selectedRole->name === \App\Enums\RoleName::SystemAdmin->value && ! auth()->user()?->isSystemAdmin()) {
+            $this->addError('invite_role_id', __('Only System Admins can invite another System Admin.'));
+            return;
+        }
+
         app(InviteUser::class)->invite(
             $validated['invite_name'],
             $validated['invite_email'],
-            Role::findOrFail($validated['invite_role_id']),
+            $selectedRole,
             $validated['invite_phone'] ?: null,
             $validated['invite_address'] ?: null,
             $validated['invite_city'] ?: null,
@@ -143,6 +149,12 @@ new #[Title('Users')] class extends Component {
             'edit_phone.regex' => __('The phone number must contain only numbers.'),
             'edit_phone.unique' => __('The phone number has already been registered to another user.'),
         ]);
+
+        $selectedRole = Role::find($validated['edit_role_id']);
+        if ($selectedRole && $selectedRole->name === \App\Enums\RoleName::SystemAdmin->value && ! auth()->user()?->isSystemAdmin()) {
+            $this->addError('edit_role_id', __('Only System Admins can assign the System Admin role.'));
+            return;
+        }
 
         $target->update([
             'name' => $validated['edit_name'],

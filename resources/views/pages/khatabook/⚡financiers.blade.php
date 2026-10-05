@@ -27,6 +27,21 @@ new #[Title('Financiers')] class extends Component {
     #[Url]
     public string $payoutType = '';
 
+    #[Url]
+    public string $activeTab = 'financiers'; // financiers, payouts
+
+    #[Url]
+    public string $datePreset = 'today'; // today, yesterday, week, month, custom
+
+    #[Url]
+    public string $payoutDateFrom = '';
+
+    #[Url]
+    public string $payoutDateTo = '';
+
+    public string $payoutSearch = '';
+    public string $payoutTypeFilter = '';
+
     // Financier Modal State
     public bool $showFinancierModal = false;
     public ?int $editingFinancierId = null;
@@ -68,6 +83,12 @@ new #[Title('Financiers')] class extends Component {
         }
 
         $this->payment_date = now()->toDateString();
+        if (! $this->payoutDateFrom) {
+            $this->payoutDateFrom = now()->startOfMonth()->toDateString();
+        }
+        if (! $this->payoutDateTo) {
+            $this->payoutDateTo = now()->toDateString();
+        }
     }
 
     public function updatingSearch(): void
@@ -78,6 +99,84 @@ new #[Title('Financiers')] class extends Component {
     public function updatingPayoutType(): void
     {
         $this->resetPage();
+    }
+
+    public function updatingPayoutSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPayoutTypeFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDatePreset(): void
+    {
+        $this->resetPage();
+    }
+
+    public function setPreset(string $preset): void
+    {
+        $this->datePreset = $preset;
+        $this->activeTab = 'payouts';
+
+        if ($preset === 'custom') {
+            if (! $this->payoutDateFrom) {
+                $this->payoutDateFrom = now()->startOfMonth()->toDateString();
+            }
+            if (! $this->payoutDateTo) {
+                $this->payoutDateTo = now()->toDateString();
+            }
+        }
+
+        $this->resetPage();
+    }
+
+    #[Computed]
+    public function dateRange(): array
+    {
+        return match ($this->datePreset) {
+            'today' => [now()->startOfDay(), now()->endOfDay()],
+            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'custom' => [
+                $this->payoutDateFrom ? \Illuminate\Support\Carbon::parse($this->payoutDateFrom)->startOfDay() : now()->startOfMonth(),
+                $this->payoutDateTo ? \Illuminate\Support\Carbon::parse($this->payoutDateTo)->endOfDay() : now()->endOfDay(),
+            ],
+            default => [now()->startOfDay(), now()->endOfDay()],
+        };
+    }
+
+    #[Computed]
+    public function paymentsToday(): float
+    {
+        $user = Auth::user();
+
+        return CacheService::rememberForUser('financiers.payments_today', $user->id, CacheService::STATS_TTL, function () use ($user) {
+            return (float) FinancierPayment::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereDate('date', today())
+                ->sum('amount');
+        });
+    }
+
+    #[Computed]
+    public function paymentsYesterday(): float
+    {
+        $user = Auth::user();
+
+        return CacheService::rememberForUser('financiers.payments_yesterday', $user->id, CacheService::STATS_TTL, function () use ($user) {
+            return (float) FinancierPayment::query()
+                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereDate('date', now()->subDay())
+                ->sum('amount');
+        });
     }
 
     #[Computed]
@@ -170,6 +269,28 @@ new #[Title('Financiers')] class extends Component {
                 ->when($this->ledgerPeriod === 'this_year', fn ($q) => $q->whereBetween('date', [now()->startOfYear(), now()->endOfYear()]))
                 ->latest('date');
         }])->find($this->ledgerFinancierId);
+    }
+
+    #[Computed]
+    public function payments()
+    {
+        if ($this->activeTab !== 'payouts') {
+            return collect();
+        }
+
+        $user = Auth::user();
+        [$startDate, $endDate] = $this->dateRange;
+
+        return FinancierPayment::query()
+            ->with('financier.financierUser', 'user')
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+            ->when($this->payoutSearch, fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('name', 'like', "%{$this->payoutSearch}%")))
+            ->when($this->payoutTypeFilter, fn ($query) => $query->where('type', $this->payoutTypeFilter))
+            ->whereBetween('date', [$startDate, $endDate])
+            ->latest('date')
+            ->latest('id')
+            ->paginate(15, ['*'], 'payoutsPage');
     }
 
     public function createFinancier(): void
@@ -381,6 +502,8 @@ new #[Title('Financiers')] class extends Component {
         $this->bill_image = null;
         unset($this->financiers);
         unset($this->selectedLedgerFinancier);
+        unset($this->payments);
+        $this->activeTab = 'payouts';
         Flux::toast(variant: 'success', text: __('Financier payment recorded successfully.'));
     }
     
@@ -393,6 +516,18 @@ new #[Title('Financiers')] class extends Component {
 
         unset($this->financiers);
         Flux::toast(variant: 'success', text: __('Financier deleted successfully.'));
+    }
+
+    public function deletePayment(int $id): void
+    {
+        $payment = FinancierPayment::findOrFail($id);
+        $this->authorize('delete', $payment->financier);
+
+        $payment->delete();
+
+        unset($this->payments);
+        unset($this->financiers);
+        Flux::toast(variant: 'success', text: __('Payment deleted successfully.'));
     }
 
     // Ledger Navigation
@@ -437,6 +572,17 @@ new #[Title('Financiers')] class extends Component {
         </flux:card>
     </div>
 
+    <!-- Tabs -->
+    <div class="flex gap-4 border-b border-zinc-200 dark:border-zinc-700 mb-2">
+        <button wire:click="$set('activeTab', 'financiers')" class="pb-2 px-1 text-sm font-medium transition-colors {{ $activeTab === 'financiers' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 border-transparent' }}">
+            {{ __('Financiers List') }}
+        </button>
+        <button wire:click="$set('activeTab', 'payouts')" class="pb-2 px-1 text-sm font-medium transition-colors {{ $activeTab === 'payouts' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 border-transparent' }}">
+            {{ __('Payouts History') }}
+        </button>
+    </div>
+
+    @if ($this->activeTab === 'financiers')
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search financier name, phone or email...')" icon="magnifying-glass" />
         
@@ -526,6 +672,95 @@ new #[Title('Financiers')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </div>
+    @endif
+    
+    @if ($this->activeTab === 'payouts')
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
+        <flux:input wire:model.live.debounce.400ms="payoutSearch" :placeholder="__('Search financier name...')" icon="magnifying-glass" />
+        
+        <flux:select wire:model.live="payoutTypeFilter" :placeholder="__('All Transaction Types')">
+            <flux:select.option value="">{{ __('All Transactions') }}</flux:select.option>
+            <flux:select.option value="daily_payment">{{ __('Daily Payment') }}</flux:select.option>
+            <flux:select.option value="weekly_payment">{{ __('Weekly Payment') }}</flux:select.option>
+            <flux:select.option value="monthly_payment">{{ __('Monthly Payment') }}</flux:select.option>
+            <flux:select.option value="loan_received">{{ __('Loan Received') }}</flux:select.option>
+            <flux:select.option value="loan_repaid">{{ __('Loan Repaid') }}</flux:select.option>
+            <flux:select.option value="interest_payment">{{ __('Interest Paid') }}</flux:select.option>
+        </flux:select>
+        
+        <flux:select wire:model.live="datePreset" :label="__('Date Range')">
+            <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
+            <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
+            <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
+            <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
+        </flux:select>
+        
+        @if ($datePreset === 'custom')
+            <flux:input type="date" wire:model.live="payoutDateFrom" :label="__('From Date')" />
+            <flux:input type="date" wire:model.live="payoutDateTo" :label="__('To Date')" />
+        @endif
+    </div>
+
+    <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <flux:table :paginate="$this->payments">
+            <flux:table.columns>
+                <flux:table.column>{{ __('Date') }}</flux:table.column>
+                <flux:table.column>{{ __('Financier') }}</flux:table.column>
+                <flux:table.column>{{ __('Transaction Type') }}</flux:table.column>
+                <flux:table.column>{{ __('Amount') }}</flux:table.column>
+                <flux:table.column>{{ __('Payment Method') }}</flux:table.column>
+                <flux:table.column>{{ __('Notes') }}</flux:table.column>
+                <flux:table.column>{{ __('Recorded By') }}</flux:table.column>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @forelse ($this->payments as $payment)
+                <flux:table.row wire:key="payment-{{ $payment->id }}">
+                    <flux:table.cell>{{ $payment->date->format('d M Y') }}</flux:table.cell>
+                    <flux:table.cell class="font-medium">
+                        <a href="{{ route('financiers.show', $payment->financier_id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400">
+                            {{ $payment->financier->name }}
+                        </a>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge :color="match ($payment->type) { 'loan_received' => 'orange', 'loan_repaid' => 'blue', 'interest_payment' => 'purple', default => 'green' }" size="sm">
+                            {{ ucwords(str_replace('_', ' ', $payment->type)) }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell class="font-semibold {{ $payment->type === 'loan_received' ? 'text-orange-600 dark:text-orange-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                        {{ $payment->type === 'loan_received' ? '+' : '-' }}₹{{ number_format($payment->amount, 2) }}
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <span class="capitalize text-zinc-600 dark:text-zinc-400">{{ str_replace('_', ' ', $payment->payment_method) }}</span>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <span class="text-xs text-zinc-500 max-w-xs truncate block" title="{{ $payment->notes }}">{{ $payment->notes ?: '-' }}</span>
+                    </flux:table.cell>
+                    <flux:table.cell>{{ $payment->user->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex items-center gap-2">
+                            @if ($payment->bill_path)
+                            <flux:button size="sm" variant="subtle" icon="document" href="{{ Storage::url($payment->bill_path) }}" target="_blank">
+                                {{ __('Bill') }}
+                            </flux:button>
+                            @endif
+                            @can('delete', $payment->financier)
+                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this transaction?') }}" />
+                            @endcan
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+                @empty
+                <flux:table.row>
+                    <flux:table.cell colspan="8" class="text-center text-zinc-500 py-6">{{ __('No payout records found for the selected criteria.') }}</flux:table.cell>
+                </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </div>
+    @endif
 
     <!-- Add/Edit Financier Modal -->
     <flux:modal wire:model.self="showFinancierModal" class="md:w-96">
