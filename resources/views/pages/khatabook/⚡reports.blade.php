@@ -54,6 +54,20 @@ new #[Title('Reports')] class extends Component {
     }
 
     #[Computed]
+    public function totalSalesProfit(): float
+    {
+        $user = Auth::user();
+        if (! $user?->isAdmin()) {
+            return 0.0;
+        }
+
+        return (float) $this->scopedSales()
+            ->with('items.product')
+            ->get()
+            ->sum(fn ($sale) => $sale->profit());
+    }
+
+    #[Computed]
     public function totalExpenses(): float
     {
         return (float) $this->scopedExpenses()->sum('amount');
@@ -84,23 +98,36 @@ new #[Title('Reports')] class extends Component {
     {
         $this->authorize('viewAny', Sale::class);
 
-        $sales = $this->scopedSales()->with('user')->orderBy('date')->get();
+        $isAdmin = Auth::user()?->isAdmin();
+        $sales = $this->scopedSales()->with(['user', 'items.product'])->orderBy('date')->get();
 
-        return response()->streamDownload(function () use ($sales) {
+        return response()->streamDownload(function () use ($sales, $isAdmin) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Date', 'Customer', 'Items Sold', 'Quantity', 'Unit Price', 'Total Amount', 'Payment Status', 'Recorded By']);
+            $headers = ['Date', 'Customer', 'Items Sold', 'Quantity', 'Unit Price', 'Total Amount'];
+            if ($isAdmin) {
+                $headers[] = 'Profit';
+            }
+            $headers[] = 'Payment Status';
+            $headers[] = 'Recorded By';
+
+            fputcsv($handle, $headers);
 
             foreach ($sales as $sale) {
-                fputcsv($handle, [
+                $row = [
                     $sale->date->toDateString(),
                     $sale->customer_name,
                     $sale->items_sold,
                     $sale->quantity,
                     $sale->unit_price,
                     $sale->total_amount,
-                    $sale->payment_status,
-                    $sale->user->name,
-                ]);
+                ];
+                if ($isAdmin) {
+                    $row[] = number_format((float) $sale->profit(), 2, '.', '');
+                }
+                $row[] = $sale->payment_status;
+                $row[] = $sale->user->name;
+
+                fputcsv($handle, $row);
             }
 
             fclose($handle);
@@ -144,20 +171,27 @@ new #[Title('Reports')] class extends Component {
         </flux:select>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-3">
-        <flux:card class="flex flex-col gap-1">
+    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isAdmin() ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }}">
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500">
             <flux:text size="sm">{{ __('Total sales') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->totalSales, 2) }}</flux:heading>
+            <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->totalSales, 2) }}</flux:heading>
         </flux:card>
 
-        <flux:card class="flex flex-col gap-1">
+        @if (auth()->user()?->isAdmin())
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-teal-500 bg-teal-50/20 dark:bg-teal-950/10">
+            <flux:text size="sm" class="font-medium text-teal-800 dark:text-teal-300">{{ __('Sales Gross Profit') }}</flux:text>
+            <flux:heading size="lg" class="text-teal-600 dark:text-teal-400">₹{{ number_format($this->totalSalesProfit, 2) }}</flux:heading>
+        </flux:card>
+        @endif
+
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-rose-500">
             <flux:text size="sm">{{ __('Total expenses') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->totalExpenses, 2) }}</flux:heading>
+            <flux:heading size="lg" class="text-rose-600 dark:text-rose-400">₹{{ number_format($this->totalExpenses, 2) }}</flux:heading>
         </flux:card>
 
-        <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Net profit') }}</flux:text>
-            <flux:heading size="lg">{{ number_format($this->totalSales - $this->totalExpenses, 2) }}</flux:heading>
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-indigo-500">
+            <flux:text size="sm">{{ __('Net profit (Sales - Expenses)') }}</flux:text>
+            <flux:heading size="lg" class="text-indigo-600 dark:text-indigo-400">₹{{ number_format($this->totalSales - $this->totalExpenses, 2) }}</flux:heading>
         </flux:card>
     </div>
 

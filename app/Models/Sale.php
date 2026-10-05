@@ -56,6 +56,28 @@ class Sale extends Model
     }
 
     /**
+     * Calculate total production / making cost for all line items in this sale.
+     */
+    public function totalCost(): float
+    {
+        $this->loadMissing('items.product');
+
+        if ($this->items->isNotEmpty()) {
+            return (float) $this->items->sum(fn ($item) => $item->totalCost());
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Calculate net profit for this sale (Total Amount - Total Production Cost).
+     */
+    public function profit(): float
+    {
+        return (float) ($this->total_amount - $this->totalCost());
+    }
+
+    /**
      * Sync sale items and update inventory stock logs.
      *
      * @param  array<int, array{product_id: ?int, quantity: int, unit_price: float}>  $itemsData

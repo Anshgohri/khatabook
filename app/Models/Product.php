@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['product_category_id', 'type', 'name', 'unit_price', 'unit', 'description', 'stock_level', 'image_path'])]
+#[Fillable(['product_category_id', 'type', 'name', 'unit_price', 'cost_price', 'unit', 'description', 'stock_level', 'image_path'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -24,6 +24,7 @@ class Product extends Model
     {
         return [
             'unit_price' => 'decimal:2',
+            'cost_price' => 'decimal:2',
             'stock_level' => 'integer',
         ];
     }
@@ -35,7 +36,7 @@ class Product extends Model
     {
         return $query->where(function ($q) {
             $q->where('type', 'finished_good')
-              ->orWhereHas('category', fn ($cat) => $cat->where('name', 'like', '%finished%'));
+                ->orWhereHas('category', fn ($cat) => $cat->where('name', 'like', '%finished%'));
         });
     }
 
@@ -46,7 +47,7 @@ class Product extends Model
     {
         return $query->where(function ($q) {
             $q->where('type', 'raw_material')
-              ->orWhereHas('category', fn ($cat) => $cat->where('name', 'like', '%raw%'));
+                ->orWhereHas('category', fn ($cat) => $cat->where('name', 'like', '%raw%'));
         });
     }
 

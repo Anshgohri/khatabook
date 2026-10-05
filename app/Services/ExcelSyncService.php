@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Sale;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -35,6 +36,7 @@ class ExcelSyncService
         'Unit Price (₹)',
         'Discount (₹)',
         'Total Amount (₹)',
+        'Profit (₹)',
         'Payment Status',
         'Notes',
         'Recorded By',
@@ -46,7 +48,7 @@ class ExcelSyncService
      * On Vercel production this will be 's3' (Supabase).
      * Locally this will be 'local'.
      */
-    private function disk(): \Illuminate\Contracts\Filesystem\Filesystem
+    private function disk(): Filesystem
     {
         $diskName = config('filesystems.default', 'local');
 
@@ -301,6 +303,7 @@ class ExcelSyncService
             (float) $sale->unit_price,
             (float) ($sale->discount ?? 0),
             (float) $sale->total_amount,
+            (float) $sale->profit(),
             ucfirst($sale->payment_status),
             $sale->notes ?? '',
             $sale->user?->name ?? '',
@@ -313,20 +316,21 @@ class ExcelSyncService
             $col++;
         }
 
-        // Payment status color
+        // Payment status color (Column L)
         $statusColor = match (strtolower($sale->payment_status)) {
             'paid' => '057a55',
             'partial' => 'c27803',
             default => 'c81e1e',
         };
-        $sheet->getStyle('K'.$row)->applyFromArray([
+        $sheet->getStyle('L'.$row)->applyFromArray([
             'font' => ['color' => ['rgb' => $statusColor], 'bold' => true],
         ]);
 
-        // Number format for currency columns
+        // Number format for currency columns (H: Unit Price, I: Discount, J: Total Amount, K: Profit)
         $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0.00');
         $sheet->getStyle('I'.$row)->getNumberFormat()->setFormatCode('#,##0.00');
         $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0.00');
     }
 
     private function applyRowStyle(Worksheet $sheet, int $row, bool $alternate): void

@@ -40,6 +40,24 @@ class SaleItem extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * Calculate total production / making cost for this item line.
+     */
+    public function totalCost(): float
+    {
+        $cost = (float) ($this->product?->cost_price ?? 0);
+
+        return (float) ($this->quantity * $cost);
+    }
+
+    /**
+     * Calculate profit for this item line.
+     */
+    public function profit(): float
+    {
+        return (float) ($this->total_price - $this->totalCost());
+    }
+
     protected static function booted(): void
     {
         static::saving(function (self $item): void {

@@ -24,6 +24,8 @@ new #[Title('Products & Inventory')] class extends Component {
 
     public float $unit_price = 0;
 
+    public float $cost_price = 0;
+
     public string $description = '';
 
     public $image = null;
@@ -70,6 +72,7 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->reset(['editingId', 'name', 'description', 'image']);
         $this->product_category_id = '';
         $this->unit_price = 0;
+        $this->cost_price = 0;
         $this->type = 'finished_good';
         $this->unit = 'pcs';
         $this->showProductForm = true;
@@ -85,6 +88,7 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->name = $product->name;
         $this->product_category_id = (string) $product->product_category_id;
         $this->unit_price = (float) $product->unit_price;
+        $this->cost_price = (float) $product->cost_price;
         $this->type = $product->type ?? 'finished_good';
         $this->unit = $product->unit ?? 'pcs';
         $this->description = (string) $product->description;
@@ -105,6 +109,7 @@ new #[Title('Products & Inventory')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'product_category_id' => ['nullable', 'exists:product_categories,id'],
             'unit_price' => ['required', 'numeric', 'min:0'],
+            'cost_price' => ['nullable', 'numeric', 'min:0'],
             'type' => ['required', 'in:raw_material,finished_good'],
             'unit' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
@@ -112,6 +117,7 @@ new #[Title('Products & Inventory')] class extends Component {
         ]);
 
         $validated['product_category_id'] = $validated['product_category_id'] ?: null;
+        $validated['cost_price'] = (float) ($validated['cost_price'] ?? 0);
 
         if ($this->image) {
             $imagePath = $this->image->store('products');
@@ -212,7 +218,10 @@ new #[Title('Products & Inventory')] class extends Component {
                 <flux:table.column>{{ __('Name') }}</flux:table.column>
                 <flux:table.column>{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Category') }}</flux:table.column>
-                <flux:table.column>{{ __('Unit price') }}</flux:table.column>
+                <flux:table.column>{{ __('Selling Price') }}</flux:table.column>
+                @if (auth()->user()?->isAdmin())
+                <flux:table.column>{{ __('Cost Price') }}</flux:table.column>
+                @endif
                 <flux:table.column>{{ __('Stock level') }}</flux:table.column>
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
@@ -244,6 +253,11 @@ new #[Title('Products & Inventory')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
                     <flux:table.cell>₹{{ number_format((float) $product->unit_price, 2) }}</flux:cell>
+                    @if (auth()->user()?->isAdmin())
+                    <flux:table.cell class="font-medium text-amber-600 dark:text-amber-400">
+                        ₹{{ number_format((float) $product->cost_price, 2) }}
+                    </flux:table.cell>
+                    @endif
                     <flux:table.cell>
                         <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }} {{ $product->unit ?? 'pcs' }}</flux:badge>
                     </flux:table.cell>
@@ -263,7 +277,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="6" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 7 : 6 }}" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
@@ -290,7 +304,11 @@ new #[Title('Products & Inventory')] class extends Component {
                     @endforeach
                 </flux:select>
 
-                <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Unit price (₹)')" required />
+                <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Selling Unit Price (₹)')" required />
+
+                @if (auth()->user()?->isAdmin())
+                <flux:input type="number" step="0.01" min="0" wire:model="cost_price" :label="__('Production / Making Cost (₹)')" :description="__('Total cost to make/produce this item (Admin view only)')" />
+                @endif
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
 
                 <flux:input type="file" wire:model="image" :label="__('Product Image (Optional)')" accept="image/*" />
