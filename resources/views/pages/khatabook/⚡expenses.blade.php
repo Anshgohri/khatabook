@@ -26,6 +26,9 @@ new #[Title('Expenses')] class extends Component {
     public string $filterUserId = '';
 
     #[Url]
+    public string $datePreset = '';
+
+    #[Url]
     public string $dateFrom = '';
 
     #[Url]
@@ -70,6 +73,36 @@ new #[Title('Expenses')] class extends Component {
         if (in_array($property, ['search', 'categoryId', 'filterUserId', 'dateFrom', 'dateTo'], true)) {
             $this->resetPage();
         }
+    }
+
+    public function updatedDatePreset(): void
+    {
+        switch ($this->datePreset) {
+            case 'today':
+                $this->dateFrom = now()->toDateString();
+                $this->dateTo = now()->toDateString();
+                break;
+            case 'yesterday':
+                $this->dateFrom = now()->subDay()->toDateString();
+                $this->dateTo = now()->subDay()->toDateString();
+                break;
+            case 'week':
+                $this->dateFrom = now()->startOfWeek()->toDateString();
+                $this->dateTo = now()->endOfWeek()->toDateString();
+                break;
+            case 'month':
+                $this->dateFrom = now()->startOfMonth()->toDateString();
+                $this->dateTo = now()->endOfMonth()->toDateString();
+                break;
+            case 'custom':
+                // Do not change dates for custom
+                break;
+            default:
+                $this->dateFrom = '';
+                $this->dateTo = '';
+                break;
+        }
+        $this->resetPage();
     }
 
     #[Computed]
@@ -318,7 +351,7 @@ new #[Title('Expenses')] class extends Component {
     </div>
 
     <!-- Filter Controls -->
-    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isAdmin() ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} items-end">
+    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isAdmin() ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }} {{ $datePreset === 'custom' ? 'xl:grid-cols-6' : '' }} items-end">
         <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search description...')" icon="magnifying-glass" />
 
         <flux:select wire:model.live="categoryId" :placeholder="__('All Categories')">
@@ -339,8 +372,19 @@ new #[Title('Expenses')] class extends Component {
             </flux:select>
         @endif
 
-        <flux:input type="date" wire:model.live="dateFrom" :label="__('From')" />
-        <flux:input type="date" wire:model.live="dateTo" :label="__('To')" />
+        <flux:select wire:model.live="datePreset" :label="__('Date Range')">
+            <flux:select.option value="">{{ __('All Time') }}</flux:select.option>
+            <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
+            <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
+            <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
+            <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
+        </flux:select>
+
+        @if ($datePreset === 'custom')
+            <flux:input type="date" wire:model.live="dateFrom" :label="__('From')" />
+            <flux:input type="date" wire:model.live="dateTo" :label="__('To')" />
+        @endif
     </div>
 
     <!-- Expenses Table -->
