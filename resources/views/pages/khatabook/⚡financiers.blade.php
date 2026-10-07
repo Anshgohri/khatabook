@@ -248,9 +248,9 @@ new #[Title('Financiers')] class extends Component {
             ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
             ->when($this->payoutType, fn ($query) => $query->where('payout_type', $this->payoutType))
             ->when($this->search, fn ($query) => $query->where(function ($sub) {
-                $sub->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('phone', 'like', "%{$this->search}%")
-                    ->orWhereHas('financierUser', fn ($q) => $q->where('email', 'like', "%{$this->search}%"));
+                $sub->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhereHas('financierUser', fn ($q) => $q->where('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"));
             }))
             ->latest()
             ->paginate(15);
@@ -285,7 +285,7 @@ new #[Title('Financiers')] class extends Component {
             ->with('financier.financierUser', 'user')
             ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
             ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->when($this->payoutSearch, fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('name', 'like', "%{$this->payoutSearch}%")))
+            ->when($this->payoutSearch, fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")))
             ->when($this->payoutTypeFilter, fn ($query) => $query->where('type', $this->payoutTypeFilter))
             ->whereBetween('date', [$startDate, $endDate])
             ->latest('date')

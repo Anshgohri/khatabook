@@ -33,7 +33,7 @@ new #[Title('Product Categories')] class extends Component {
     {
         return ProductCategory::query()
             ->withCount('products')
-            ->when($this->search !== '', fn($query) => $query->where('name', 'like', '%' . $this->search . '%'))
+            ->when($this->search !== '', fn($query) => $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), '%' . $this->search . '%'))
             ->orderBy('name')
             ->paginate(15);
     }

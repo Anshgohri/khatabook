@@ -37,9 +37,9 @@ new #[Title('Production Log')] class extends Component {
             ->with(['employee', 'items.finishedProduct', 'items.rawMaterial', 'finishedProduct', 'rawMaterial'])
             ->when(! $user->isManager(), fn ($q) => $q->where('user_id', $user->id))
             ->when($this->search, function ($q) {
-                $q->whereHas('employee', fn ($e) => $e->where('name', 'like', "%{$this->search}%"))
-                  ->orWhereHas('items.finishedProduct', fn ($fp) => $fp->where('name', 'like', "%{$this->search}%"))
-                  ->orWhereHas('finishedProduct', fn ($fp) => $fp->where('name', 'like', "%{$this->search}%"));
+                $q->whereHas('employee', fn ($e) => $e->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
+                  ->orWhereHas('items.finishedProduct', fn ($fp) => $fp->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
+                  ->orWhereHas('finishedProduct', fn ($fp) => $fp->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"));
             })
             ->latest('date')
             ->latest('id')

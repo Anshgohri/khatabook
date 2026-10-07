@@ -94,10 +94,10 @@ new #[Title('Suppliers')] class extends Component {
         return Supplier::query()
             ->with(['payments'])
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%")
-                ->orWhere('material_supplied', 'like', "%{$this->search}%")
-                ->orWhere('location', 'like', "%{$this->search}%"))
+            ->when($this->search, fn ($query) => $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                ->orWhere('material_supplied', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                ->orWhere('location', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
             ->latest()
             ->paginate(15);
     }

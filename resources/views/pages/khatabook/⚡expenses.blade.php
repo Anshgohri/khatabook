@@ -128,7 +128,7 @@ new #[Title('Expenses')] class extends Component {
             ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
             // If Admin selects a specific user filter
             ->when($user->isAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
-            ->when($this->search, fn($query) => $query->where('description', 'like', "%{$this->search}%"))
+            ->when($this->search, fn($query) => $query->where('description', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
             ->when($this->categoryId, fn($query) => $query->where('expense_category_id', $this->categoryId))
             ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))

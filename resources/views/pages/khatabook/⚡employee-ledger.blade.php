@@ -59,9 +59,9 @@ new #[Title('Employee Ledger')] class extends Component {
             ->when($this->period === 'this_year', fn ($q) => $q->whereBetween('date', [now()->startOfYear(), now()->endOfYear()]))
             ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter))
             ->when($this->search, fn ($q) => $q->where(function ($sub) {
-                $sub->where('notes', 'like', "%{$this->search}%")
-                    ->orWhere('payment_method', 'like', "%{$this->search}%")
-                    ->orWhere('amount', 'like', "%{$this->search}%");
+                $sub->where('notes', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('payment_method', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('amount', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
             }))
             ->latest('date')
             ->latest('id')

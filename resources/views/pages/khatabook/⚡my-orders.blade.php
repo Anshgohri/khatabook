@@ -43,9 +43,9 @@ new #[Title('My Orders & Purchases')] class extends Component {
             ->when($this->search !== '', function ($query) {
                 $term = '%'.trim($this->search).'%';
                 $query->where(function ($q) use ($term) {
-                    $q->where('id', 'like', $term)
-                        ->orWhere('items_sold', 'like', $term)
-                        ->orWhere('notes', 'like', $term);
+                    $q->where('id', \App\Providers\AppServiceProvider::likeOperator(), $term)
+                        ->orWhere('items_sold', \App\Providers\AppServiceProvider::likeOperator(), $term)
+                        ->orWhere('notes', \App\Providers\AppServiceProvider::likeOperator(), $term);
                 });
             })
             ->when($this->paymentFilter !== '', fn ($q) => $q->where('payment_status', $this->paymentFilter))

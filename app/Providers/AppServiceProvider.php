@@ -24,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
+    public static function likeOperator(): string
+    {
+        return \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+    }
+
     /**
      * Bootstrap any application services.
      */

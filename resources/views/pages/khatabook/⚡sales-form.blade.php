@@ -139,10 +139,10 @@ new #[Title('Sales Form')] class extends Component {
             ->when(trim($this->customerSearch) !== '', function ($query) {
                 $term = '%'.trim($this->customerSearch).'%';
                 $query->where(function ($q) use ($term) {
-                    $q->where('name', 'like', $term)
-                        ->orWhere('phone', 'like', $term)
-                        ->orWhere('email', 'like', $term)
-                        ->orWhere('city', 'like', $term);
+                    $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), $term)
+                        ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), $term)
+                        ->orWhere('email', \App\Providers\AppServiceProvider::likeOperator(), $term)
+                        ->orWhere('city', \App\Providers\AppServiceProvider::likeOperator(), $term);
                 });
             })
             ->orderBy('name')

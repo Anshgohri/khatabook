@@ -78,7 +78,13 @@ new #[Title('Sales')] class extends Component {
         return Sale::query()
             ->with(['user', 'customer', 'items.product'])
             ->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn($query) => $query->where('customer_name', 'like', "%{$this->search}%")->orWhere('items_sold', 'like', "%{$this->search}%"))
+            ->when($this->search, function ($query) {
+                $query->where('customer_name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhere('items_sold', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhereHas('customer', function ($q) {
+                          $q->where('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
+                      });
+            })
             ->when($this->paymentStatus, fn($query) => $query->where('payment_status', $this->paymentStatus))
             ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
@@ -135,7 +141,13 @@ new #[Title('Sales')] class extends Component {
         return (float) Sale::query()
             ->with('items.product')
             ->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn($query) => $query->where('customer_name', 'like', "%{$this->search}%")->orWhere('items_sold', 'like', "%{$this->search}%"))
+            ->when($this->search, function ($query) {
+                $query->where('customer_name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhere('items_sold', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhereHas('customer', function ($q) {
+                          $q->where('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
+                      });
+            })
             ->when($this->paymentStatus, fn($query) => $query->where('payment_status', $this->paymentStatus))
             ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))

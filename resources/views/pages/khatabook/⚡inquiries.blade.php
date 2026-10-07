@@ -55,10 +55,10 @@ new #[Title('Contact Inquiries')] class extends Component {
     {
         return ContactInquiry::query()
             ->when($this->search, function ($query) {
-                $query->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('phone', 'like', "%{$this->search}%")
-                    ->orWhere('email', 'like', "%{$this->search}%")
-                    ->orWhere('inquiry_type', 'like', "%{$this->search}%");
+                $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('inquiry_type', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
             })
             ->when($this->status, fn($query) => $query->where('status', $this->status))
             ->latest('created_at')

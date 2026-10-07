@@ -49,7 +49,7 @@ new #[Title('Expense Categories')] class extends Component {
         return ExpenseCategory::query()
             ->withCount('expenses')
             ->withSum('expenses', 'amount')
-            ->when($this->search !== '', fn($query) => $query->where('name', 'like', '%' . $this->search . '%')->orWhere('description', 'like', '%' . $this->search . '%'))
+            ->when($this->search !== '', fn($query) => $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), '%' . $this->search . '%')->orWhere('description', \App\Providers\AppServiceProvider::likeOperator(), '%' . $this->search . '%'))
             ->when($this->filterType !== '', fn($query) => $query->where('type', $this->filterType))
             ->orderBy('name')
             ->paginate(15);

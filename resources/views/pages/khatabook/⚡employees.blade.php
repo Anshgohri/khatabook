@@ -103,8 +103,8 @@ new #[Title('Employees')] class extends Component {
         return Employee::query()
             ->with(['payments'])
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%"))
+            ->when($this->search, fn ($query) => $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
             ->latest()
             ->paginate(15);
     }
