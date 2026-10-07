@@ -110,6 +110,21 @@ new #[Title('Sales')] class extends Component {
     }
 
     #[Computed]
+    public function dailyProductionCost(): float
+    {
+        $user = Auth::user();
+        if (! $user?->isAdmin()) {
+            return 0.0;
+        }
+
+        return (float) Sale::query()
+            ->whereDate('date', today())
+            ->with('items.product')
+            ->get()
+            ->sum(fn ($sale) => $sale->totalCost());
+    }
+
+    #[Computed]
     public function filteredProfit(): float
     {
         $user = Auth::user();
@@ -188,6 +203,12 @@ new #[Title('Sales')] class extends Component {
             <flux:heading size="lg" class="text-indigo-600 dark:text-indigo-400">₹{{ number_format($this->filteredProfit, 2) }}</flux:heading>
             <span class="text-xs text-zinc-500">{{ __('Calculated from item unit costs') }}</span>
         </flux:card>
+
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-amber-500 bg-amber-50/20 dark:bg-amber-950/10">
+            <flux:text size="sm" class="font-medium text-amber-800 dark:text-amber-300">{{ __('Today\'s Production Cost') }}</flux:text>
+            <flux:heading size="lg" class="text-amber-600 dark:text-amber-400">₹{{ number_format($this->dailyProductionCost, 2) }}</flux:heading>
+            <span class="text-xs text-zinc-500">{{ __('Cost of items sold today') }}</span>
+        </flux:card>
     </div>
     @endif
 
@@ -226,6 +247,7 @@ new #[Title('Sales')] class extends Component {
                 <flux:table.column>{{ __('Total Amount') }}</flux:table.column>
                 @if (auth()->user()?->isAdmin())
                 <flux:table.column>{{ __('Profit') }}</flux:table.column>
+                <flux:table.column>{{ __('Produced Cost') }}</flux:table.column>
                 @endif
                 <flux:table.column>{{ __('Status') }}</flux:table.column>
                 <flux:table.column>{{ __('Recorded by') }}</flux:table.column>
@@ -270,6 +292,11 @@ new #[Title('Sales')] class extends Component {
                             ₹{{ number_format((float) $sale->profit(), 2) }}
                         </span>
                     </flux:table.cell>
+                    <flux:table.cell>
+                        <span class="font-semibold text-amber-600 dark:text-amber-400">
+                            ₹{{ number_format((float) $sale->totalCost(), 2) }}
+                        </span>
+                    </flux:table.cell>
                     @endif
                     <flux:table.cell>
                         <flux:badge :color="match ($sale->payment_status) { 'paid' => 'green', 'partial' => 'amber', default => 'red' }" size="sm">
@@ -307,7 +334,7 @@ new #[Title('Sales')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 9 : 8 }}" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 10 : 8 }}" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
