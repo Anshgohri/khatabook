@@ -155,6 +155,31 @@ new #[Title('Sales')] class extends Component {
             ->sum(fn ($sale) => $sale->profit());
     }
 
+    #[Computed]
+    public function filteredProductionCost(): float
+    {
+        $user = Auth::user();
+        if (! $user?->isAdmin()) {
+            return 0.0;
+        }
+
+        return (float) Sale::query()
+            ->with('items.product')
+            ->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id))
+            ->when($this->search, function ($query) {
+                $query->where('customer_name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhere('items_sold', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhereHas('customer', function ($q) {
+                          $q->where('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
+                      });
+            })
+            ->when($this->paymentStatus, fn($query) => $query->where('payment_status', $this->paymentStatus))
+            ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
+            ->get()
+            ->sum(fn ($sale) => $sale->totalCost());
+    }
+
     public function deleteSale(int $saleId): void
     {
         $sale = Sale::findOrFail($saleId);
@@ -203,7 +228,7 @@ new #[Title('Sales')] class extends Component {
     </div>
 
     @if (auth()->user()?->isAdmin())
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/10">
             <flux:text size="sm" class="font-medium text-emerald-800 dark:text-emerald-300">{{ __('Today\'s Profit (Earned)') }}</flux:text>
             <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->dailyProfit, 2) }}</flux:heading>
@@ -220,6 +245,12 @@ new #[Title('Sales')] class extends Component {
             <flux:text size="sm" class="font-medium text-amber-800 dark:text-amber-300">{{ __('Today\'s Production Cost') }}</flux:text>
             <flux:heading size="lg" class="text-amber-600 dark:text-amber-400">₹{{ number_format($this->dailyProductionCost, 2) }}</flux:heading>
             <span class="text-xs text-zinc-500">{{ __('Cost of items sold today') }}</span>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-orange-500 bg-orange-50/20 dark:bg-orange-950/10">
+            <flux:text size="sm" class="font-medium text-orange-800 dark:text-orange-300">{{ __('Produced Cost (Filtered)') }}</flux:text>
+            <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">₹{{ number_format($this->filteredProductionCost, 2) }}</flux:heading>
+            <span class="text-xs text-zinc-500">{{ __('Calculated from item unit costs') }}</span>
         </flux:card>
     </div>
     @endif
