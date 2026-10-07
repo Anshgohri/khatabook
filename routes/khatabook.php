@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('production/create', 'pages::khatabook.production-form')->name('production.create');
     Route::livewire('production/{productionLog}/edit', 'pages::khatabook.production-form')->name('production.edit');
     Route::livewire('users', 'pages::khatabook.users')->name('users');
+    Route::livewire('daily-pnl', 'pages::khatabook.daily-pnl')->name('daily-pnl');
     Route::livewire('reports', 'pages::khatabook.reports')->name('reports');
     Route::livewire('audit-log', 'pages::khatabook.audit-log')->name('audit-log');
     Route::livewire('inquiries', 'pages::khatabook.inquiries')->name('inquiries');

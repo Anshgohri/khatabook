@@ -75,6 +75,10 @@
                         {{ __('Reports') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="calculator" :href="route('daily-pnl')" :current="request()->routeIs('daily-pnl')" wire:navigate>
+                        {{ __('Daily P&L') }}
+                    </flux:sidebar.item>
+
                     @can('viewAny', App\Models\User::class)
                         <flux:sidebar.item icon="users" :href="route('users')" :current="request()->routeIs('users')" wire:navigate>
                             {{ __('Users') }}
