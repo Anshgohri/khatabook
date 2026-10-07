@@ -18,6 +18,15 @@ new #[Title('Suppliers')] class extends Component {
     #[Url]
     public string $search = '';
 
+    #[Url]
+    public string $datePreset = '';
+
+    #[Url]
+    public string $dateFrom = '';
+
+    #[Url]
+    public string $dateTo = '';
+
     // Supplier Modal State
     public bool $showSupplierModal = false;
     public ?int $editingSupplierId = null;
@@ -50,30 +59,64 @@ new #[Title('Suppliers')] class extends Component {
         $this->payment_date = now()->toDateString();
     }
 
-    public function updatingSearch(): void
+    public function updating(string $property): void
     {
+        if (in_array($property, ['search', 'dateFrom', 'dateTo'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    public function updatedDatePreset(): void
+    {
+        switch ($this->datePreset) {
+            case 'today':
+                $this->dateFrom = now()->toDateString();
+                $this->dateTo = now()->toDateString();
+                break;
+            case 'yesterday':
+                $this->dateFrom = now()->subDay()->toDateString();
+                $this->dateTo = now()->subDay()->toDateString();
+                break;
+            case 'week':
+                $this->dateFrom = now()->startOfWeek()->toDateString();
+                $this->dateTo = now()->endOfWeek()->toDateString();
+                break;
+            case 'month':
+                $this->dateFrom = now()->startOfMonth()->toDateString();
+                $this->dateTo = now()->endOfMonth()->toDateString();
+                break;
+            case 'custom':
+                // Do not change dates for custom
+                break;
+            default:
+                $this->dateFrom = '';
+                $this->dateTo = '';
+                break;
+        }
         $this->resetPage();
     }
 
     #[Computed]
-    public function purchasesThisMonth(): float
+    public function filteredPurchases(): float
     {
         $user = Auth::user();
         return (float) SupplierPayment::query()
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
             ->where('type', 'raw_material_purchase')
-            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->when($this->dateFrom, fn($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($q) => $q->whereDate('date', '<=', $this->dateTo))
             ->sum('amount');
     }
 
     #[Computed]
-    public function paymentsThisMonth(): float
+    public function filteredPayments(): float
     {
         $user = Auth::user();
         return (float) SupplierPayment::query()
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
             ->where('type', 'payment_made')
-            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->when($this->dateFrom, fn($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($q) => $q->whereDate('date', '<=', $this->dateTo))
             ->sum('amount');
     }
 
@@ -92,7 +135,10 @@ new #[Title('Suppliers')] class extends Component {
         $user = Auth::user();
 
         return Supplier::query()
-            ->with(['payments'])
+            ->with(['payments' => function ($q) {
+                $q->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+                  ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo));
+            }])
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
             ->when($this->search, fn ($query) => $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
                 ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
@@ -266,13 +312,13 @@ new #[Title('Suppliers')] class extends Component {
     <!-- Summary Stat Cards -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Purchases (This Month)') }}</flux:text>
-            <flux:heading size="lg">₹{{ number_format($this->purchasesThisMonth, 2) }}</flux:heading>
+            <flux:text size="sm">{{ __('Purchases (Filtered)') }}</flux:text>
+            <flux:heading size="lg">₹{{ number_format($this->filteredPurchases, 2) }}</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1">
-            <flux:text size="sm">{{ __('Paid to Suppliers (This Month)') }}</flux:text>
-            <flux:heading size="lg" class="text-green-600 dark:text-green-400">₹{{ number_format($this->paymentsThisMonth, 2) }}</flux:heading>
+            <flux:text size="sm">{{ __('Paid to Suppliers (Filtered)') }}</flux:text>
+            <flux:heading size="lg" class="text-green-600 dark:text-green-400">₹{{ number_format($this->filteredPayments, 2) }}</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1">
@@ -281,13 +327,28 @@ new #[Title('Suppliers')] class extends Component {
         </flux:card>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
         <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search supplier name, location, or material...')" icon="magnifying-glass" />
+        
+        <flux:select wire:model.live="datePreset" :label="__('Date Range')">
+            <flux:select.option value="">{{ __('All Time') }}</flux:select.option>
+            <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
+            <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
+            <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
+            <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
+        </flux:select>
+
+        @if ($datePreset === 'custom')
+            <flux:input type="date" wire:model.live="dateFrom" :label="__('From')" />
+            <flux:input type="date" wire:model.live="dateTo" :label="__('To')" />
+        @endif
     </div>
 
     <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
         <flux:table :paginate="$this->suppliers">
             <flux:table.columns>
+                <flux:table.column>{{ __('Date Added') }}</flux:table.column>
                 <flux:table.column>{{ __('Supplier Name') }}</flux:table.column>
                 <flux:table.column>{{ __('Phone') }}</flux:table.column>
                 <flux:table.column>{{ __('Location') }}</flux:table.column>
@@ -302,6 +363,7 @@ new #[Title('Suppliers')] class extends Component {
             <flux:table.rows>
                 @forelse ($this->suppliers as $supplier)
                 <flux:table.row wire:key="supplier-{{ $supplier->id }}">
+                    <flux:table.cell class="whitespace-nowrap text-zinc-500">{{ $supplier->created_at->format('d M Y') }}</flux:table.cell>
                     <flux:table.cell class="font-medium">
                         <a href="{{ route('suppliers.show', $supplier->id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold text-start">
                             {{ $supplier->name }}
@@ -348,7 +410,7 @@ new #[Title('Suppliers')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="9" class="text-center text-zinc-500 py-6">{{ __('No suppliers registered yet. Click "Add Supplier" to create one.') }}</flux:table.cell>
+                    <flux:table.cell colspan="10" class="text-center text-zinc-500 py-6">{{ __('No suppliers registered yet. Click "Add Supplier" to create one.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
