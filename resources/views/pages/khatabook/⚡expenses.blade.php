@@ -136,6 +136,32 @@ new #[Title('Expenses')] class extends Component {
             ->paginate(15);
     }
 
+    #[Computed]
+    public function dailyExpensesTotal(): float
+    {
+        $user = Auth::user();
+
+        return (float) Expense::query()
+            ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
+            ->whereDate('date', today())
+            ->sum('amount');
+    }
+
+    #[Computed]
+    public function filteredExpensesTotal(): float
+    {
+        $user = Auth::user();
+
+        return (float) Expense::query()
+            ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
+            ->when($user->isAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
+            ->when($this->search, fn($query) => $query->where('description', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
+            ->when($this->categoryId, fn($query) => $query->where('expense_category_id', $this->categoryId))
+            ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
+            ->sum('amount');
+    }
+
     public function createExpense(): void
     {
         $this->authorize('create', Expense::class);
@@ -348,6 +374,19 @@ new #[Title('Expenses')] class extends Component {
                 </flux:button>
             @endcan
         </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-rose-500 bg-rose-50/20 dark:bg-rose-950/10">
+            <flux:text size="sm" class="font-medium text-rose-800 dark:text-rose-300">{{ __('Today\'s Expenses') }}</flux:text>
+            <flux:heading size="lg" class="text-rose-600 dark:text-rose-400">₹{{ number_format($this->dailyExpensesTotal, 2) }}</flux:heading>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-amber-500 bg-amber-50/20 dark:bg-amber-950/10">
+            <flux:text size="sm" class="font-medium text-amber-800 dark:text-amber-300">{{ __('Filtered Expenses') }}</flux:text>
+            <flux:heading size="lg" class="text-amber-600 dark:text-amber-400">₹{{ number_format($this->filteredExpensesTotal, 2) }}</flux:heading>
+        </flux:card>
     </div>
 
     <!-- Filter Controls -->
