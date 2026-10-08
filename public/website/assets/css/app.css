@@ -30546,25 +30546,35 @@ body i.slick-arrow.fa-angle-right {
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, visibility 0.4s ease !important;
 }
 
-/* Hover Zoom Effect */
-.product-wapper:hover .products-thumb .product-thumb-hover img {
+/* Maintain Full Visibility & Prevent White Screen / Flash on Hover */
+.products-thumb .product-thumb-hover img,
+.products-thumb .product-thumb-hover .post-image,
+.product-wapper:hover .products-thumb .product-thumb-hover .post-image,
+.products-list.grid .product-wapper:hover .products-thumb .product-thumb-hover .post-image,
+.products-list.list .product-wapper .products-thumb:hover .post-image,
+.products-entry:hover .products-thumb .product-thumb-hover .post-image {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hover Zoom Effect & Micro-Animations */
+.product-wapper:hover .products-thumb .product-thumb-hover img,
+.products-entry:hover .products-thumb .product-thumb-hover img {
     transform: scale(1.06) !important;
+    opacity: 1 !important;
 }
 
-/* Cross-fade for secondary hover image if distinct */
+/* Cross-fade for secondary hover image if distinct back image exists */
 .products-thumb .product-thumb-hover .hover-image.back {
-    opacity: 0;
-    visibility: hidden;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    z-index: 2 !important;
 }
 
-.product-wapper:hover .products-thumb .product-thumb-hover .hover-image.back {
-    opacity: 1;
-    visibility: visible;
-}
-
-.product-wapper:hover .products-thumb .product-thumb-hover .post-image:has(+ .hover-image.back) {
-    opacity: 0;
-    visibility: hidden;
+.product-wapper:hover .products-thumb .product-thumb-hover .hover-image.back,
+.products-entry:hover .products-thumb .product-thumb-hover .hover-image.back {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* 2. List View Product Images */
@@ -30662,7 +30672,24 @@ body i.slick-arrow.fa-angle-right {
 /* 5. Shop Details & Slider Main Image Fix */
 .shop-details .product-images .img-item img,
 .quickview-popup .img-thumbnail img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 600px !important;
     object-fit: cover !important;
     border-radius: 8px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
 }
+
+.shop-details .product-images .main-image,
+.shop-details .product-images .scroll-image,
+.shop-details .product-images .image-additional,
+.shop-details .product-images .img-item {
+    width: 100% !important;
+    min-height: 300px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 

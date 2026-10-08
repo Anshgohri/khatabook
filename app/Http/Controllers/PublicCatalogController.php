@@ -98,6 +98,6 @@ class PublicCatalogController extends Controller
             $relatedProducts = $relatedProducts->concat($additional);
         }
 
-        return view('catalog.show', compact('product', 'relatedProducts'));
+        return view('website.shop-details', compact('product', 'relatedProducts'));
     }
 }

@@ -31,7 +31,11 @@ class WebsiteController extends Controller
     }
     public function productDetail()
     {
-        return view('website.shop-details');
+        $product = Product::first();
+        if ($product) {
+            return redirect()->route('catalog.show', $product->id);
+        }
+        return redirect()->route('shop');
     }
     public function cart()
     {

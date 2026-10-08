@@ -35,7 +35,7 @@
 											<div class="row">
 												<div class="col-md-6">
 													<div class="banner-image">
-														<a href="/shop">
+														<a href="#!">
 															<img src="{{ asset('website/media/slider/banner-3.jpg') }}" alt="Banner Image">
 														</a>
 													</div>
@@ -52,13 +52,12 @@
 																		</g>
 																	</svg>
 																</div>
-																<a class="link-title" href="#">
+																<a class="link-title" href="#!">
 																	<h3 class="title-banner">Designs You Desire</h3>
 																</a>
 																<div class="banner-image-description">
 																	We love creating furniture you want and will love for years to come. Our designs feature a fusion of unique styles that inspire us – from mid-century modern to contemporary.
 																</div>
-																<a class="button button-outline" href="#">READ MORE</a>
 															</div>
 														</div>
 													</div>
@@ -224,13 +223,12 @@
 																		</g>
 																	</svg>
 																</div>
-																<a class="link-title" href="#">
+																<a class="link-title" href="#!">
 																	<h3 class="title-banner">Quality At Every Step</h3>
 																</a>
 																<div class="banner-image-description">
 																	Rest easy. From choice materials and expert hands, to precision tools and tests, we ensure your product is made of hardy stuff
 																</div>
-																<a class="button button-outline" href="#">READ MORE</a>
 															</div>
 														</div>
 													</div>

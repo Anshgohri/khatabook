@@ -61,32 +61,15 @@
 											<div class="col-xl-3 col-lg-4 col-md-4 col-sm-6">
 												<div class="products-entry clearfix product-wapper">
 													<div class="products-thumb">
-														<div class="product-lable">
-															<div class="hot">Hot</div>
-														</div>
 														<div class="product-thumb-hover">
 															<a href="{{ route('catalog.show', $product->id) }}">
 																@if($product->image_path)
-																	<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
 																@else
-																	<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
-																	<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
 																@endif
 															</a>
-														</div>
-														<div class="product-button">
-															<div class="btn-add-to-cart" data-title="Add to cart">
-																<a rel="nofollow" href="{{ route('catalog.show', $product->id) }}" class="product-btn button">Add to cart</a>
-															</div>
-															<div class="btn-wishlist" data-title="Wishlist">
-																<button class="product-btn">Add to wishlist</button>
-															</div>
-															<div class="btn-compare" data-title="Compare">
-																<button class="product-btn">Compare</button>
-															</div>
-															<span class="product-quickview" data-title="Quick View">
-																<a href="{{ route('catalog.show', $product->id) }}" class="quickview quickview-button">Quick View <i class="icon-search"></i></a>
-															</span>
 														</div>
 													</div>
 													<div class="products-content">
@@ -120,10 +103,10 @@
 														<div class="product-thumb-hover">
 															<a href="{{ route('catalog.show', $product->id) }}">
 																@if($product->image_path)
-																	<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
 																@else
-																	<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
-																	<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
 																@endif
 															</a>
 														</div>
