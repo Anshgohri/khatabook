@@ -1,5 +1,6 @@
 @extends('layouts.website')
 @section('body_class', 'page')
+@section('header_class', 'absolute color-white')
 @section('content')
 
 <div id="main-content" class="main-content">
@@ -24,27 +25,6 @@
 						<!-- Block Banners -->
 						<div class="block block-banners banners-effect">
 							<div class="block-widget-wrap">
-								<div class="block-widget-banner">
-									<div class="bg-banner">
-										<div class="banner-wrapper banners">
-											<div class="banner-image">
-												<a href="/shop">
-													<img src="{{ asset('website/media/slider/banner-1.png') }}" alt="Banner Image">
-												</a>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				<section class="section section-padding m-b-70">
-					<div class="section-container">
-						<!-- Block Banners -->
-						<div class="block block-banners banners-effect">
-							<div class="block-widget-wrap">
 								<div class="block-title">
 									<h2>Great Design For All</h2>
 									<div class="sub-title">At {{ config('store.name') }}, we create affordable designs for the modern home</div>
@@ -56,7 +36,7 @@
 												<div class="col-md-6">
 													<div class="banner-image">
 														<a href="/shop">
-															<img src="{{ asset('website/media/banner/about-us-2.jpg') }}" alt="Banner Image">
+															<img src="{{ asset('website/media/slider/banner-3.jpg') }}" alt="Banner Image">
 														</a>
 													</div>
 												</div>
@@ -258,7 +238,7 @@
 												<div class="col-md-6">
 													<div class="banner-image">
 														<a href="/shop">
-															<img src="{{ asset('website/media/banner/about-us-3.jpg') }}" alt="Banner Image">
+															<img src="{{ asset('website/media/slider/banner-1.png') }}" alt="Banner Image">
 														</a>
 													</div>
 												</div>
@@ -290,7 +270,7 @@
 												</div>
 												<div class="testimonial-image image-position-top">
 													<div class="thumbnail">
-														<img width="62" height="62" src="{{ asset('website/media/testimonial/1.jpg') }}" alt="">
+														<img width="62" height="62" src="{{ asset('website/media/user.jpg') }}" alt="">
 													</div>
 													<div class="testimonial-info">
 														<h2 class="testimonial-customer-name">Robet Smith</h2>
@@ -310,7 +290,7 @@
 												</div>
 												<div class="testimonial-image image-position-top">
 													<div class="thumbnail">
-														<img width="62" height="62" src="{{ asset('website/media/testimonial/2.jpg') }}" alt="">
+														<img width="62" height="62" src="{{ asset('website/media/user.jpg') }}" alt="">
 													</div>
 													<div class="testimonial-info">
 														<h2 class="testimonial-customer-name">Saitama One</h2>
@@ -330,7 +310,7 @@
 												</div>
 												<div class="testimonial-image image-position-top">
 													<div class="thumbnail">
-														<img width="62" height="62" src="{{ asset('website/media/testimonial/3.jpg') }}" alt="">
+														<img width="62" height="62" src="{{ asset('website/media/user.jpg') }}" alt="">
 													</div>
 													<div class="testimonial-info">
 														<h2 class="testimonial-customer-name">Sara Colinton</h2>

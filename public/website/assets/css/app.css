@@ -1438,7 +1438,7 @@ input[type="tel"] {
     border-top-style: solid;
 }
 .section.contact-background {
-    background-image: url(../../media/banner/contact-bg.jpg);
+    background-image: url(../../media/contact-bg.jpg);
 }
 .section-row {
     display: flex;
@@ -3860,7 +3860,7 @@ body i.slick-arrow.fa-angle-right {
     margin-bottom: 0;
 }
 .site-header.absolute {
-    border-bottom-width: 0.75pt;
+    /* border-bottom-width: 0.75pt; */
 }
 .form-login-register .box-content > div.active .login {
     display: block !important;
@@ -3890,7 +3890,7 @@ body i.slick-arrow.fa-angle-right {
     background: rgba(0, 0, 0, 0.75);
 }
 .site-header.absolute {
-    border-bottom-style: solid;
+    /* border-bottom-style: solid; */
 }
 .site-header .header-mobile .navbar-toggle:before {
     content: "";
@@ -3910,7 +3910,7 @@ body i.slick-arrow.fa-angle-right {
     padding-right: 0.208333333in;
 }
 .site-header.absolute {
-    border-bottom-color: #e5e5e5;
+    /* border-bottom-color: #e5e5e5; */
 }
 .site-header .header-mobile .navbar-toggle {
     border-right-width: 0;
@@ -8022,7 +8022,7 @@ body i.slick-arrow.fa-angle-right {
     text-transform: capitalize;
 }
 .site-main .page-title {
-    background-image: url(../../media/slider/banner-3.jpg);
+    background-image: url(../../media/slider/banner-2.jpg);
 }
 .site-main .page-title {
     padding-left: 0.9375pc;
@@ -8054,7 +8054,7 @@ body i.slick-arrow.fa-angle-right {
     font-size: 3.125pc;
 }
 .site-main .page-title .breadcrumbs {
-    color: #000;
+    color: #fff;
 }
 .site-main .page-title .breadcrumbs {
     font-weight: 500;
@@ -8114,7 +8114,7 @@ body i.slick-arrow.fa-angle-right {
 }
 .site-main .page-title .breadcrumbs a,
 .site-main .page-title .breadcrumbs .delimiter {
-    color: #868686;
+    color: #fff;
 }
 .site-main .page-title {
     background-position: top;
@@ -30478,3 +30478,191 @@ body i.slick-arrow.fa-angle-right {
         font-size: 12px;
     }
 }
+
+.text-title-heading {
+    color: #fff;
+}
+
+/* ==========================================================================
+   Dynamic Product & Category Image Size Fix & Premium Aesthetic Enhancements
+   ========================================================================== */
+
+/* 1. Global Product Thumbnail Container (Grid & Slider) */
+.products-list.grid .product-wapper .products-thumb,
+.products-entry .products-thumb,
+.product-wapper .products-thumb {
+    position: relative !important;
+    width: 100% !important;
+    display: block !important;
+    margin-bottom: 12px !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    background-color: #f7f7f8 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+    transition: box-shadow 0.4s ease, transform 0.4s ease !important;
+}
+
+.product-wapper:hover .products-thumb {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Enforce 1:1 Aspect Ratio Box */
+.products-list.grid .product-wapper .products-thumb .product-thumb-hover,
+.products-entry .products-thumb .product-thumb-hover,
+.products-thumb .product-thumb-hover {
+    position: relative !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding-top: 100% !important; /* Forces perfect 1:1 square ratio */
+    display: block !important;
+    overflow: hidden !important;
+}
+
+.products-thumb .product-thumb-hover > a {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+}
+
+/* Enforce Perfect Fit & Object Cover for All Dynamic Images */
+.products-thumb .product-thumb-hover img,
+.products-thumb .product-thumb-hover .post-image,
+.products-thumb .product-thumb-hover .hover-image {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 10px !important;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, visibility 0.4s ease !important;
+}
+
+/* Hover Zoom Effect */
+.product-wapper:hover .products-thumb .product-thumb-hover img {
+    transform: scale(1.06) !important;
+}
+
+/* Cross-fade for secondary hover image if distinct */
+.products-thumb .product-thumb-hover .hover-image.back {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.product-wapper:hover .products-thumb .product-thumb-hover .hover-image.back {
+    opacity: 1;
+    visibility: visible;
+}
+
+.product-wapper:hover .products-thumb .product-thumb-hover .post-image:has(+ .hover-image.back) {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* 2. List View Product Images */
+.products-list.list .product-wapper .products-thumb {
+    width: 100% !important;
+    max-width: 280px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    background-color: #f7f7f8 !important;
+}
+
+.products-list.list .product-wapper .products-thumb .product-thumb-hover {
+    position: relative !important;
+    width: 100% !important;
+    padding-top: 100% !important;
+    height: 0 !important;
+}
+
+.products-list.list .product-wapper .products-thumb img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+}
+
+/* 3. Product Titles and Card Alignment */
+.products-list.grid .product-wapper .products-content,
+.product-wapper .products-content {
+    padding-top: 8px;
+    text-align: center;
+}
+
+.products-list.grid .product-wapper .product-title,
+.product-wapper .product-title {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    margin-bottom: 6px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.products-list.grid .product-wapper .price,
+.product-wapper .price {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #111 !important;
+}
+
+/* 4. Trending Categories Sizing & Hover Fix */
+.block-product-cats.layout-2 .cat-item .cat-image,
+.cat-item .cat-image {
+    position: relative !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding-top: 125% !important; /* 4:5 ratio */
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    background-color: #f7f7f8 !important;
+    margin-bottom: 15px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+}
+
+.block-product-cats.layout-2 .cat-item .cat-image a,
+.cat-item .cat-image a {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+}
+
+.block-product-cats.layout-2 .cat-item .cat-image img,
+.cat-item .cat-image img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.cat-item:hover .cat-image img {
+    transform: scale(1.08) !important;
+}
+
+/* 5. Shop Details & Slider Main Image Fix */
+.shop-details .product-images .img-item img,
+.quickview-popup .img-thumbnail img {
+    object-fit: cover !important;
+    border-radius: 8px !important;
+}
+

@@ -62,8 +62,12 @@
 														</div>
 														<div class="product-thumb-hover">
 															<a href="{{ route('catalog.show', $product->id) }}">
-																<img width="600" height="600" src="{{ $product->image_path ? asset('storage/' . $product->image_path) : asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
-																<img width="600" height="600" src="{{ $product->image_path ? asset('storage/' . $product->image_path) : asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
+																@if($product->image_path)
+																	<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
+																@else
+																	<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
+																	<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
+																@endif
 															</a>
 														</div>
 														<div class="product-button">

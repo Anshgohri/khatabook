@@ -1,5 +1,6 @@
 @extends('layouts.website')
 @section('body_class', 'blog')
+@section('header_class', 'absolute color-white')
 @section('content')
 
 				<div id="main-content" class="main-content">

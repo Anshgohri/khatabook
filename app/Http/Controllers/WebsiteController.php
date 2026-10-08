@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class WebsiteController extends Controller
 {
     public function index()
     {
-        $products = \App\Models\Product::latest()->take(10)->get();
+        $products = Product::latest()->take(10)->get();
         return view('website.index', compact('products'));
     }
     public function login()
@@ -25,7 +26,8 @@ class WebsiteController extends Controller
     }
     public function shop()
     {
-        return view('website.shop-grid-left');
+        $products = Product::latest()->get();
+        return view('website.shop', compact('products'));
     }
     public function productDetail()
     {
