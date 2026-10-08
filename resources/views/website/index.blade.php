@@ -62,8 +62,7 @@
 																@if($product->image_path)
 																<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
 																@else
-																<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
-																<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ asset('website/media/bamboo-6.jpg') }}" class="post-image" alt="{{ $product->name }}">
 																@endif
 															</a>
 														</div>
@@ -72,11 +71,6 @@
 														<div class="contents">
 															<h3 class="product-title"><a href="{{ route('catalog.show', $product->id) }}">{{ $product->name }}</a></h3>
 															<span class="price">Rs.{{ number_format($product->unit_price, 2) }}</span>
-															<div class="btn-add-to-cart">
-																<div data-title="Add to cart">
-																	<a href="#" class="button">Add to cart</a>
-																</div>
-															</div>
 														</div>
 													</div>
 												</div>
@@ -122,7 +116,6 @@
 
 			<section class="section section-padding m-b-70">
 				<div class="section-container">
-					<!-- Block Product Categories -->
 					<div class="block block-product-cats layout-2 items-equal">
 						<div class="block-widget-wrap">
 							<div class="block-title">
@@ -134,7 +127,7 @@
 										<div class="cat-item">
 											<div class="cat-image">
 												<a href="/shop">
-													<img width="331" height="421" src="{{ asset('website/media/product/org/img-4.jpg') }}" alt="Product Category">
+													<img width="331" height="331" src="{{ asset('website/media/bamboo-3.webp') }}">
 												</a>
 											</div>
 											<div class="cat-title">
@@ -148,7 +141,7 @@
 										<div class="cat-item">
 											<div class="cat-image">
 												<a href="/shop">
-													<img width="331" height="421" src="{{ asset('website/media/product/org/img-5.jpg') }}" alt="Product Category">
+													<img width="331" height="331" src="{{ asset('website/media/bamboo-4.jpg') }}">
 												</a>
 											</div>
 											<div class="cat-title">
@@ -162,7 +155,7 @@
 										<div class="cat-item">
 											<div class="cat-image">
 												<a href="/shop">
-													<img width="331" height="421" src="{{ asset('website/media/product/org/img-6.jpg') }}" alt="Product Category">
+													<img width="331" height="331" src="{{ asset('website/media/bamboo-5.jpg') }}">
 												</a>
 											</div>
 											<div class="cat-title">
@@ -176,7 +169,7 @@
 										<div class="cat-item">
 											<div class="cat-image">
 												<a href="/shop">
-													<img width="331" height="421" src="{{ asset('website/media/product/org/img-1.jpg') }}" alt="Product Category">
+													<img width="331" height="331" src="{{ asset('website/media/bamboo-6.jpg') }}">
 												</a>
 											</div>
 											<div class="cat-title">

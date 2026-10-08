@@ -32,7 +32,11 @@
 												$mainImg = $product->image_path ? asset('storage/' . $product->image_path) : asset('website/media/product/9.jpg');
 												@endphp
 												<div class="img-item" style="border-radius: 12px; overflow: hidden; background: #f8fafc; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+													@if($mainImg)
 													<img width="900" height="900" src="{{ $mainImg }}" alt="{{ $product->name }}" style="width: 100%; max-height: 550px; object-fit: contain; border-radius: 12px; display: block; margin: 0 auto;">
+													@else
+													<img width="900" height="900" src="{{ asset('website/media/bamboo-6.jpg') }}" alt="{{ $product->name }}" style="width: 100%; max-height: 550px; object-fit: contain; border-radius: 12px; display: block; margin: 0 auto;">
+													@endif
 												</div>
 											</div>
 										</div>
@@ -101,7 +105,7 @@
 																	@if($related->image_path)
 																	<img width="600" height="600" src="{{ asset('storage/' . $related->image_path) }}" class="post-image" alt="{{ $related->name }}">
 																	@else
-																	<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $related->name }}">
+																	<img width="600" height="600" src="{{ asset('website/media/bamboo-6.jpg') }}" class="post-image" alt="{{ $related->name }}">
 																	@endif
 																</a>
 															</div>
