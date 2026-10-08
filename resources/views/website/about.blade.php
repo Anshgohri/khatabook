@@ -40,7 +40,7 @@
 														</a>
 													</div>
 												</div>
-												<div class="col-md-6 banner-infor background-1">
+												<div class="col-md-6 banner-infor background-7">
 													<div class="banner-wrapper-infor">
 														<div class="info">
 															<div class="content">
@@ -199,7 +199,7 @@
 									<div class="block-widget-banner layout-16 no-space">
 										<div class="banners">
 											<div class="row">
-												<div class="col-md-6 banner-infor background-2">
+												<div class="col-md-6 banner-infor background-7">
 													<div class="banner-wrapper-infor">
 														<div class="info">
 															<div class="content">
@@ -236,7 +236,7 @@
 												<div class="col-md-6">
 													<div class="banner-image">
 														<a href="/shop">
-															<img src="{{ asset('website/media/slider/banner-1.png') }}" alt="Banner Image">
+															<img src="{{ asset('website/media/banner.jpg') }}" alt="Banner Image">
 														</a>
 													</div>
 												</div>

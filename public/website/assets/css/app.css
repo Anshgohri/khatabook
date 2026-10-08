@@ -1184,16 +1184,16 @@ input[type="password"] {
 .section.content-outside {
     padding-top: 100px;
 }
-.section.background-1 {
+.background-1 {
     background-color: #e0e8f1;
 }
-.section.background-2 {
+.background-2 {
     background-color: #dfe5dd;
 }
 .button-outline {
     border-right-style: solid;
 }
-.section.background-3 {
+.background-3 {
     background-color: #f2eee7;
 }
 .button-outline {
@@ -1235,7 +1235,7 @@ h5,
 .button-outline {
     border-image: none;
 }
-.section.background-4 {
+.background-4 {
     background-color: #eeecf2;
 }
 body.home.title-3 .section .block-title h2 {
@@ -1287,17 +1287,17 @@ ul.slick-dots li button {
 h6 {
     font-family: Barlow Semi Condensed;
 }
-.section.background-5 {
+.background-5 {
     background-color: #cdc2bb;
 }
 .section-padding {
     padding-left: 0.234375in;
 }
-.section.background-6 {
+.background-6 {
     background-color: #ece5e0;
 }
-.section.background-7 {
-    background-color: #e1ddd9;
+.background-7 {
+    background-color: #e5e8e4;
 }
 input[type="tel"] {
     border-left-width: 0.75pt;
@@ -1308,10 +1308,10 @@ input[type="tel"] {
 input[type="tel"] {
     border-right-width: 0.75pt;
 }
-.section.background-8 {
+.background-8 {
     background-color: #f5f5f5;
 }
-.section.background-9 {
+.background-9 {
     background-color: #ced3cd;
 }
 .page-preloader .loader div {
@@ -1321,16 +1321,16 @@ input[type="tel"] {
 .section-padding {
     padding-bottom: 0;
 }
-.section.background-10 {
+.background-10 {
     background-color: #d5d8e4;
 }
-.section.background-11 {
+.background-11 {
     background-color: #e7ecef;
 }
 .products-loadmore .loadmore.loading .lds-ellipsis div:nth-child(2) {
     left: 12px;
 }
-.section.background-12 {
+.background-12 {
     background-color: #f1eee8;
 }
 img {
@@ -9031,7 +9031,7 @@ body i.slick-arrow.fa-angle-right {
     .banner-wrapper-infor
     .banner-icon
     svg {
-    fill: #fff;
+    fill: #000;
 }
 .block-products .nav-tabs,
 .block-product-cats .item-product-cat-content {
@@ -14149,9 +14149,7 @@ body i.slick-arrow.fa-angle-right {
 .block-countdown .countdown-wrap .countdown-button a,
 .block-banners
     .block-widget-banner.layout-16
-    .banner-wrapper-infor
-    .title-banner,
-.block-banners
+    .block-banners
     .block-widget-banner.layout-16
     .banner-wrapper-infor
     .banner-image-description {
@@ -30499,7 +30497,9 @@ body i.slick-arrow.fa-angle-right {
     border-radius: 10px !important;
     background-color: #f7f7f8 !important;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
-    transition: box-shadow 0.4s ease, transform 0.4s ease !important;
+    transition:
+        box-shadow 0.4s ease,
+        transform 0.4s ease !important;
 }
 
 .product-wapper:hover .products-thumb {
@@ -30543,14 +30543,21 @@ body i.slick-arrow.fa-angle-right {
     object-fit: cover !important;
     object-position: center !important;
     border-radius: 10px !important;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, visibility 0.4s ease !important;
+    transition:
+        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.4s ease,
+        visibility 0.4s ease !important;
 }
 
 /* Maintain Full Visibility & Prevent White Screen / Flash on Hover */
 .products-thumb .product-thumb-hover img,
 .products-thumb .product-thumb-hover .post-image,
 .product-wapper:hover .products-thumb .product-thumb-hover .post-image,
-.products-list.grid .product-wapper:hover .products-thumb .product-thumb-hover .post-image,
+.products-list.grid
+    .product-wapper:hover
+    .products-thumb
+    .product-thumb-hover
+    .post-image,
 .products-list.list .product-wapper .products-thumb:hover .post-image,
 .products-entry:hover .products-thumb .product-thumb-hover .post-image {
     opacity: 1 !important;
@@ -30691,5 +30698,3 @@ body i.slick-arrow.fa-angle-right {
     opacity: 1 !important;
     visibility: visible !important;
 }
-
-
