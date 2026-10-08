@@ -18,7 +18,7 @@ test('staff only see their own sales on the sales page', function () {
     $ownSale = Sale::factory()->create(['user_id' => $staff->id]);
     Sale::factory()->create();
 
-    $component = Livewire::actingAs($staff)->test('pages::khatabook.sales');
+    $component = Livewire::actingAs($staff)->test('pages::sales');
 
     expect($component->get('sales')->pluck('id')->all())->toEqual([$ownSale->id]);
 });
@@ -27,7 +27,7 @@ test('viewer cannot create a sale', function () {
     $viewer = User::factory()->role(RoleName::Viewer)->create();
 
     Livewire::actingAs($viewer)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->assertForbidden();
 });
 
@@ -35,7 +35,7 @@ test('staff can create a sale and the total is computed automatically', function
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Acme Traders')
         ->set('saleItems', [
@@ -60,7 +60,7 @@ test('staff can create multi-product sale and product stock levels are automatic
     $siddi = Product::factory()->create(['name' => 'Siddi 10 feet', 'unit_price' => 500, 'stock_level' => 20]);
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Rajesh Buildcon')
         ->set('saleItems', [
@@ -90,7 +90,7 @@ test('deleting a sale restores product stock levels', function () {
     $baans = Product::factory()->create(['name' => 'Baans 25 feet', 'unit_price' => 150, 'stock_level' => 50]);
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Test Customer')
         ->set('saleItems', [
@@ -104,7 +104,7 @@ test('deleting a sale restores product stock levels', function () {
     $sale = Sale::latest()->first();
 
     Livewire::actingAs($manager)
-        ->test('pages::khatabook.sales')
+        ->test('pages::sales')
         ->call('deleteSale', $sale->id);
 
     expect($baans->fresh()->stock_level)->toBe(50);
@@ -114,7 +114,7 @@ test('discount reduces final sale total amount', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Discount Customer')
         ->set('saleItems', [
@@ -135,7 +135,7 @@ test('discount cannot be greater than subtotal amount', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Excessive Discount Customer')
         ->set('saleItems', [
@@ -151,7 +151,7 @@ test('saving a sale automatically creates or updates a user with ROLE_CUSTOMER',
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Rahul Verma')
         ->set('customer_phone', '9876543210')
@@ -181,7 +181,7 @@ test('staff cannot update a sale belonging to another user', function () {
     $otherSale = Sale::factory()->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form', ['sale' => $otherSale])
+        ->test('pages::sales-form', ['sale' => $otherSale])
         ->assertForbidden();
 });
 
@@ -200,7 +200,7 @@ test('existing customers can be searched by name, mobile number, or email in sal
     ]);
 
     $component = Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form');
+        ->test('pages::sales-form');
 
     // Search by name
     $component->set('customerSearch', 'Aarav');
@@ -242,7 +242,7 @@ test('saving a sale with an existing phone number reuses existing customer witho
     $initialUserCount = User::count();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Aarav Sharma')
         ->set('customer_phone', '9876543210')
@@ -270,7 +270,7 @@ test('saving a sale with an existing email address reuses existing customer with
     $initialUserCount = User::count();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Aarav')
         ->set('customer_email', 'aarav@example.com')
@@ -291,7 +291,7 @@ test('saving a sale with non-numeric customer phone number fails validation', fu
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Valid Name')
         ->set('customer_phone', '98765-ABCDE') // Invalid phone format
@@ -310,7 +310,7 @@ test('saving a sale with phone and email belonging to different customers fails 
     $cust2 = User::factory()->role(RoleName::Customer)->create(['name' => 'Customer B', 'email' => 'b@example.com']);
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Some Name')
         ->set('customer_phone', '9876543210')
@@ -329,7 +329,7 @@ test('saving a sale for a customer with a real email sends invitation notificati
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Email Customer')
         ->set('customer_email', 'newcustomer@example.com')

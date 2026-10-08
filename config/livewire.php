@@ -31,7 +31,7 @@ return [
 
     'component_namespaces' => [
         'layouts' => resource_path('views/layouts'),
-        'pages' => resource_path('views/pages'),
+        'pages' => resource_path('views/dashboard'),
     ],
 
     /*

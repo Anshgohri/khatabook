@@ -86,7 +86,7 @@ test('system admin can manually verify user email on users page', function () {
     $unverifiedUser = User::factory()->unverified()->create();
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->call('verifyUserEmail', $unverifiedUser->id);
 
     expect($unverifiedUser->fresh()->hasVerifiedEmail())->toBeTrue();

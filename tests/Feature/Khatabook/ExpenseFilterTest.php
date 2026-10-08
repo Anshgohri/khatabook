@@ -27,7 +27,7 @@ test('expenses page filters by date preset today and yesterday', function () {
 
     // Default (All Time): shows both expenses
     Livewire::actingAs($user)
-        ->test('pages::khatabook.expenses')
+        ->test('pages::expenses')
         ->assertSee('Today Expense Item')
         ->assertSee('Yesterday Expense Item')
         // Filter Today

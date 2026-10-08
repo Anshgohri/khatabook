@@ -11,7 +11,7 @@ test('admin can set cost price on product and calculate profit accurately', func
 
     // 1. Create product with cost price (making cost = 240) and unit price (500)
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.products')
+        ->test('pages::products')
         ->set('name', '5 feet Ghodi')
         ->set('unit_price', 500)
         ->set('cost_price', 240)
@@ -27,7 +27,7 @@ test('admin can set cost price on product and calculate profit accurately', func
 
     // 2. Create a sale of 1 unit of 5 feet Ghodi for 500
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Accha Pal')
         ->set('saleItems', [
@@ -54,7 +54,7 @@ test('profit calculation handles multi-item sales and discounts correctly', func
     // Sale: 2x Ghodi Medium (2*500=1000, cost=2*240=480) + 1x Baans Heavy (1*300=300, cost=1*150=150)
     // Subtotal = 1300, Discount = 100 => Total Amount = 1200. Total Cost = 630. Profit = 1200 - 630 = 570.
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.sales-form')
+        ->test('pages::sales-form')
         ->set('date', now()->toDateString())
         ->set('customer_name', 'Bulk Buyer')
         ->set('saleItems', [
@@ -86,7 +86,7 @@ test('sales page computes daily profit and period profit for admin', function ()
         ['product_id' => $prod->id, 'quantity' => 1, 'unit_price' => 1000],
     ]);
 
-    $component = Livewire::actingAs($admin)->test('pages::khatabook.sales');
+    $component = Livewire::actingAs($admin)->test('pages::sales');
 
     expect($component->get('dailyProfit'))->toBe(400.0);
     expect($component->get('filteredProfit'))->toBe(400.0);
@@ -105,7 +105,7 @@ test('dashboard computes daily profit metric for admin', function () {
         ['product_id' => $prod->id, 'quantity' => 1, 'unit_price' => 500],
     ]);
 
-    $component = Livewire::actingAs($admin)->test('pages::khatabook.dashboard');
+    $response = $this->actingAs($admin)->get(route('dashboard'));
 
-    expect($component->get('profitToday'))->toBe(260.0);
+    $response->assertViewHas('profitToday', 260.0);
 });

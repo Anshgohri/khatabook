@@ -1,16 +1,19 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SalesExcelController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::livewire('dashboard', 'pages::khatabook.dashboard')->name('dashboard');
-    Route::livewire('my-orders', 'pages::khatabook.my-orders')->name('my-orders');
-    Route::livewire('sales', 'pages::khatabook.sales')->name('sales');
-    Route::livewire('sales/create', 'pages::khatabook.sales-form')->name('sales.create');
-    Route::livewire('sales/{sale}/edit', 'pages::khatabook.sales-form')->name('sales.edit');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('dashboard/notifications/mark-read', [DashboardController::class, 'markAllNotificationsRead'])->name('dashboard.notifications.mark-read');
+    Route::post('dashboard/refresh', [DashboardController::class, 'refreshStats'])->name('dashboard.refresh');
+    Route::livewire('my-orders', 'pages::my-orders')->name('my-orders');
+    Route::livewire('sales', 'pages::sales')->name('sales');
+    Route::livewire('sales/create', 'pages::sales-form')->name('sales.create');
+    Route::livewire('sales/{sale}/edit', 'pages::sales-form')->name('sales.edit');
 
     // Invoice Routes
     Route::get('invoices/sale/{sale}/view', [InvoiceController::class, 'showSaleInvoice'])->name('invoices.sale.view');
@@ -23,23 +26,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Database Backup
     Route::get('admin/database/backup', [DatabaseBackupController::class, 'download'])->name('admin.database.backup');
 
-    Route::livewire('expenses', 'pages::khatabook.expenses')->name('expenses');
-    Route::livewire('expense-categories', 'pages::khatabook.expense-categories')->name('expense-categories');
-    Route::livewire('products', 'pages::khatabook.products')->name('products');
-    Route::livewire('categories', 'pages::khatabook.categories')->name('categories');
-    Route::livewire('employees', 'pages::khatabook.employees')->name('employees');
-    Route::livewire('employees/{employee}', 'pages::khatabook.employee-ledger')->name('employees.show');
-    Route::livewire('financiers', 'pages::khatabook.financiers')->name('financiers');
-    Route::livewire('financiers/{financier}', 'pages::khatabook.financier-ledger')->name('financiers.show');
-    Route::livewire('suppliers', 'pages::khatabook.suppliers')->name('suppliers');
-    Route::livewire('suppliers/{supplier}', 'pages::khatabook.supplier-ledger')->name('suppliers.show');
-    Route::livewire('production', 'pages::khatabook.production')->name('production');
-    Route::livewire('production/create', 'pages::khatabook.production-form')->name('production.create');
-    Route::livewire('production/{productionLog}/edit', 'pages::khatabook.production-form')->name('production.edit');
-    Route::livewire('users', 'pages::khatabook.users')->name('users');
-    Route::livewire('daily-pnl', 'pages::khatabook.daily-pnl')->name('daily-pnl');
-    Route::livewire('reports', 'pages::khatabook.reports')->name('reports');
-    Route::livewire('audit-log', 'pages::khatabook.audit-log')->name('audit-log');
-    Route::livewire('inquiries', 'pages::khatabook.inquiries')->name('inquiries');
-    Route::livewire('store-settings', 'pages::khatabook.store-settings')->name('store-settings');
+    Route::livewire('expenses', 'pages::expenses')->name('expenses');
+    Route::livewire('expense-categories', 'pages::expense-categories')->name('expense-categories');
+    Route::livewire('products', 'pages::products')->name('products');
+    Route::livewire('categories', 'pages::categories')->name('categories');
+    Route::livewire('employees', 'pages::employees')->name('employees');
+    Route::livewire('employees/{employee}', 'pages::employee-ledger')->name('employees.show');
+    Route::livewire('financiers', 'pages::financiers')->name('financiers');
+    Route::livewire('financiers/{financier}', 'pages::financier-ledger')->name('financiers.show');
+    Route::livewire('suppliers', 'pages::suppliers')->name('suppliers');
+    Route::livewire('suppliers/{supplier}', 'pages::supplier-ledger')->name('suppliers.show');
+    Route::livewire('production', 'pages::production')->name('production');
+    Route::livewire('production/create', 'pages::production-form')->name('production.create');
+    Route::livewire('production/{productionLog}/edit', 'pages::production-form')->name('production.edit');
+    Route::livewire('users', 'pages::users')->name('users');
+    Route::livewire('daily-pnl', 'pages::daily-pnl')->name('daily-pnl');
+    Route::livewire('reports', 'pages::reports')->name('reports');
+    Route::livewire('audit-log', 'pages::audit-log')->name('audit-log');
+    Route::livewire('inquiries', 'pages::inquiries')->name('inquiries');
+    Route::livewire('store-settings', 'pages::store-settings')->name('store-settings');
 });

@@ -1,6 +1,6 @@
 @component('mail::message')
 <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; margin-bottom: 24px;">
-    <img src="{{ url('/images/ak-logo.png') }}" alt="{{ $store['storeName'] ?? config('app.name') }} Logo" style="max-height: 95px; width: auto; margin: 0 auto; display: block;" />
+    <img src="{{ url('/dashboard-assets/images/ak-logo.png') }}" alt="{{ $store['storeName'] ?? config('app.name') }} Logo" style="max-height: 95px; width: auto; margin: 0 auto; display: block;" />
 </div>
 
 # Hello {{ $user->name }},

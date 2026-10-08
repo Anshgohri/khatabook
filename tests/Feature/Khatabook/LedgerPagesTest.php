@@ -28,7 +28,7 @@ test('authenticated users can access employee ledger page and log payments', fun
         ->assertOk();
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.employee-ledger', ['employee' => $employee])
+        ->test('pages::employee-ledger', ['employee' => $employee])
         ->set('type', 'daily_pay')
         ->set('amount', 800)
         ->set('payment_date', now()->toDateString())
@@ -48,7 +48,7 @@ test('authenticated users can access financier ledger page and log payments', fu
         ->assertOk();
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.financier-ledger', ['financier' => $financier])
+        ->test('pages::financier-ledger', ['financier' => $financier])
         ->set('type', 'daily_payment')
         ->set('amount', 1000)
         ->set('payment_date', now()->toDateString())
@@ -68,7 +68,7 @@ test('authenticated users can access supplier ledger page and record raw materia
         ->assertOk();
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.supplier-ledger', ['supplier' => $supplier])
+        ->test('pages::supplier-ledger', ['supplier' => $supplier])
         ->set('type', 'raw_material_purchase')
         ->set('amount', 15000)
         ->set('payment_date', now()->toDateString())

@@ -11,7 +11,7 @@ test('staff cannot access the users page', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->assertForbidden();
 });
 
@@ -22,7 +22,7 @@ test('admin can invite a user and the invitation notification is sent', function
     $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->set('invite_name', 'New Hire')
         ->set('invite_email', 'new-hire@example.com')
         ->set('invite_phone', '9876543210')
@@ -48,7 +48,7 @@ test('phone number must contain only numeric digits', function () {
     $role = Role::query()->firstOrCreate(['name' => RoleName::Staff->value]);
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->set('invite_name', 'Invalid Phone Hire')
         ->set('invite_email', 'invalid-phone@example.com')
         ->set('invite_phone', '98765-ABCDE')
@@ -62,7 +62,7 @@ test('manager cannot edit another manager', function () {
     $otherManager = User::factory()->role(RoleName::Manager)->create();
 
     Livewire::actingAs($manager)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->call('editUser', $otherManager->id)
         ->assertForbidden();
 });
@@ -72,7 +72,7 @@ test('admin can delete a user', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->call('deleteUser', $staff->id)
         ->assertHasNoErrors();
 
@@ -84,7 +84,7 @@ test('manager cannot delete a user', function () {
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($manager)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->call('deleteUser', $staff->id)
         ->assertForbidden();
 
@@ -97,7 +97,7 @@ test('inviting a user with a duplicate phone number fails validation', function 
     User::factory()->create(['phone' => '9876543210']);
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->set('invite_name', 'Duplicate Phone Hire')
         ->set('invite_email', 'dup-phone@example.com')
         ->set('invite_phone', '9876543210')
@@ -114,7 +114,7 @@ test('editing a user with a duplicate phone number belonging to another user fai
     $userB = User::factory()->create(['phone' => '9123456789']);
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->call('editUser', $userB->id)
         ->set('edit_name', 'Updated User B')
         ->set('edit_phone', '9876543210') // Phone belongs to User A
@@ -129,7 +129,7 @@ test('inviting a user with a duplicate email address fails validation', function
     User::factory()->create(['email' => 'duplicate@example.com']);
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->set('invite_name', 'Duplicate Email Hire')
         ->set('invite_email', 'duplicate@example.com')
         ->set('invite_phone', '9876543210')
@@ -145,7 +145,7 @@ test('admin can resend invite to a user and user status is set to invited', func
     $targetUser = User::factory()->create(['status' => 'active', 'email' => 'target@example.com']);
 
     Livewire::actingAs($admin)
-        ->test('pages::khatabook.users')
+        ->test('pages::users')
         ->call('resendInvite', $targetUser->id)
         ->assertHasNoErrors();
 

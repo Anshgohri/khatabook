@@ -27,6 +27,18 @@ return Application::configure(basePath: dirname(__DIR__))
             ]);
         });
 
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return null;
+            }
+            if ($request->is('login', 'register') && $request->isMethod('post')) {
+                return redirect()->route('login')
+                    ->withInput($request->except($e->errorBag))
+                    ->withErrors($e->errors(), $request->input('_error_bag', $e->errorBag));
+            }
+            return null; // Let the default handler take over
+        });
+
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, Request $request) {
             if ($request->header('X-Livewire') || $request->is('api/*') || $request->expectsJson()) {
                 return null;

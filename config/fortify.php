@@ -151,7 +151,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Features
     |--------------------------------------------------------------------------
     |
     | Some of the Fortify features are optional. You may disable the features
@@ -161,6 +160,7 @@ return [
     */
 
     'features' => [
+        Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

@@ -130,7 +130,7 @@ test('calculates correct period wage stats for month, week and year', function (
     ]);
 
     $this->actingAs($user);
-    $component = Livewire::test('pages::khatabook.employees');
+    $component = Livewire::test('pages::employees');
     expect($component->get('wagesThisMonth'))->toBeGreaterThanOrEqual(1300.00);
 });
 

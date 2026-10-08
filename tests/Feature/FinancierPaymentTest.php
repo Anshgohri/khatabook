@@ -108,7 +108,7 @@ test('can create financier with initial loan amount opening balance', function (
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    Livewire::test('pages::khatabook.financiers')
+    Livewire::test('pages::financiers')
         ->set('name', 'Rana Financier')
         ->set('phone', '9876543210')
         ->set('payout_type', 'daily')
@@ -147,7 +147,7 @@ test('can log daily payment via livewire form without error', function () {
         'default_payment_amount' => 500.00,
     ]);
 
-    Livewire::test('pages::khatabook.financiers')
+    Livewire::test('pages::financiers')
         ->call('openPaymentModal', $financier->id, 'daily_payment')
         ->set('amount', 500.00)
         ->set('payment_method', 'cash')
@@ -179,7 +179,7 @@ test('can update initial loan amount when editing financier', function () {
         'notes' => 'Opening loan balance',
     ]);
 
-    Livewire::test('pages::khatabook.financiers')
+    Livewire::test('pages::financiers')
         ->call('editFinancier', $financier->id)
         ->assertSet('initial_loan_amount', 50000.00)
         ->set('initial_loan_amount', 75000.00)
@@ -194,7 +194,7 @@ test('creates dashboard user in users table with first name based password when 
     $admin = User::factory()->create();
     $this->actingAs($admin);
 
-    Livewire::test('pages::khatabook.financiers')
+    Livewire::test('pages::financiers')
         ->set('name', 'Mahindra Finance')
         ->set('email', 'mahindra@example.com')
         ->set('phone', '9876543210')

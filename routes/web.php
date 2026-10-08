@@ -2,17 +2,29 @@
 
 use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\PublicCatalogController;
+use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-Route::get('/', [PublicCatalogController::class, 'index'])->name('home');
+Route::get('/', [WebsiteController::class, 'index'])->name('home');
+Route::get('/login', [WebsiteController::class, 'login'])->name('login');
+Route::get('/about', [WebsiteController::class, 'about'])->name('about');
+Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
+Route::get('/shop', [WebsiteController::class, 'shop'])->name('shop');
+Route::get('/product-detail', [WebsiteController::class, 'productDetail'])->name('product-detail');
+Route::get('/cart', [WebsiteController::class, 'cart'])->name('cart');
+Route::get('/wishlist', [WebsiteController::class, 'wishlist'])->name('wishlist');
+Route::get('/checkout', [WebsiteController::class, 'checkout'])->name('checkout');
+Route::get('/my-account', [WebsiteController::class, 'myAccount'])->name('my-account');
+
+// Route::get('/', [PublicCatalogController::class, 'index'])->name('home');
 Route::get('/catalog', [PublicCatalogController::class, 'catalog'])->name('catalog.index');
 Route::get('/catalog/{product}', [PublicCatalogController::class, 'show'])->name('catalog.show');
 
-Route::view('/about', 'about')->name('about');
-Route::view('/contact', 'contact')->name('contact');
+//Route::view('/about', 'about')->name('about');
+//Route::view('/contact', 'contact')->name('contact');
 Route::view('/thank-you', 'thank-you')->name('thank-you');
-Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
+//Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
 
 Route::livewire('setup', 'pages::auth.setup-admin')->name('setup');
 
@@ -21,11 +33,11 @@ Route::livewire('invite/{user}', 'pages::auth.accept-invite')
     ->name('invite.accept');
 
 if (app()->environment('local')) {
-    Route::get('/test-error/{code}', fn ($code) => abort((int) $code));
+    Route::get('/test-error/{code}', fn($code) => abort((int) $code));
 }
 
-require __DIR__.'/settings.php';
-require __DIR__.'/khatabook.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/khatabook.php';
 
 Route::get('/storage/{path}', function (string $path) {
     $normalized = str_replace(['..', "\0"], '', $path);

@@ -24,7 +24,7 @@ test('user can upload a bill image when saving a supplier payment entry', functi
     $file = UploadedFile::fake()->image('supplier_bill.jpg');
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.suppliers')
+        ->test('pages::suppliers')
         ->set('paymentSupplierId', $supplier->id)
         ->set('type', 'raw_material_purchase')
         ->set('amount', 25000)
@@ -48,7 +48,7 @@ test('user can upload a bill image when recording a financier payment', function
     $file = UploadedFile::fake()->image('financier_receipt.png');
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.financiers')
+        ->test('pages::financiers')
         ->set('paymentFinancierId', $financier->id)
         ->set('type', 'daily_payment')
         ->set('amount', 1000)
@@ -71,7 +71,7 @@ test('user can upload a receipt photo when creating an expense entry', function 
     $file = UploadedFile::fake()->create('receipt.pdf', 100, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.expenses')
+        ->test('pages::expenses')
         ->set('date', now()->toDateString())
         ->set('expense_category_id', $category->id)
         ->set('description', 'Machine repair & consumables')
@@ -92,7 +92,7 @@ test('user can upload a product image when creating a product', function () {
     $file = UploadedFile::fake()->image('product.jpg');
 
     Livewire::actingAs($user)
-        ->test('pages::khatabook.products')
+        ->test('pages::products')
         ->set('name', 'Bamboo Chair')
         ->set('unit_price', 1500)
         ->set('type', 'finished_good')

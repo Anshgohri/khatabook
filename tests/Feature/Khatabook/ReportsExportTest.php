@@ -15,7 +15,7 @@ test('exporting sales streams a csv scoped to the current user for staff', funct
     Sale::factory()->create(['date' => now(), 'customer_name' => 'Other Customer']);
 
     $response = Livewire::actingAs($staff)
-        ->test('pages::khatabook.reports')
+        ->test('pages::reports')
         ->call('exportSales');
 
     $response->assertFileDownloaded();

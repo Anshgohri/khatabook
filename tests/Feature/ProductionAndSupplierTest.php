@@ -238,7 +238,7 @@ test('admin can log multiple finished products in a single daily entry', functio
 
     $this->actingAs($user);
 
-    Livewire::test('pages::khatabook.production-form')
+    Livewire::test('pages::production-form')
         ->set('employee_id', $worker->id)
         ->set('date', now()->toDateString())
         ->set('worker_wage', 1128.00)
