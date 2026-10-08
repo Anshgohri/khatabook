@@ -30,8 +30,8 @@ RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . .
-COPY --from=vendor /app/vendor ./vendor
-COPY --from=assets /app/public/build ./public/build
+COPY --from=assets /app/public/dashboard-assets/build ./public/dashboard-assets/build
+RUN mkdir -p ./public/build
 COPY Caddyfile /etc/frankenphp/Caddyfile
 COPY entrypoint.sh /entrypoint.sh
 

@@ -12,61 +12,17 @@ class PublicCatalogController extends Controller
     /**
      * Display landing page with admin categories and 4 to 6 featured products.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
-        $categories = ProductCategory::withCount('products')->orderBy('name')->get();
-
-        $query = Product::query()->with('category');
-
-        if ($request->filled('category_id')) {
-            $query->where('product_category_id', $request->input('category_id'));
-        }
-
-        if ($request->filled('q')) {
-            $search = $request->input('q');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // Display top 12 featured products on landing page
-        $featuredProducts = $query->latest()->take(12)->get();
-
-        $totalProductsCount = Product::count();
-
-        return view('welcome', compact('categories', 'featuredProducts', 'totalProductsCount'));
+        return redirect()->route('home');
     }
 
     /**
      * Display full catalog listing of all admin products with search & category filter.
      */
-    public function catalog(Request $request): View
+    public function catalog(Request $request)
     {
-        $categories = ProductCategory::withCount('products')->orderBy('name')->get();
-
-        $query = Product::query()->with('category');
-
-        if ($request->filled('category_id')) {
-            $query->where('product_category_id', $request->input('category_id'));
-        }
-
-        if ($request->filled('q')) {
-            $search = $request->input('q');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('type')) {
-            $query->where('type', $request->input('type'));
-        }
-
-        $products = $query->latest()->paginate(12)->withQueryString();
-        $selectedCategory = $request->filled('category_id') ? ProductCategory::find($request->input('category_id')) : null;
-
-        return view('catalog.index', compact('categories', 'products', 'selectedCategory'));
+        return redirect()->route('shop');
     }
 
     /**

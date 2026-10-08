@@ -26,6 +26,6 @@ class ContactInquiryController extends Controller
 
         $storeName = Setting::get('store_name', config('khatabook.store_name', 'our store'));
 
-        return redirect()->route('thank-you')->with('success', sprintf('Your inquiry has been submitted successfully to %s.', $storeName));
+        return back()->with('success', sprintf('Your inquiry has been submitted successfully to %s.', $storeName));
     }
 }

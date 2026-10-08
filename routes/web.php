@@ -17,14 +17,8 @@ Route::get('/wishlist', [WebsiteController::class, 'wishlist'])->name('wishlist'
 Route::get('/checkout', [WebsiteController::class, 'checkout'])->name('checkout');
 Route::get('/my-account', [WebsiteController::class, 'myAccount'])->name('my-account');
 
-// Route::get('/', [PublicCatalogController::class, 'index'])->name('home');
 Route::get('/catalog', [PublicCatalogController::class, 'catalog'])->name('catalog.index');
 Route::get('/catalog/{product}', [PublicCatalogController::class, 'show'])->name('catalog.show');
-
-//Route::view('/about', 'about')->name('about');
-//Route::view('/contact', 'contact')->name('contact');
-Route::view('/thank-you', 'thank-you')->name('thank-you');
-//Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
 
 Route::livewire('setup', 'pages::auth.setup-admin')->name('setup');
 

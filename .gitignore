@@ -25,3 +25,5 @@ yarn-error.log
 /.zed
 .vercel
 .env*
+
+/public/dashboard-assets/build

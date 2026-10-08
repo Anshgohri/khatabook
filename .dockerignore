@@ -19,3 +19,4 @@ storage/framework/views/*
 tests
 .phpunit.cache
 .phpunit.result.cache
+public/dashboard-assets/build
