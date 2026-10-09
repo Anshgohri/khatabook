@@ -192,12 +192,14 @@ new #[Title('Suppliers')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
             'location' => ['nullable', 'string', 'max:255'],
             'material_supplied' => ['nullable', 'string', 'max:255'],
             'initial_balance' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string'],
+        ], [
+            'phone.regex' => __('The phone number must contain only numbers.'),
         ]);
 
         $initialBalance = (float) ($validated['initial_balance'] ?? 0.0);

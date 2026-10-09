@@ -15,6 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('sales/create', 'pages::sales-form')->name('sales.create');
     Route::livewire('sales/{sale}/edit', 'pages::sales-form')->name('sales.edit');
 
+    Route::livewire('rentals', 'pages::rentals')->name('rentals');
+    Route::livewire('rentals/create', 'pages::rentals-form')->name('rentals.create');
+    Route::livewire('rentals/{rental}/edit', 'pages::rentals-form')->name('rentals.edit');
+
     // Invoice Routes
     Route::get('invoices/sale/{sale}/view', [InvoiceController::class, 'showSaleInvoice'])->name('invoices.sale.view');
     Route::get('invoices/sale/{sale}/download', [InvoiceController::class, 'downloadSaleInvoice'])->name('invoices.sale.download');

@@ -26,6 +26,9 @@
                     <flux:sidebar.item icon="banknotes" :href="route('sales')" :current="request()->routeIs('sales')" wire:navigate>
                         {{ __('Sales') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="truck" :href="route('rentals')" :current="request()->routeIs('rentals')" wire:navigate>
+                        {{ __('Rentals') }}
+                    </flux:sidebar.item>
 
                     <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses')" wire:navigate>
                         {{ __('Expenses') }}

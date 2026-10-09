@@ -24,6 +24,8 @@ new #[Title('Products & Inventory')] class extends Component {
 
     public float $unit_price = 0;
 
+    public ?float $rent_price = null;
+
     public float $cost_price = 0;
 
     public string $description = '';
@@ -121,6 +123,7 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->reset(['editingId', 'name', 'description', 'image']);
         $this->product_category_id = '';
         $this->unit_price = 0;
+        $this->rent_price = null;
         $this->cost_price = 0;
         $this->type = 'finished_good';
         $this->unit = 'pcs';
@@ -137,6 +140,7 @@ new #[Title('Products & Inventory')] class extends Component {
         $this->name = $product->name;
         $this->product_category_id = (string) $product->product_category_id;
         $this->unit_price = (float) $product->unit_price;
+        $this->rent_price = $product->rent_price ? (float) $product->rent_price : null;
         $this->cost_price = (float) $product->cost_price;
         $this->type = $product->type ?? 'finished_good';
         $this->unit = $product->unit ?? 'pcs';
@@ -158,6 +162,7 @@ new #[Title('Products & Inventory')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'product_category_id' => ['nullable', 'exists:product_categories,id'],
             'unit_price' => ['required', 'numeric', 'min:0'],
+            'rent_price' => ['nullable', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'type' => ['required', 'in:raw_material,finished_good'],
             'unit' => ['required', 'string', 'max:50'],
@@ -307,6 +312,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 <flux:table.column>{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Category') }}</flux:table.column>
                 <flux:table.column>{{ __('Selling Price') }}</flux:table.column>
+                <flux:table.column>{{ __('Rent Price') }}</flux:table.column>
                 @if (auth()->user()?->isSystemAdmin())
                 <flux:table.column>{{ __('Cost Price') }}</flux:table.column>
                 @endif
@@ -342,6 +348,13 @@ new #[Title('Products & Inventory')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
                     <flux:table.cell>₹{{ number_format((float) $product->unit_price, 2) }}</flux:cell>
+                    <flux:table.cell>
+                        @if ($product->rent_price)
+                            ₹{{ number_format((float) $product->rent_price, 2) }}
+                        @else
+                            <span class="text-zinc-400">-</span>
+                        @endif
+                    </flux:table.cell>
                     @if (auth()->user()?->isSystemAdmin())
                     <flux:table.cell class="font-medium text-amber-600 dark:text-amber-400">
                         ₹{{ number_format((float) $product->cost_price, 2) }}
@@ -397,6 +410,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 </flux:select>
 
                 <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Selling Unit Price (₹)')" required />
+                <flux:input type="number" step="0.01" min="0" wire:model="rent_price" :label="__('Daily Rent Price (₹)')" :description="__('Optional. Default daily rent when given on rent.')" />
 
                 @if (auth()->user()?->isSystemAdmin())
                 <flux:input type="number" step="0.01" min="0" wire:model="cost_price" :label="__('Production / Making Cost (₹)')" :description="__('Total cost to make/produce this item (System Admin view only)')" />

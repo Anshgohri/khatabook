@@ -333,13 +333,15 @@ new #[Title('Financiers')] class extends Component {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($financierUserId)],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
             'payout_type' => ['required', 'in:daily,weekly,monthly'],
             'interest_type' => ['required', 'in:interest_only,principal_reducing'],
             'default_payment_amount' => ['required', 'numeric', 'min:0'],
             'initial_loan_amount' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string'],
+        ], [
+            'phone.regex' => __('The phone number must contain only numbers.'),
         ]);
 
         $initialLoan = (float) ($validated['initial_loan_amount'] ?? 0.0);

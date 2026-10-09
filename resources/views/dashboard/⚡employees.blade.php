@@ -151,10 +151,12 @@ new #[Title('Employees')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
             'default_daily_rate' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string'],
+        ], [
+            'phone.regex' => __('The phone number must contain only numbers.'),
         ]);
 
         if ($this->editingEmployeeId) {
