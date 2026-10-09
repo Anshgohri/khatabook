@@ -170,8 +170,13 @@
 
                                 <div class="col-xl-3 col-lg-4 col-md-12 col-sm-12 col-12 header-right">
                                     <div class="header-page-link">
-                                        <!-- Login -->
+                                        <!-- Login / Dashboard -->
                                         <div class="login-header">
+                                            @auth
+                                            <a href="{{ route('dashboard') }}">
+                                                <span class="menu-item-text">Go to Dashboard</span>
+                                            </a>
+                                            @else
                                             <a class="active-login" href="/">Login</a>
                                             <div class="form-login-register">
                                                 <div class="box-form-login">
@@ -239,6 +244,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            @endauth
                                         </div>
 
                                         <!-- Search -->
