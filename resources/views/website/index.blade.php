@@ -60,7 +60,7 @@
 														<div class="product-thumb-hover">
 															<a href="{{ route('catalog.show', $product->id) }}">
 																@if($product->image_path)
-																<img width="600" height="600" src="{{ asset('storage/' . $product->image_path) }}" class="post-image" alt="{{ $product->name }}">
+																<img width="600" height="600" src="{{ Storage::url($product->image_path) }}" class="post-image" alt="{{ $product->name }}">
 																@else
 																<img width="600" height="600" src="{{ asset('website/media/bamboo-6.jpg') }}" class="post-image" alt="{{ $product->name }}">
 																@endif

@@ -29,7 +29,7 @@
 										<div class="col-12">
 											<div class="scroll-image main-image text-center">
 												@php
-												$mainImg = $product->image_path ? asset('storage/' . $product->image_path) : asset('website/media/product/9.jpg');
+												$mainImg = $product->image_path ? Storage::url($product->image_path) : asset('website/media/product/9.jpg');
 												@endphp
 												<div class="img-item" style="border-radius: 12px; overflow: hidden; background: #f8fafc; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
 													@if($mainImg)
@@ -103,7 +103,7 @@
 															<div class="product-thumb-hover">
 																<a href="{{ route('catalog.show', $related->id) }}">
 																	@if($related->image_path)
-																	<img width="600" height="600" src="{{ asset('storage/' . $related->image_path) }}" class="post-image" alt="{{ $related->name }}">
+																	<img width="600" height="600" src="{{ Storage::url($related->image_path) }}" class="post-image" alt="{{ $related->name }}">
 																	@else
 																	<img width="600" height="600" src="{{ asset('website/media/bamboo-6.jpg') }}" class="post-image" alt="{{ $related->name }}">
 																	@endif
