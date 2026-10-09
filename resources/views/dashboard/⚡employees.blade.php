@@ -1,10 +1,16 @@
 <?php
 
+use App\Enums\RoleName;
 use App\Models\Employee;
 use App\Models\EmployeePayment;
+use App\Models\Role;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -22,6 +28,7 @@ new #[Title('Employees')] class extends Component {
     public bool $showEmployeeModal = false;
     public ?int $editingEmployeeId = null;
     public string $name = '';
+    public string $email = '';
     public string $phone = '';
     public float $default_daily_rate = 0.0;
     public string $status = 'active';
@@ -128,7 +135,7 @@ new #[Title('Employees')] class extends Component {
     {
         $this->authorize('create', Employee::class);
 
-        $this->reset(['editingEmployeeId', 'name', 'phone', 'default_daily_rate', 'notes']);
+        $this->reset(['editingEmployeeId', 'name', 'email', 'phone', 'default_daily_rate', 'notes']);
         $this->status = 'active';
         $this->showEmployeeModal = true;
     }
@@ -140,6 +147,7 @@ new #[Title('Employees')] class extends Component {
 
         $this->editingEmployeeId = $employee->id;
         $this->name = $employee->name;
+        $this->email = $employee->employeeUser?->email ?? '';
         $this->phone = (string) $employee->phone;
         $this->default_daily_rate = (float) $employee->default_daily_rate;
         $this->status = $employee->status;
@@ -149,25 +157,63 @@ new #[Title('Employees')] class extends Component {
 
     public function saveEmployee(): void
     {
+        $userId = $this->editingEmployeeId ? Employee::findOrFail($this->editingEmployeeId)->employee_user_id : null;
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email,' . $userId],
+            'phone' => ['required', 'regex:/^[0-9]+$/', 'max:50'],
             'default_daily_rate' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string'],
         ], [
             'phone.regex' => __('The phone number must contain only numbers.'),
+            'phone.required' => __('The mobile number is required.'),
         ]);
+
+        $employeeData = [
+            'name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'default_daily_rate' => $validated['default_daily_rate'],
+            'status' => $validated['status'],
+            'notes' => $validated['notes'],
+        ];
 
         if ($this->editingEmployeeId) {
             $employee = Employee::findOrFail($this->editingEmployeeId);
             $this->authorize('update', $employee);
-            $employee->update($validated);
+            $employee->update($employeeData);
+            
+            if ($employee->employeeUser) {
+                $employee->employeeUser->update([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'] ?: null,
+                    'phone' => $validated['phone'],
+                ]);
+            }
         } else {
             $this->authorize('create', Employee::class);
+            
+            $password = Str::random(12);
+            
+            $role = Role::firstOrCreate(['name' => RoleName::Employee->value]);
+            
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'] ?: null,
+                'phone' => $validated['phone'],
+                'password' => Hash::make($password),
+                'role_id' => $role->id,
+                'status' => 'active',
+            ]);
+
+            if ($user->email) {
+                Password::broker()->sendResetLink(['email' => $user->email]);
+            }
+
             Employee::create([
-                ...$validated,
+                ...$employeeData,
                 'user_id' => Auth::id(),
+                'employee_user_id' => $user->id,
                 'advance_balance' => 0.00,
             ]);
         }
@@ -238,6 +284,17 @@ new #[Title('Employees')] class extends Component {
     public function viewLedger(int $employeeId)
     {
         return $this->redirect(route('employees.show', $employeeId), navigate: true);
+    }
+
+    public function deleteEmployee(int $id): void
+    {
+        $employee = Employee::findOrFail($id);
+        $this->authorize('delete', $employee);
+
+        $employee->delete();
+
+        unset($this->employees);
+        Flux::toast(variant: 'success', text: __('Employee deleted successfully.'));
     }
 }; ?>
 
@@ -347,7 +404,8 @@ new #[Title('Employees')] class extends Component {
 
             <form wire:submit="saveEmployee" class="flex flex-col gap-4">
                 <flux:input wire:model="name" :label="__('Employee Name')" placeholder="e.g. Ramesh Kumar" required />
-                <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
+                <flux:input type="email" wire:model="email" :label="__('Email Address (Optional)')" placeholder="e.g. employee@example.com" />
+                <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" required />
                 <flux:input type="number" step="1" min="0" wire:model="default_daily_rate" :label="__('Default Daily Wage (₹)')" placeholder="e.g. 800 or 500" required />
                 
                 <flux:select wire:model="status" :label="__('Status')">
