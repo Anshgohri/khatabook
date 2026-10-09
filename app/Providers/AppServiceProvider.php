@@ -35,7 +35,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Support\Facades\Vite::useBuildDirectory('dashboard-assets/build');
-        
+
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            $view->with('storeDetails', \App\Models\Setting::getStoreDetails());
+        });
+
         $this->configureDefaults();
         $this->configureAuthorization();
         $this->configureObservers();

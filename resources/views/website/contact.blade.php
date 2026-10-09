@@ -43,19 +43,20 @@
 													<h2>Address</h2>
 												</div>
 												<div class="item-content">
-													{{ config('store.address') }}
+													{{ $storeDetails['storeAddress'] }}
 												</div>
 											</div>
 										</div>
 										<div class="col-md-4 sm-m-b-30">
 											<div class="info-item">
 												<div class="item-tilte">
-													<h2>Phone</h2>
+													<h2>Phone & Email</h2>
 												</div>
 												<div class="item-content">
-													@foreach(config('store.phones') as $phone)
+													@foreach($storeDetails['storePhonesArray'] ?? array_filter(array_map('trim', preg_split('/[,|]/', (string) ($storeDetails['storePhone'] ?? '')))) as $phone)
 													<p>{{ $phone }}</p>
 													@endforeach
+													<p style="margin-top: 5px; color: #666;">✉️ {{ $storeDetails['storeEmail'] }}</p>
 												</div>
 											</div>
 										</div>

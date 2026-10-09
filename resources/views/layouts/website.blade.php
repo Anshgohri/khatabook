@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('store.name') }}</title>
+    <title>{{ $storeDetails['storeName'] ?? 'Shashi Bala Baans Store' }}</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('website/media/favicon.png') }}">
@@ -46,7 +46,7 @@
                             <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-6 header-center">
                                 <div class="site-logo">
                                     <a href="/">
-                                        <img width="400" height="79" src="{{ asset('website/media/logo.png') }}" alt="{{ config('store.name') }} – Furniture HTML Theme">
+                                        <img width="400" height="79" src="{{ asset('website/media/logo.png') }}" alt="{{ $storeDetails['storeName'] ?? 'Shashi Bala Baans Store' }}">
                                     </a>
                                 </div>
                             </div>
@@ -139,7 +139,7 @@
                                 <div class="col-xl-3 col-lg-2 col-md-12 col-sm-12 col-12 header-left">
                                     <div class="site-logo">
                                         <a href="/">
-                                            <img width="400" height="79" src="{{ asset('website/media/logo.png') }}" alt="{{ config('store.name') }} – Furniture HTML Theme">
+                                            <img width="400" height="79" src="{{ asset('website/media/logo.png') }}" alt="{{ $storeDetails['storeName'] ?? 'Shashi Bala Baans Store' }}">
                                         </a>
                                     </div>
                                 </div>
@@ -339,15 +339,15 @@
                                         <div class="block-content">
                                             <ul>
                                                 <li>
-                                                    <a href="/contact">{{ config('store.address') }}</a>
+                                                    <a href="/contact">{{ $storeDetails['storeAddress'] }}</a>
                                                 </li>
-                                                @foreach(config('store.phones') as $phone)
+                                                @foreach($storeDetails['storePhonesArray'] ?? array_filter(array_map('trim', preg_split('/[,|]/', (string) ($storeDetails['storePhone'] ?? '')))) as $phone)
                                                 <li>
                                                     <a href="/contact">{{ $phone }}</a>
                                                 </li>
                                                 @endforeach
                                                 <li>
-                                                    <a href="/contact">sales@myprojectname.com</a>
+                                                    <a href="/contact">{{ $storeDetails['storeEmail'] }}</a>
                                                 </li>
                                             </ul>
                                         </div>

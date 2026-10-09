@@ -20,7 +20,7 @@ class Setting extends Model
      */
     public static function get(string $key, mixed $default = null): mixed
     {
-        return Cache::remember('setting_'.$key, 3600, function () use ($key, $default) {
+        return Cache::remember('setting_' . $key, 3600, function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
 
             return ($setting && $setting->value !== null && $setting->value !== '') ? $setting->value : $default;
@@ -37,7 +37,7 @@ class Setting extends Model
             ['value' => $value]
         );
 
-        Cache::forget('setting_'.$key);
+        Cache::forget('setting_' . $key);
         Cache::forget('store_details');
 
         return $setting;
@@ -48,16 +48,28 @@ class Setting extends Model
      */
     public static function getStoreDetails(): array
     {
-        return Cache::remember('store_details', 3600, function () {
+        $details = Cache::remember('store_details', 3600, function () {
+            $phoneString = static::get('store_phone', config('khatabook.store_phone', '9255523276 | 8950304888'));
+            $phones = array_values(array_filter(array_map('trim', preg_split('/[,|]/', $phoneString))));
+
             return [
-                'storeName' => static::get('store_name', config('khatabook.store_name', 'Ashok Kumar Baans Store')),
+                'storeName' => static::get('store_name', config('khatabook.store_name', 'Shashi Bala Baans Store')),
                 'storeSubtitle' => static::get('store_subtitle', config('khatabook.store_subtitle', 'Direct Timber Merchant • Raw Bamboo, Ghodi, Chaali & Siddhi')),
                 'storeAddress' => static::get('store_address', config('khatabook.store_address', 'House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001')),
-                'storePhone' => static::get('store_phone', config('khatabook.store_phone', 'Ashok Kumar: 9254998000, 9255523276 | Ansh: 8950304888')),
+                'storePhone' => $phoneString,
+                'storePhonesArray' => count($phones) > 0 ? $phones : [$phoneString],
                 'storeEmail' => static::get('store_email', config('khatabook.store_email', 'anshgohri8950@gmail.com')),
                 'storeTerms' => static::get('store_terms', config('khatabook.store_terms', "1. Goods once sold are strictly governed under timber yard standard policies.\n2. Raw bamboo poles & Ghodi trestles are checked before dispatch.\n3. Thank you for doing business with Ashok Kumar Baans Store!")),
                 'invoicePrefix' => static::get('invoice_prefix', config('khatabook.invoice_prefix', 'INV-')),
             ];
         });
+
+        if (! isset($details['storePhonesArray'])) {
+            $phoneString = $details['storePhone'] ?? config('khatabook.store_phone', '');
+            $phones = array_values(array_filter(array_map('trim', preg_split('/[,|]/', (string) $phoneString))));
+            $details['storePhonesArray'] = count($phones) > 0 ? $phones : [$phoneString];
+        }
+
+        return $details;
     }
 }

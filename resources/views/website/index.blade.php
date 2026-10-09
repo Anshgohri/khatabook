@@ -18,7 +18,7 @@
 								</div>
 								<div class="item-info horizontal-center vertical-middle">
 									<div class="content text-center">
-										<h2 class="title-slider">{{ config('store.name') }}</h2>
+										<h2 class="title-slider">{{ $storeDetails['storeName'] }}</h2>
 										<a class="button-slider button-white" href="/shop">SHOP NOW</a>
 									</div>
 								</div>
@@ -31,7 +31,7 @@
 								</div>
 								<div class="item-info horizontal-center vertical-middle">
 									<div class="content text-center">
-										<h2 class="title-slider">{{ config('store.name') }}</h2>
+										<h2 class="title-slider">{{ $storeDetails['storeName'] }}</h2>
 										<a class="button-slider button-white" href="/shop">SHOP NOW</a>
 									</div>
 								</div>

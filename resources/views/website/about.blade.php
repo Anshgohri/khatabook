@@ -27,7 +27,7 @@
 							<div class="block-widget-wrap">
 								<div class="block-title">
 									<h2>Great Design For All</h2>
-									<div class="sub-title">At {{ config('store.name') }}, we create affordable designs for the modern home</div>
+									<div class="sub-title">At {{ $storeDetails['storeName'] }}, we create affordable designs for the modern home</div>
 								</div>
 								<div class="block-content">
 									<div class="block-widget-banner layout-16 no-space">
