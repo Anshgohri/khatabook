@@ -26,39 +26,25 @@ class DashboardController extends Controller
             return redirect()->route('my-orders');
         }
 
-        $userId = $user->id;
+        $salesToday = (float) $this->scopedSales()->whereDate('date', today())->sum('total_amount');
 
-        $salesToday = CacheService::rememberForUser('dashboard.sales_today', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSales()->whereDate('date', today())->sum('total_amount');
-        });
+        $profitToday = (float) $this->scopedSales()
+            ->whereDate('date', today())
+            ->with('items.product')
+            ->get()
+            ->sum(fn ($sale) => $sale->profit());
 
-        $profitToday = CacheService::rememberForUser('dashboard.profit_today', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSales()
-                ->whereDate('date', today())
-                ->with('items.product')
-                ->get()
-                ->sum(fn ($sale) => $sale->profit());
-        });
+        $salesMonth = (float) $this->scopedSales()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('total_amount');
 
-        $salesMonth = CacheService::rememberForUser('dashboard.sales_month', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSales()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('total_amount');
-        });
+        $profitMonth = (float) $this->scopedSales()
+            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->with('items.product')
+            ->get()
+            ->sum(fn ($sale) => $sale->profit());
 
-        $profitMonth = CacheService::rememberForUser('dashboard.profit_month', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSales()
-                ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-                ->with('items.product')
-                ->get()
-                ->sum(fn ($sale) => $sale->profit());
-        });
+        $salesYear = (float) $this->scopedSales()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('total_amount');
 
-        $salesYear = CacheService::rememberForUser('dashboard.sales_year', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSales()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('total_amount');
-        });
-
-        $expensesMonth = CacheService::rememberForUser('dashboard.expenses_month', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedExpenses()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
-        });
+        $expensesMonth = (float) $this->scopedExpenses()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
 
         $profitMargin = $salesMonth > 0
             ? round((($salesMonth - $expensesMonth) / $salesMonth) * 100, 1)
@@ -66,54 +52,32 @@ class DashboardController extends Controller
 
         $cashFlow = $salesMonth - $expensesMonth;
 
-        $financiersPaidToday = CacheService::rememberForUser('dashboard.financiers_today', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedFinancierPayments()->whereDate('date', today())->sum('amount');
-        });
+        $financiersPaidToday = (float) $this->scopedFinancierPayments()->whereDate('date', today())->sum('amount');
 
-        $financiersPaidMonth = CacheService::rememberForUser('dashboard.financiers_month', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedFinancierPayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
-        });
+        $financiersPaidMonth = (float) $this->scopedFinancierPayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
 
-        $financiersPaidYear = CacheService::rememberForUser('dashboard.financiers_year', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedFinancierPayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
-        });
+        $financiersPaidYear = (float) $this->scopedFinancierPayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
 
-        $financiersOutstanding = CacheService::rememberForUser('dashboard.financiers_outstanding', $userId, CacheService::STATS_TTL, function () use ($user) {
-            return (float) Financier::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
-                ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
-                ->sum('outstanding_balance');
-        });
+        $financiersOutstanding = (float) Financier::query()
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
+            ->sum('outstanding_balance');
 
-        $suppliersPaidToday = CacheService::rememberForUser('dashboard.suppliers_today', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSupplierPayments()->whereDate('date', today())->sum('amount');
-        });
+        $suppliersPaidToday = (float) $this->scopedSupplierPayments()->whereDate('date', today())->sum('amount');
 
-        $suppliersPaidMonth = CacheService::rememberForUser('dashboard.suppliers_month', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSupplierPayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
-        });
+        $suppliersPaidMonth = (float) $this->scopedSupplierPayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
 
-        $suppliersPaidYear = CacheService::rememberForUser('dashboard.suppliers_year', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedSupplierPayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
-        });
+        $suppliersPaidYear = (float) $this->scopedSupplierPayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
 
-        $suppliersOutstanding = CacheService::rememberForUser('dashboard.suppliers_outstanding', $userId, CacheService::STATS_TTL, function () use ($user) {
-            return (float) Supplier::query()
-                ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
-                ->sum('outstanding_balance');
-        });
+        $suppliersOutstanding = (float) Supplier::query()
+            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->sum('outstanding_balance');
 
-        $employeesPaidToday = CacheService::rememberForUser('dashboard.employees_today', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedEmployeePayments()->whereDate('date', today())->sum('amount');
-        });
+        $employeesPaidToday = (float) $this->scopedEmployeePayments()->whereDate('date', today())->sum('amount');
 
-        $employeesPaidMonth = CacheService::rememberForUser('dashboard.employees_month', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedEmployeePayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
-        });
+        $employeesPaidMonth = (float) $this->scopedEmployeePayments()->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
 
-        $employeesPaidYear = CacheService::rememberForUser('dashboard.employees_year', $userId, CacheService::STATS_TTL, function () {
-            return (float) $this->scopedEmployeePayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
-        });
+        $employeesPaidYear = (float) $this->scopedEmployeePayments()->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])->sum('amount');
 
         $unreadNotificationsCount = $user->unreadNotifications()->count();
         $recentNotifications = $user->notifications()->latest()->limit(8)->get();
@@ -184,60 +148,48 @@ class DashboardController extends Controller
 
     protected function salesTrendData(): array
     {
-        $userId = Auth::id();
+        $days = collect(range(13, 0))->map(fn($i) => now()->subDays($i)->toDateString());
 
-        return CacheService::rememberForUser('dashboard.sales_trend', $userId, CacheService::STATS_TTL, function () {
-            $days = collect(range(13, 0))->map(fn($i) => now()->subDays($i)->toDateString());
+        $totals = $this->scopedSales()
+            ->whereDate('date', '>=', now()->subDays(13)->toDateString())
+            ->selectRaw('date, sum(total_amount) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date');
 
-            $totals = $this->scopedSales()
-                ->whereDate('date', '>=', now()->subDays(13)->toDateString())
-                ->selectRaw('date, sum(total_amount) as total')
-                ->groupBy('date')
-                ->pluck('total', 'date');
-
-            return [
-                'labels' => $days->map(fn($day) => Carbon::parse($day)->format('d M'))->all(),
-                'values' => $days->map(fn($day) => (float) ($totals[$day] ?? 0))->all(),
-            ];
-        });
+        return [
+            'labels' => $days->map(fn($day) => Carbon::parse($day)->format('d M'))->all(),
+            'values' => $days->map(fn($day) => (float) ($totals[$day] ?? 0))->all(),
+        ];
     }
 
     protected function expenseBreakdownData(): array
     {
-        $userId = Auth::id();
+        $rows = $this->scopedExpenses()
+            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->with('category')
+            ->selectRaw('expense_category_id, sum(amount) as total')
+            ->groupBy('expense_category_id')
+            ->get();
 
-        return CacheService::rememberForUser('dashboard.expense_breakdown', $userId, CacheService::STATS_TTL, function () {
-            $rows = $this->scopedExpenses()
-                ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-                ->with('category')
-                ->selectRaw('expense_category_id, sum(amount) as total')
-                ->groupBy('expense_category_id')
-                ->get();
-
-            return [
-                'labels' => $rows->map(fn($row) => $row->category->name)->all(),
-                'values' => $rows->map(fn($row) => (float) $row->total)->all(),
-            ];
-        });
+        return [
+            'labels' => $rows->map(fn($row) => $row->category->name)->all(),
+            'values' => $rows->map(fn($row) => (float) $row->total)->all(),
+        ];
     }
 
     protected function topItemsData(): array
     {
-        $userId = Auth::id();
+        $rows = $this->scopedSales()
+            ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->selectRaw('items_sold, sum(total_amount) as total')
+            ->groupBy('items_sold')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get();
 
-        return CacheService::rememberForUser('dashboard.top_items', $userId, CacheService::STATS_TTL, function () {
-            $rows = $this->scopedSales()
-                ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
-                ->selectRaw('items_sold, sum(total_amount) as total')
-                ->groupBy('items_sold')
-                ->orderByDesc('total')
-                ->limit(6)
-                ->get();
-
-            return [
-                'labels' => $rows->pluck('items_sold')->all(),
-                'values' => $rows->pluck('total')->map(fn($value) => (float) $value)->all(),
-            ];
-        });
+        return [
+            'labels' => $rows->pluck('items_sold')->all(),
+            'values' => $rows->pluck('total')->map(fn($value) => (float) $value)->all(),
+        ];
     }
 }
