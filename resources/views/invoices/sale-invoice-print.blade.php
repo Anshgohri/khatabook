@@ -60,7 +60,7 @@
                         <span class="text-xl font-black text-slate-900 tracking-tight">{{ $storeName }}</span>
                     </div>
                     <div class="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
-                        {{ $storeSubtitle }}<br>
+                        Prop. {{ $storeProprietor }} &bull; {{ $storeSubtitle }}<br>
                         {{ $storeAddress }}<br>
                         <strong>Phone:</strong> {{ $storePhone }}<br>
                         <strong>Email:</strong> {{ $storeEmail }}

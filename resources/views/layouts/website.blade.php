@@ -403,7 +403,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="footer-left">
-                                        <p class="copyright">Copyright © 2022. All Right Reserved</p>
+                                        <p class="copyright">Copyright © {{ date('Y') }} {{ $storeDetails['storeName'] ?? 'Shashi Bala Baans Store' }}. Prop. {{ $storeDetails['storeProprietor'] ?? 'Ashok Kumar' }}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-6">

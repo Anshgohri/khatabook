@@ -187,7 +187,7 @@
                     <span class="brand-title-text">{{ $storeName }}</span>
                 </div>
                 <div class="store-address-block">
-                    {{ $storeSubtitle }}<br>
+                    Prop. {{ $storeProprietor }} &bull; {{ $storeSubtitle }}<br>
                     {{ $storeAddress }}<br>
                     <strong>Phone:</strong> {{ $storePhone }}<br>
                     <strong>Email:</strong> {{ $storeEmail }}

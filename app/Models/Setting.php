@@ -54,12 +54,13 @@ class Setting extends Model
 
             return [
                 'storeName' => static::get('store_name', config('khatabook.store_name', 'Shashi Bala Baans Store')),
+                'storeProprietor' => static::get('store_proprietor', config('khatabook.store_proprietor', 'Ashok Kumar')),
                 'storeSubtitle' => static::get('store_subtitle', config('khatabook.store_subtitle', 'Direct Timber Merchant • Raw Bamboo, Ghodi, Chaali & Siddhi')),
                 'storeAddress' => static::get('store_address', config('khatabook.store_address', 'House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001')),
                 'storePhone' => $phoneString,
                 'storePhonesArray' => count($phones) > 0 ? $phones : [$phoneString],
                 'storeEmail' => static::get('store_email', config('khatabook.store_email', 'anshgohri8950@gmail.com')),
-                'storeTerms' => static::get('store_terms', config('khatabook.store_terms', "1. Goods once sold are strictly governed under timber yard standard policies.\n2. Raw bamboo poles & Ghodi trestles are checked before dispatch.\n3. Thank you for doing business with Ashok Kumar Baans Store!")),
+                'storeTerms' => static::get('store_terms', config('khatabook.store_terms', "1. Goods once sold are strictly governed under timber yard standard policies.\n2. Raw bamboo poles & Ghodi trestles are checked before dispatch.\n3. Thank you for doing business with Shashi Bala Baans Store!")),
                 'invoicePrefix' => static::get('invoice_prefix', config('khatabook.invoice_prefix', 'INV-')),
             ];
         });

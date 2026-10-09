@@ -8,6 +8,8 @@ use Livewire\Component;
 new #[Title('Store Settings')] class extends Component {
     public string $storeName = '';
 
+    public string $storeProprietor = '';
+
     public string $storeSubtitle = '';
 
     public string $storeAddress = '';
@@ -25,6 +27,7 @@ new #[Title('Store Settings')] class extends Component {
         $details = Setting::getStoreDetails();
 
         $this->storeName = $details['storeName'];
+        $this->storeProprietor = $details['storeProprietor'];
         $this->storeSubtitle = $details['storeSubtitle'];
         $this->storeAddress = $details['storeAddress'];
         $this->storePhone = $details['storePhone'];
@@ -42,6 +45,7 @@ new #[Title('Store Settings')] class extends Component {
 
         $validated = $this->validate([
             'storeName' => ['required', 'string', 'max:255'],
+            'storeProprietor' => ['required', 'string', 'max:255'],
             'storeSubtitle' => ['nullable', 'string', 'max:255'],
             'storeAddress' => ['required', 'string', 'max:500'],
             'storePhone' => ['required', 'string', 'max:255'],
@@ -51,6 +55,7 @@ new #[Title('Store Settings')] class extends Component {
         ]);
 
         Setting::set('store_name', $validated['storeName']);
+        Setting::set('store_proprietor', $validated['storeProprietor']);
         Setting::set('store_subtitle', $validated['storeSubtitle']);
         Setting::set('store_address', $validated['storeAddress']);
         Setting::set('store_phone', $validated['storePhone']);
@@ -69,6 +74,7 @@ new #[Title('Store Settings')] class extends Component {
         }
 
         Setting::set('store_name', config('khatabook.store_name'));
+        Setting::set('store_proprietor', config('khatabook.store_proprietor'));
         Setting::set('store_subtitle', config('khatabook.store_subtitle'));
         Setting::set('store_address', config('khatabook.store_address'));
         Setting::set('store_phone', config('khatabook.store_phone'));
@@ -95,14 +101,14 @@ new #[Title('Store Settings')] class extends Component {
         </div>
 
         @if (auth()->user()?->isAdmin())
-            <div class="flex items-center gap-2">
-                <flux:button variant="ghost" icon="arrow-path" wire:click="resetDefaults" wire:confirm="{{ __('Reset all store credentials back to system defaults?') }}">
-                    {{ __('Reset Defaults') }}
-                </flux:button>
-                <flux:button variant="primary" icon="check" wire:click="saveSettings">
-                    {{ __('Save All Credentials') }}
-                </flux:button>
-            </div>
+        <div class="flex items-center gap-2">
+            <flux:button variant="ghost" icon="arrow-path" wire:click="resetDefaults" wire:confirm="{{ __('Reset all store credentials back to system defaults?') }}">
+                {{ __('Reset Defaults') }}
+            </flux:button>
+            <flux:button variant="primary" icon="check" wire:click="saveSettings">
+                {{ __('Save All Credentials') }}
+            </flux:button>
+        </div>
         @endif
     </div>
 
@@ -118,11 +124,14 @@ new #[Title('Store Settings')] class extends Component {
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <flux:input wire:model="storeName" :label="__('Store Name')" placeholder="Ashok Kumar Baans Store" required />
-                        <flux:input wire:model="invoicePrefix" :label="__('Invoice Number Prefix')" placeholder="INV-" required />
+                        <flux:input wire:model="storeName" :label="__('Store Name')" placeholder="Shashi Bala Baans Store" required />
+                        <flux:input wire:model="storeProprietor" :label="__('Proprietor Name')" placeholder="Ashok Kumar" required />
                     </div>
 
-                    <flux:input wire:model="storeSubtitle" :label="__('Tagline / Subtitle')" placeholder="Direct Timber Merchant • Raw Bamboo, Ghodi, Chaali & Siddhi" />
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:input wire:model="invoicePrefix" :label="__('Invoice Number Prefix')" placeholder="INV-" required />
+                        <flux:input wire:model="storeSubtitle" :label="__('Tagline / Subtitle')" placeholder="Direct Timber Merchant • Raw Bamboo, Ghodi, Chaali & Siddhi" />
+                    </div>
                 </div>
 
                 <!-- Contact Info Section -->
@@ -135,7 +144,7 @@ new #[Title('Store Settings')] class extends Component {
                     <flux:textarea wire:model="storeAddress" :label="__('Physical Store Address')" placeholder="House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001" rows="2" required />
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <flux:input wire:model="storePhone" :label="__('Official Phone Numbers')" placeholder="Ashok Kumar: 9254998000, 9255523276 | Ansh: 8950304888" required />
+                        <flux:input wire:model="storePhone" :label="__('Official Phone Numbers')" placeholder="9255523276 | 8950304888" required />
                         <flux:input wire:model="storeEmail" :label="__('Official Email Address')" placeholder="anshgohri8950@gmail.com" type="email" required />
                     </div>
                 </div>
@@ -151,11 +160,11 @@ new #[Title('Store Settings')] class extends Component {
                 </div>
 
                 @if (auth()->user()?->isAdmin())
-                    <div class="flex justify-end gap-3">
-                        <flux:button type="submit" variant="primary" icon="check" class="px-6 py-2.5">
-                            {{ __('Save All Credentials') }}
-                        </flux:button>
-                    </div>
+                <div class="flex justify-end gap-3">
+                    <flux:button type="submit" variant="primary" icon="check" class="px-6 py-2.5">
+                        {{ __('Save All Credentials') }}
+                    </flux:button>
+                </div>
                 @endif
             </form>
         </div>
@@ -179,7 +188,7 @@ new #[Title('Store Settings')] class extends Component {
                                 {{ $storeName ?: 'Store Name' }}
                             </h4>
                             <p class="text-[10px] font-bold text-emerald-400 truncate uppercase">
-                                {{ $storeSubtitle ?: 'Store Subtitle' }}
+                                Prop. {{ $storeProprietor ?: 'Proprietor' }} • {{ $storeSubtitle ?: 'Store Subtitle' }}
                             </p>
                         </div>
                     </div>
@@ -247,8 +256,7 @@ new #[Title('Store Settings')] class extends Component {
                 <a
                     href="{{ route('admin.database.backup') }}"
                     id="db-backup-download-btn"
-                    class="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl font-bold text-sm bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow-lg hover:shadow-red-500/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-                >
+                    class="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl font-bold text-sm bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow-lg hover:shadow-red-500/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
