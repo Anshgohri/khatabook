@@ -15,12 +15,25 @@ class EmployeePolicy
         return ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee();
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Employee $employee): bool
     {
-        return $employee->user_id === $user->id || $employee->employee_user_id === $user->id || $user->isManager() || $user->isAdmin();
+        if ($user->isAdmin() || $user->isManager()) {
+            return true;
+        }
+
+        if ($employee->user_id === $user->id || $employee->employee_user_id === $user->id) {
+            return true;
+        }
+
+        if (! empty($user->phone) && $employee->phone === $user->phone) {
+            return true;
+        }
+
+        if (! empty($user->email) && $employee->email === $user->email) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

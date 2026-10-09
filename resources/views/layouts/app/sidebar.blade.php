@@ -50,7 +50,10 @@
 
                     @if (auth()->user()?->isEmployee())
                         @php
-                            $myEmployeeRecord = \App\Models\Employee::where('employee_user_id', auth()->id())->first();
+                            $myEmployeeRecord = \App\Models\Employee::where('employee_user_id', auth()->id())
+                                ->orWhere(fn($q) => $q->whereNotNull('phone')->where('phone', auth()->user()->phone))
+                                ->orWhere(fn($q) => $q->whereNotNull('email')->where('email', auth()->user()->email))
+                                ->first();
                         @endphp
                         @if ($myEmployeeRecord)
                         <flux:sidebar.item icon="currency-rupee" :href="route('employees.show', $myEmployeeRecord)" :current="request()->routeIs('employees.show')" wire:navigate>

@@ -37,7 +37,15 @@ new #[Title('Employee Ledger')] class extends Component {
 
     public function mount(Employee $employee): void
     {
-        $this->authorize('update', $employee);
+        $this->authorize('view', $employee);
+
+        if (Auth::user()?->isEmployee() && empty($employee->employee_user_id)) {
+            if ((! empty(Auth::user()->phone) && $employee->phone === Auth::user()->phone) ||
+                (! empty(Auth::user()->email) && $employee->email === Auth::user()->email)) {
+                $employee->update(['employee_user_id' => Auth::id()]);
+            }
+        }
+
         $this->employee = $employee;
         $this->payment_date = now()->toDateString();
     }
