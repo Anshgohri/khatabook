@@ -88,32 +88,84 @@
 									<div class="sub-title">We’ll get back to you within two days.</div>
 								</div>
 								<div class="block-content">
-									<form action="" method="post" class="contact-form" novalidate="novalidate">
+									@if(session('success'))
+										<div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 6px; border: 1px solid #c3e6cb; margin-bottom: 25px; font-weight: 500;">
+											{{ session('success') }}
+										</div>
+									@endif
+
+									@if($errors->any())
+										<div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; border: 1px solid #f5c6cb; margin-bottom: 25px;">
+											<ul style="margin: 0; padding-left: 20px;">
+												@foreach($errors->all() as $error)
+													<li>{{ $error }}</li>
+												@endforeach
+											</ul>
+										</div>
+									@endif
+
+									<form action="{{ route('contact.store') }}" method="post" class="contact-form">
+										@csrf
 										<div class="contact-us-form">
 											<div class="row">
-												<div class="col-sm-12 col-md-6">
+												<div class="col-sm-12 col-md-6" style="margin-bottom: 15px;">
 													<label class="required">Name</label><br>
 													<span class="form-control-wrap">
-														<input type="text" name="name" value="" size="40" class="form-control" aria-required="true">
+														<input type="text" name="name" value="{{ old('name') }}" size="40" class="form-control" aria-required="true" required>
 													</span>
+													@error('name')
+														<span style="color: #dc3545; font-size: 0.85rem; margin-top: 4px; display: block;">{{ $message }}</span>
+													@enderror
 												</div>
-												<div class="col-sm-12 col-md-6">
-													<label class="required">Email</label><br>
+												<div class="col-sm-12 col-md-6" style="margin-bottom: 15px;">
+													<label class="required">Phone Number</label><br>
 													<span class="form-control-wrap">
-														<input type="email" name="email" value="" size="40" class="form-control" aria-required="true">
+														<input type="tel" name="phone" value="{{ old('phone') }}" size="40" class="form-control" aria-required="true" required placeholder="e.g. +91 9876543210">
 													</span>
+													@error('phone')
+														<span style="color: #dc3545; font-size: 0.85rem; margin-top: 4px; display: block;">{{ $message }}</span>
+													@enderror
 												</div>
 											</div>
 											<div class="row">
-												<div class="col-sm-12">
+												<div class="col-sm-12 col-md-6" style="margin-bottom: 15px;">
+													<label>Email Address</label><br>
+													<span class="form-control-wrap">
+														<input type="email" name="email" value="{{ old('email') }}" size="40" class="form-control" placeholder="e.g. name@example.com">
+													</span>
+													@error('email')
+														<span style="color: #dc3545; font-size: 0.85rem; margin-top: 4px; display: block;">{{ $message }}</span>
+													@enderror
+												</div>
+												<div class="col-sm-12 col-md-6" style="margin-bottom: 15px;">
+													<label>Inquiry Type</label><br>
+													<span class="form-control-wrap">
+														<select name="inquiry_type" class="form-control" style="width: 100%; height: 45px; border: 1px solid #e5e5e5; padding: 0 15px; border-radius: 4px; background-color: #fff;">
+															<option value="General Inquiry" {{ old('inquiry_type', 'General Inquiry') == 'General Inquiry' ? 'selected' : '' }}>General Inquiry</option>
+															<option value="Bamboo Purchase" {{ old('inquiry_type') == 'Bamboo Purchase' ? 'selected' : '' }}>Bamboo Purchase</option>
+															<option value="Scaffolding Rental" {{ old('inquiry_type') == 'Scaffolding Rental' ? 'selected' : '' }}>Scaffolding Rental</option>
+															<option value="Bulk Order Request" {{ old('inquiry_type') == 'Bulk Order Request' ? 'selected' : '' }}>Bulk Order Request</option>
+															<option value="Custom Requirement" {{ old('inquiry_type') == 'Custom Requirement' ? 'selected' : '' }}>Custom Requirement</option>
+														</select>
+													</span>
+													@error('inquiry_type')
+														<span style="color: #dc3545; font-size: 0.85rem; margin-top: 4px; display: block;">{{ $message }}</span>
+													@enderror
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-sm-12" style="margin-bottom: 15px;">
 													<label class="required">Message</label><br>
 													<span class="form-control-wrap">
-														<textarea name="message" cols="40" rows="10" class="form-control" aria-required="true"></textarea>
+														<textarea name="message" cols="40" rows="8" class="form-control" aria-required="true" required placeholder="How can we help you?">{{ old('message') }}</textarea>
 													</span>
+													@error('message')
+														<span style="color: #dc3545; font-size: 0.85rem; margin-top: 4px; display: block;">{{ $message }}</span>
+													@enderror
 												</div>
 											</div>
 											<div class="form-button">
-												<input type="submit" value="Submit" class="button">
+												<input type="submit" value="Submit Inquiry" class="button">
 											</div>
 										</div>
 									</form>

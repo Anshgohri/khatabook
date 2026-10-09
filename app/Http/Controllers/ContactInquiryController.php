@@ -18,9 +18,13 @@ class ContactInquiryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'inquiry_type' => ['required', 'string', 'max:255'],
+            'inquiry_type' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:5000'],
         ]);
+
+        if (empty($validated['inquiry_type'])) {
+            $validated['inquiry_type'] = 'General Inquiry';
+        }
 
         ContactInquiry::create($validated);
 

@@ -10,6 +10,7 @@ Route::get('/', [WebsiteController::class, 'index'])->name('home');
 Route::get('/login', [WebsiteController::class, 'login'])->name('login');
 Route::get('/about', [WebsiteController::class, 'about'])->name('about');
 Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
+Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
 Route::get('/shop', [WebsiteController::class, 'shop'])->name('shop');
 Route::get('/product-detail', [WebsiteController::class, 'productDetail'])->name('product-detail');
 Route::get('/cart', [WebsiteController::class, 'cart'])->name('cart');
