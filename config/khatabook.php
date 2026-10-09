@@ -23,7 +23,7 @@ return [
     |
     */
 
-    'store_name' => env('STORE_NAME', 'Shashi Bala Baans Store'),
+    'store_name' => env('STORE_NAME', 'SB Baans Store'),
     'store_proprietor' => env('STORE_PROPRIETOR', 'Ashok Kumar'),
     'store_subtitle' => env('STORE_SUBTITLE', 'Direct Timber Merchant • Raw Bamboo, Ghodi, Chaali & Siddhi'),
     'store_address' => env('STORE_ADDRESS', 'House No 2755, Opposite Gaushala Road, Janak Puri, Karnal, Haryana - 132001'),

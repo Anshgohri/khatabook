@@ -42,7 +42,7 @@ class InvoiceController extends Controller
 
         $sale->loadMissing(['customer', 'items.product', 'user']);
 
-        $logoPath = public_path('images/ak-emblem.png');
+        $logoPath = public_path('dashboard-assets/images/ak-emblem.png');
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath)) : null;
 
         $storeDetails = Setting::getStoreDetails();

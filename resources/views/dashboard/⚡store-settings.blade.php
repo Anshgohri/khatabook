@@ -181,7 +181,7 @@ new #[Title('Store Settings')] class extends Component {
                 <div class="bg-emerald-950 text-white p-4 rounded-xl border border-emerald-800 flex flex-col gap-3 shadow-inner">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 shrink-0 bg-slate-900 rounded-lg border border-emerald-500 p-1 flex items-center justify-center">
-                            <img src="{{ asset('dashboard-assets/images/ak-emblem.png') }}" class="w-full h-full object-contain" alt="AK Emblem">
+                            <x-app-logo-icon class="w-full h-full" />
                         </div>
                         <div class="overflow-hidden">
                             <h4 class="text-sm font-black text-amber-300 truncate uppercase">

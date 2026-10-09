@@ -54,10 +54,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <div class="flex items-center gap-2.5">
-                        @if (!empty($logoBase64))
-                            <img src="{{ $logoBase64 }}" class="h-14 object-contain" alt="AK Logo">
-                        @endif
-                        <span class="text-xl font-black text-slate-900 tracking-tight">{{ $storeName }}</span>
+                        <x-app-logo textColor="#0f172a" height="56px" />
                     </div>
                     <div class="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
                         Prop. {{ $storeProprietor }} &bull; {{ $storeSubtitle }}<br>
