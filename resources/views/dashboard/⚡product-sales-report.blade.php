@@ -295,9 +295,9 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
         $this->authorize('viewAny', Sale::class);
 
         $data = $this->productSalesMetrics;
-        $isAdmin = Auth::user()?->isAdmin();
+        $isSystemAdmin = Auth::user()?->isSystemAdmin();
 
-        return response()->streamDownload(function () use ($data, $isAdmin) {
+        return response()->streamDownload(function () use ($data, $isSystemAdmin) {
             $handle = fopen('php://output', 'w');
 
             $headers = [
@@ -312,7 +312,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                 'Last Sold Date',
             ];
 
-            if ($isAdmin) {
+            if ($isSystemAdmin) {
                 $headers[] = 'Production Cost (INR)';
                 $headers[] = 'Gross Profit (INR)';
                 $headers[] = 'Profit Margin (%)';
@@ -333,7 +333,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                     $row['last_sold_at'],
                 ];
 
-                if ($isAdmin) {
+                if ($isSystemAdmin) {
                     $line[] = number_format($row['total_cost'], 2, '.', '');
                     $line[] = number_format($row['total_profit'], 2, '.', '');
                     $line[] = number_format($row['profit_margin'], 2, '.', '') . '%';
@@ -432,7 +432,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                 <flux:select wire:model.live="sortBy" class="mt-1">
                     <flux:select.option value="quantity_desc">{{ __('Most Quantity Sold') }}</flux:select.option>
                     <flux:select.option value="revenue_desc">{{ __('Highest Revenue (₹)') }}</flux:select.option>
-                    @if (auth()->user()?->isAdmin())
+                    @if (auth()->user()?->isSystemAdmin())
                     <flux:select.option value="profit_desc">{{ __('Highest Profit (₹)') }}</flux:select.option>
                     @endif
                     <flux:select.option value="name_asc">{{ __('Product Name (A-Z)') }}</flux:select.option>
@@ -471,8 +471,8 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
             </div>
         </div>
 
-        <!-- Total Profit (Admin only) -->
-        @if (auth()->user()?->isAdmin())
+        <!-- Total Profit (System Admin only) -->
+        @if (auth()->user()?->isSystemAdmin())
         <div class="p-5 rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/30 shadow-sm flex flex-col gap-2">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">📈 {{ __('Total Sales Profit') }}</span>
@@ -579,8 +579,8 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                             ₹{{ number_format($item['avg_unit_price'], 2) }}
                         </td>
 
-                        <!-- Gross Profit & Margin (Admin only) -->
-                        @if (auth()->user()?->isAdmin())
+                        <!-- Gross Profit & Margin (System Admin only) -->
+                        @if (auth()->user()?->isSystemAdmin())
                         <td class="px-4 py-3 text-end font-extrabold {{ $item['total_profit'] >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400' }}">
                             ₹{{ number_format($item['total_profit'], 2) }}
                         </td>
@@ -603,7 +603,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth()->user()?->isAdmin() ? 8 : 6 }}" class="text-center py-8 text-zinc-500 dark:text-zinc-400">
+                        <td colspan="{{ auth()->user()?->isSystemAdmin() ? 8 : 6 }}" class="text-center py-8 text-zinc-500 dark:text-zinc-400">
                             {{ __('No product sales records found for the selected filter criteria.') }}
                         </td>
                     </tr>
@@ -639,7 +639,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                         <th class="px-4 py-3 text-center">{{ __('Quantity Sold') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Sales Revenue') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Avg Price / Unit') }}</th>
-                        @if (auth()->user()?->isAdmin())
+                        @if (auth()->user()?->isSystemAdmin())
                         <th class="px-4 py-3 text-end">{{ __('Period Gross Profit') }}</th>
                         @endif
                     </tr>
@@ -659,7 +659,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                         <td class="px-4 py-3 text-end font-semibold text-zinc-700 dark:text-zinc-300">
                             ₹{{ number_format($row['avg_price'], 2) }}
                         </td>
-                        @if (auth()->user()?->isAdmin())
+                        @if (auth()->user()?->isSystemAdmin())
                         <td class="px-4 py-3 text-end font-extrabold text-amber-600 dark:text-amber-400">
                             ₹{{ number_format($row['profit'], 2) }}
                         </td>
@@ -667,7 +667,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth()->user()?->isAdmin() ? 5 : 4 }}" class="text-center py-8 text-zinc-500 dark:text-zinc-400">
+                        <td colspan="{{ auth()->user()?->isSystemAdmin() ? 5 : 4 }}" class="text-center py-8 text-zinc-500 dark:text-zinc-400">
                             {{ __('No timeline sales data available for this range.') }}
                         </td>
                     </tr>

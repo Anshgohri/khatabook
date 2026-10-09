@@ -307,7 +307,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 <flux:table.column>{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Category') }}</flux:table.column>
                 <flux:table.column>{{ __('Selling Price') }}</flux:table.column>
-                @if (auth()->user()?->isAdmin())
+                @if (auth()->user()?->isSystemAdmin())
                 <flux:table.column>{{ __('Cost Price') }}</flux:table.column>
                 @endif
                 <flux:table.column>{{ __('Stock level') }}</flux:table.column>
@@ -342,7 +342,7 @@ new #[Title('Products & Inventory')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $product->category?->name ?? __('Uncategorized') }}</flux:table.cell>
                     <flux:table.cell>₹{{ number_format((float) $product->unit_price, 2) }}</flux:cell>
-                    @if (auth()->user()?->isAdmin())
+                    @if (auth()->user()?->isSystemAdmin())
                     <flux:table.cell class="font-medium text-amber-600 dark:text-amber-400">
                         ₹{{ number_format((float) $product->cost_price, 2) }}
                     </flux:table.cell>
@@ -369,7 +369,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 8 : 7 }}" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="{{ auth()->user()?->isSystemAdmin() ? 8 : 7 }}" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
@@ -398,8 +398,8 @@ new #[Title('Products & Inventory')] class extends Component {
 
                 <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Selling Unit Price (₹)')" required />
 
-                @if (auth()->user()?->isAdmin())
-                <flux:input type="number" step="0.01" min="0" wire:model="cost_price" :label="__('Production / Making Cost (₹)')" :description="__('Total cost to make/produce this item (Admin view only)')" />
+                @if (auth()->user()?->isSystemAdmin())
+                <flux:input type="number" step="0.01" min="0" wire:model="cost_price" :label="__('Production / Making Cost (₹)')" :description="__('Total cost to make/produce this item (System Admin view only)')" />
                 @endif
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
 

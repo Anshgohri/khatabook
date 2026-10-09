@@ -151,6 +151,11 @@ new #[Title('Users')] class extends Component {
         ]);
 
         $selectedRole = Role::find($validated['edit_role_id']);
+        if ((int) $target->role_id !== (int) $validated['edit_role_id'] && ! auth()->user()?->isSystemAdmin()) {
+            $this->addError('edit_role_id', __('Only System Admins are allowed to update a user\'s role.'));
+            return;
+        }
+
         if ($selectedRole && $selectedRole->name === \App\Enums\RoleName::SystemAdmin->value && ! auth()->user()?->isSystemAdmin()) {
             $this->addError('edit_role_id', __('Only System Admins can assign the System Admin role.'));
             return;
@@ -352,11 +357,16 @@ new #[Title('Users')] class extends Component {
                 <flux:input wire:model="edit_city" :label="__('City')" />
                 <flux:input wire:model="edit_address" :label="__('Address')" />
 
-                <flux:select wire:model="edit_role_id" :label="__('Role')">
-                    @foreach ($this->roles as $role)
-                    <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <div>
+                    <flux:select wire:model="edit_role_id" :label="__('Role')" :disabled="! auth()->user()?->isSystemAdmin()">
+                        @foreach ($this->roles as $role)
+                        <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    @if (! auth()->user()?->isSystemAdmin())
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1 block">⚠️ {{ __('Only System Admins are allowed to update user roles.') }}</span>
+                    @endif
+                </div>
 
                 <flux:select wire:model="edit_status" :label="__('Status')">
                     <flux:select.option value="active">{{ __('Active') }}</flux:select.option>

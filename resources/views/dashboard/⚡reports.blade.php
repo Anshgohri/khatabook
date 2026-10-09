@@ -57,7 +57,7 @@ new #[Title('Reports')] class extends Component {
     public function totalSalesProfit(): float
     {
         $user = Auth::user();
-        if (! $user?->isAdmin()) {
+        if (! $user?->isSystemAdmin()) {
             return 0.0;
         }
 
@@ -98,13 +98,13 @@ new #[Title('Reports')] class extends Component {
     {
         $this->authorize('viewAny', Sale::class);
 
-        $isAdmin = Auth::user()?->isAdmin();
+        $isSystemAdmin = Auth::user()?->isSystemAdmin();
         $sales = $this->scopedSales()->with(['user', 'items.product'])->orderBy('date')->get();
 
-        return response()->streamDownload(function () use ($sales, $isAdmin) {
+        return response()->streamDownload(function () use ($sales, $isSystemAdmin) {
             $handle = fopen('php://output', 'w');
             $headers = ['Date', 'Customer', 'Items Sold', 'Quantity', 'Unit Price', 'Total Amount'];
-            if ($isAdmin) {
+            if ($isSystemAdmin) {
                 $headers[] = 'Profit';
             }
             $headers[] = 'Payment Status';
@@ -121,7 +121,7 @@ new #[Title('Reports')] class extends Component {
                     $sale->unit_price,
                     $sale->total_amount,
                 ];
-                if ($isAdmin) {
+                if ($isSystemAdmin) {
                     $row[] = number_format((float) $sale->profit(), 2, '.', '');
                 }
                 $row[] = $sale->payment_status;
@@ -171,13 +171,13 @@ new #[Title('Reports')] class extends Component {
         </flux:select>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isAdmin() ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }}">
+    <div class="grid gap-4 sm:grid-cols-2 {{ auth()->user()?->isSystemAdmin() ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }}">
         <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500">
             <flux:text size="sm">{{ __('Total sales') }}</flux:text>
             <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->totalSales, 2) }}</flux:heading>
         </flux:card>
 
-        @if (auth()->user()?->isAdmin())
+        @if (auth()->user()?->isSystemAdmin())
         <flux:card class="flex flex-col gap-1 border-l-4 border-l-teal-500 bg-teal-50/20 dark:bg-teal-950/10">
             <flux:text size="sm" class="font-medium text-teal-800 dark:text-teal-300">{{ __('Sales Gross Profit') }}</flux:text>
             <flux:heading size="lg" class="text-teal-600 dark:text-teal-400">₹{{ number_format($this->totalSalesProfit, 2) }}</flux:heading>

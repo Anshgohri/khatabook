@@ -104,7 +104,7 @@ new #[Title('Sales')] class extends Component {
     public function dailyProfit(): float
     {
         $user = Auth::user();
-        if (! $user?->isAdmin()) {
+        if (! $user?->isSystemAdmin()) {
             return 0.0;
         }
 
@@ -119,7 +119,7 @@ new #[Title('Sales')] class extends Component {
     public function dailyProductionCost(): float
     {
         $user = Auth::user();
-        if (! $user?->isAdmin()) {
+        if (! $user?->isSystemAdmin()) {
             return 0.0;
         }
 
@@ -134,7 +134,7 @@ new #[Title('Sales')] class extends Component {
     public function filteredProfit(): float
     {
         $user = Auth::user();
-        if (! $user?->isAdmin()) {
+        if (! $user?->isSystemAdmin()) {
             return 0.0;
         }
 
@@ -159,7 +159,7 @@ new #[Title('Sales')] class extends Component {
     public function filteredProductionCost(): float
     {
         $user = Auth::user();
-        if (! $user?->isAdmin()) {
+        if (! $user?->isSystemAdmin()) {
             return 0.0;
         }
 
@@ -227,7 +227,7 @@ new #[Title('Sales')] class extends Component {
         </div>
     </div>
 
-    @if (auth()->user()?->isAdmin())
+    @if (auth()->user()?->isSystemAdmin())
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/10">
             <flux:text size="sm" class="font-medium text-emerald-800 dark:text-emerald-300">{{ __('Today\'s Profit (Earned)') }}</flux:text>
@@ -288,7 +288,7 @@ new #[Title('Sales')] class extends Component {
                 <flux:table.column>{{ __('Items Sold') }}</flux:table.column>
                 <flux:table.column>{{ __('Total Qty') }}</flux:table.column>
                 <flux:table.column>{{ __('Total Amount') }}</flux:table.column>
-                @if (auth()->user()?->isAdmin())
+                @if (auth()->user()?->isSystemAdmin())
                 <flux:table.column>{{ __('Profit') }}</flux:table.column>
                 <flux:table.column>{{ __('Produced Cost') }}</flux:table.column>
                 @endif
@@ -329,7 +329,7 @@ new #[Title('Sales')] class extends Component {
                             @endif
                         </div>
                     </flux:table.cell>
-                    @if (auth()->user()?->isAdmin())
+                    @if (auth()->user()?->isSystemAdmin())
                     <flux:table.cell>
                         <span class="font-semibold {{ $sale->profit() >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
                             ₹{{ number_format((float) $sale->profit(), 2) }}
@@ -377,7 +377,7 @@ new #[Title('Sales')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 10 : 8 }}" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="{{ auth()->user()?->isSystemAdmin() ? 10 : 8 }}" class="text-center text-zinc-500">{{ __('No sales found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>

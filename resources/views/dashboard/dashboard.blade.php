@@ -59,7 +59,7 @@
                     <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($salesToday, 2) }}</flux:heading>
                 </flux:card>
 
-                @if (auth()->user()?->isAdmin())
+                @if (auth()->user()?->isSystemAdmin())
                 <flux:card class="flex flex-col gap-1 border-l-4 border-l-teal-500 bg-teal-50/20 dark:bg-teal-950/10">
                     <flux:text size="sm" class="font-medium text-teal-800 dark:text-teal-300">{{ __('Today\'s Sales Profit') }}</flux:text>
                     <flux:heading size="lg" class="text-teal-600 dark:text-teal-400">₹{{ number_format($profitToday, 2) }}</flux:heading>
