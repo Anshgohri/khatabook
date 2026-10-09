@@ -311,6 +311,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 <flux:table.column>{{ __('Cost Price') }}</flux:table.column>
                 @endif
                 <flux:table.column>{{ __('Stock level') }}</flux:table.column>
+                <flux:table.column>{{ __('Date Added') }}</flux:table.column>
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
 
@@ -349,6 +350,9 @@ new #[Title('Products & Inventory')] class extends Component {
                     <flux:table.cell>
                         <flux:badge :color="$product->stock_level <= 0 ? 'red' : 'zinc'" size="sm">{{ $product->stock_level }} {{ $product->unit ?? 'pcs' }}</flux:badge>
                     </flux:table.cell>
+                    <flux:table.cell class="whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400">
+                        {{ $product->created_at ? $product->created_at->format('d M Y') : 'N/A' }}
+                    </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2">
                             @can('create', App\Models\InventoryLog::class)
@@ -365,7 +369,7 @@ new #[Title('Products & Inventory')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 7 : 6 }}" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="{{ auth()->user()?->isAdmin() ? 8 : 7 }}" class="text-center text-zinc-500">{{ __('No products found.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>

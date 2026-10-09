@@ -141,7 +141,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
             ->with(['product.category', 'sale'])
             ->whereHas('sale', function ($q) use ($from, $to, $user) {
                 $q->whereBetween('date', [$from, $to])
-                    ->when($user->isStaff(), fn ($sq) => $sq->where('user_id', $user->id));
+                    ->when($user->isStaff(), fn($sq) => $sq->where('user_id', $user->id));
             });
 
         if ($this->productId) {
@@ -149,21 +149,21 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
         }
 
         if ($this->categoryId) {
-            $query->whereHas('product', fn ($pq) => $pq->where('product_category_id', $this->categoryId));
+            $query->whereHas('product', fn($pq) => $pq->where('product_category_id', $this->categoryId));
         }
 
         if ($this->search) {
             $search = $this->search;
             $query->where(function ($sub) use ($search) {
-                $sub->whereHas('product', fn ($pq) => $pq->where('name', AppServiceProvider::likeOperator(), "%{$search}%")->orWhere('sku', AppServiceProvider::likeOperator(), "%{$search}%"))
-                    ->orWhereHas('sale', fn ($sq) => $sq->where('items_sold', AppServiceProvider::likeOperator(), "%{$search}%"));
+                $sub->whereHas('product', fn($pq) => $pq->where('name', AppServiceProvider::likeOperator(), "%{$search}%")->orWhere('sku', AppServiceProvider::likeOperator(), "%{$search}%"))
+                    ->orWhereHas('sale', fn($sq) => $sq->where('items_sold', AppServiceProvider::likeOperator(), "%{$search}%"));
             });
         }
 
         $items = $query->get();
 
         // Group by product_id (or product name for items without product_id)
-        $grouped = $items->groupBy(fn ($item) => $item->product_id ? 'product_'.$item->product_id : 'custom_'.($item->product?->name ?? $item->sale?->items_sold ?? 'Uncategorized'));
+        $grouped = $items->groupBy(fn($item) => $item->product_id ? 'product_' . $item->product_id : 'custom_' . ($item->product?->name ?? $item->sale?->items_sold ?? 'Uncategorized'));
 
         $report = $grouped->map(function ($group) {
             $first = $group->first();
@@ -171,11 +171,11 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
 
             $totalQty = (int) $group->sum('quantity');
             $totalRevenue = (float) $group->sum('total_price');
-            $totalCost = (float) $group->sum(fn ($item) => $item->totalCost());
+            $totalCost = (float) $group->sum(fn($item) => $item->totalCost());
             $totalProfit = (float) ($totalRevenue - $totalCost);
             $avgPrice = $totalQty > 0 ? $totalRevenue / $totalQty : 0.0;
             $transactionCount = $group->pluck('sale_id')->unique()->count();
-            $lastSold = $group->map(fn ($item) => $item->sale?->date)->filter()->max();
+            $lastSold = $group->map(fn($item) => $item->sale?->date)->filter()->max();
 
             return [
                 'product_id' => $product?->id,
@@ -226,7 +226,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
             'total_revenue' => $totalRevenue,
             'total_profit' => $totalProfit,
             'avg_price' => $avgPrice,
-            'top_product' => $topProduct ? $topProduct['name'].' ('.$topProduct['total_quantity'].' '.$topProduct['unit'].' - ₹'.number_format($topProduct['total_revenue'], 2).')' : 'N/A',
+            'top_product' => $topProduct ? $topProduct['name'] . ' (' . $topProduct['total_quantity'] . ' ' . $topProduct['unit'] . ' - ₹' . number_format($topProduct['total_revenue'], 2) . ')' : 'N/A',
         ];
     }
 
@@ -243,7 +243,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
             ->with(['sale', 'product'])
             ->whereHas('sale', function ($q) use ($from, $to, $user) {
                 $q->whereBetween('date', [$from, $to])
-                    ->when($user->isStaff(), fn ($sq) => $sq->where('user_id', $user->id));
+                    ->when($user->isStaff(), fn($sq) => $sq->where('user_id', $user->id));
             });
 
         if ($this->productId) {
@@ -251,7 +251,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
         }
 
         if ($this->categoryId) {
-            $query->whereHas('product', fn ($pq) => $pq->where('product_category_id', $this->categoryId));
+            $query->whereHas('product', fn($pq) => $pq->where('product_category_id', $this->categoryId));
         }
 
         $items = $query->get();
@@ -272,7 +272,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
         return $grouped->map(function ($group, $periodKey) {
             $totalQty = (int) $group->sum('quantity');
             $totalRevenue = (float) $group->sum('total_price');
-            $totalCost = (float) $group->sum(fn ($i) => $i->totalCost());
+            $totalCost = (float) $group->sum(fn($i) => $i->totalCost());
             $totalProfit = (float) ($totalRevenue - $totalCost);
             $avgPrice = $totalQty > 0 ? $totalRevenue / $totalQty : 0.0;
 
@@ -336,14 +336,14 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                 if ($isAdmin) {
                     $line[] = number_format($row['total_cost'], 2, '.', '');
                     $line[] = number_format($row['total_profit'], 2, '.', '');
-                    $line[] = number_format($row['profit_margin'], 2, '.', '').'%';
+                    $line[] = number_format($row['profit_margin'], 2, '.', '') . '%';
                 }
 
                 fputcsv($handle, $line);
             }
 
             fclose($handle);
-        }, 'product-sales-report-'.$this->preset.'-'.now()->format('Y-m-d').'.csv');
+        }, 'product-sales-report-' . $this->preset . '-' . now()->format('Y-m-d') . '.csv');
     }
 }; ?>
 
@@ -402,7 +402,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                 <flux:select wire:model.live="categoryId" class="mt-1">
                     <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
                     @foreach($this->categories as $cat)
-                        <flux:select.option value="{{ $cat->id }}">{{ $cat->name }}</flux:select.option>
+                    <flux:select.option value="{{ $cat->id }}">{{ $cat->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
             </div>
@@ -415,7 +415,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                 <flux:select wire:model.live="productId" class="mt-1">
                     <flux:select.option value="">{{ __('All Products Summary') }}</flux:select.option>
                     @foreach($this->productsList as $prod)
-                        <flux:select.option value="{{ $prod->id }}">{{ $prod->name }}</flux:select.option>
+                    <flux:select.option value="{{ $prod->id }}">{{ $prod->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
             </div>
@@ -433,7 +433,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                     <flux:select.option value="quantity_desc">{{ __('Most Quantity Sold') }}</flux:select.option>
                     <flux:select.option value="revenue_desc">{{ __('Highest Revenue (₹)') }}</flux:select.option>
                     @if (auth()->user()?->isAdmin())
-                        <flux:select.option value="profit_desc">{{ __('Highest Profit (₹)') }}</flux:select.option>
+                    <flux:select.option value="profit_desc">{{ __('Highest Profit (₹)') }}</flux:select.option>
                     @endif
                     <flux:select.option value="name_asc">{{ __('Product Name (A-Z)') }}</flux:select.option>
                 </flux:select>
@@ -536,8 +536,8 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                         <th class="px-4 py-3 text-end">{{ __('Total Sales Revenue') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Avg Price / Unit') }}</th>
                         @if (auth()->user()?->isAdmin())
-                            <th class="px-4 py-3 text-end">{{ __('Gross Profit') }}</th>
-                            <th class="px-4 py-3 text-center">{{ __('Margin') }}</th>
+                        <th class="px-4 py-3 text-end">{{ __('Gross Profit') }}</th>
+                        <th class="px-4 py-3 text-center">{{ __('Margin') }}</th>
                         @endif
                         <th class="px-4 py-3 text-center">{{ __('Transactions') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Last Sold Date') }}</th>
@@ -554,10 +554,10 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                                     {{ $item['category'] }}
                                 </span>
                                 @if ($item['sku'] !== 'N/A')
-                                    <span>SKU: {{ $item['sku'] }}</span>
+                                <span>SKU: {{ $item['sku'] }}</span>
                                 @endif
                                 @if ($item['stock_level'] !== null)
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Stock: {{ $item['stock_level'] }} {{ $item['unit'] }}</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Stock: {{ $item['stock_level'] }} {{ $item['unit'] }}</span>
                                 @endif
                             </div>
                         </td>
@@ -581,14 +581,14 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
 
                         <!-- Gross Profit & Margin (Admin only) -->
                         @if (auth()->user()?->isAdmin())
-                            <td class="px-4 py-3 text-end font-extrabold {{ $item['total_profit'] >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400' }}">
-                                ₹{{ number_format($item['total_profit'], 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-0.5 rounded text-xs font-bold {{ $item['profit_margin'] >= 20 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : ($item['profit_margin'] >= 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300') }}">
-                                    {{ number_format($item['profit_margin'], 1) }}%
-                                </span>
-                            </td>
+                        <td class="px-4 py-3 text-end font-extrabold {{ $item['total_profit'] >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400' }}">
+                            ₹{{ number_format($item['total_profit'], 2) }}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold {{ $item['profit_margin'] >= 20 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : ($item['profit_margin'] >= 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300') }}">
+                                {{ number_format($item['profit_margin'], 1) }}%
+                            </span>
+                        </td>
                         @endif
 
                         <!-- Transactions -->
@@ -640,7 +640,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                         <th class="px-4 py-3 text-end">{{ __('Sales Revenue') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Avg Price / Unit') }}</th>
                         @if (auth()->user()?->isAdmin())
-                            <th class="px-4 py-3 text-end">{{ __('Period Gross Profit') }}</th>
+                        <th class="px-4 py-3 text-end">{{ __('Period Gross Profit') }}</th>
                         @endif
                     </tr>
                 </thead>
@@ -660,9 +660,9 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                             ₹{{ number_format($row['avg_price'], 2) }}
                         </td>
                         @if (auth()->user()?->isAdmin())
-                            <td class="px-4 py-3 text-end font-extrabold text-amber-600 dark:text-amber-400">
-                                ₹{{ number_format($row['profit'], 2) }}
-                            </td>
+                        <td class="px-4 py-3 text-end font-extrabold text-amber-600 dark:text-amber-400">
+                            ₹{{ number_format($row['profit'], 2) }}
+                        </td>
                         @endif
                     </tr>
                     @empty
