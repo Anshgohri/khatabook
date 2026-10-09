@@ -85,12 +85,12 @@ class Product extends Model
     }
 
     /**
-     * Get the product's full image URL (works with S3 bucket or local disk).
+     * Get the product's full image URL (works with S3 bucket or local disk, with dynamic fallback).
      */
-    public function getImageUrlAttribute(): ?string
+    public function getImageUrlAttribute(): string
     {
         if (! $this->image_path) {
-            return null;
+            return asset('website/media/bamboo-6.jpg');
         }
 
         if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
@@ -98,5 +98,13 @@ class Product extends Model
         }
 
         return Storage::url($this->image_path);
+    }
+
+    /**
+     * Check if product has a custom uploaded image.
+     */
+    public function getHasCustomImageAttribute(): bool
+    {
+        return ! empty($this->image_path);
     }
 }

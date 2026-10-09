@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Providers\AppServiceProvider;
 use Illuminate\Http\Request;
 
 class WebsiteController extends Controller
@@ -24,10 +26,50 @@ class WebsiteController extends Controller
     {
         return view('website.contact');
     }
-    public function shop()
+    public function shop(Request $request)
     {
-        $products = Product::latest()->get();
-        return view('website.shop', compact('products'));
+        $categories = ProductCategory::query()->orderBy('name')->get();
+
+        $query = Product::query()->with('category');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $like = AppServiceProvider::likeOperator();
+            $query->where(function ($sub) use ($search, $like) {
+                $sub->where('name', $like, "%{$search}%")
+                    ->orWhere('description', $like, "%{$search}%");
+            });
+        }
+
+        if ($request->filled('category')) {
+            $catId = $request->input('category');
+            if ($catId === 'uncategorized') {
+                $query->whereNull('product_category_id');
+            } else {
+                $query->where('product_category_id', $catId);
+            }
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->input('type'));
+        }
+
+        switch ($request->input('sort')) {
+            case 'price_low_high':
+                $query->orderBy('unit_price', 'asc');
+                break;
+            case 'price_high_low':
+                $query->orderBy('unit_price', 'desc');
+                break;
+            case 'latest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        $products = $query->get();
+
+        return view('website.shop', compact('products', 'categories'));
     }
     public function productDetail()
     {

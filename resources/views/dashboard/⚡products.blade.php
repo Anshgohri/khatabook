@@ -48,9 +48,30 @@ new #[Title('Products & Inventory')] class extends Component {
 
     public string $unit = 'pcs';
 
+    public string $search = '';
+
+    public string $categoryId = '';
+
+    public string $typeFilter = '';
+
+    public string $stockFilter = '';
+
     public function mount(): void
     {
         $this->authorize('viewAny', Product::class);
+    }
+
+    public function updated($property): void
+    {
+        if (in_array($property, ['search', 'categoryId', 'typeFilter', 'stockFilter'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'categoryId', 'typeFilter', 'stockFilter']);
+        $this->resetPage();
     }
 
     #[Computed]
@@ -62,7 +83,35 @@ new #[Title('Products & Inventory')] class extends Component {
     #[Computed]
     public function products()
     {
-        return Product::query()->with('category')->orderBy('name')->paginate(15);
+        $like = \App\Providers\AppServiceProvider::likeOperator();
+
+        return Product::query()
+            ->with('category')
+            ->when($this->search !== '', function ($q) use ($like) {
+                $q->where(function ($sub) use ($like) {
+                    $sub->where('name', $like, "%{$this->search}%")
+                        ->orWhere('description', $like, "%{$this->search}%");
+                });
+            })
+            ->when($this->categoryId !== '', function ($q) {
+                if ($this->categoryId === 'uncategorized') {
+                    $q->whereNull('product_category_id');
+                } else {
+                    $q->where('product_category_id', $this->categoryId);
+                }
+            })
+            ->when($this->typeFilter !== '', fn ($q) => $q->where('type', $this->typeFilter))
+            ->when($this->stockFilter !== '', function ($q) {
+                if ($this->stockFilter === 'out_of_stock') {
+                    $q->where('stock_level', '<=', 0);
+                } elseif ($this->stockFilter === 'low_stock') {
+                    $q->whereBetween('stock_level', [1, 5]);
+                } elseif ($this->stockFilter === 'in_stock') {
+                    $q->where('stock_level', '>', 0);
+                }
+            })
+            ->orderBy('name')
+            ->paginate(15);
     }
 
     public function createProduct(): void
@@ -212,6 +261,45 @@ new #[Title('Products & Inventory')] class extends Component {
         @endcan
     </div>
 
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div class="flex-1 min-w-[220px]">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search product name or description...')" clearable />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <div class="w-44">
+                <flux:select wire:model.live="categoryId">
+                    <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
+                    @foreach ($this->categories as $category)
+                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                    @endforeach
+                    <flux:select.option value="uncategorized">{{ __('Uncategorized') }}</flux:select.option>
+                </flux:select>
+            </div>
+
+            <div class="w-40">
+                <flux:select wire:model.live="typeFilter">
+                    <flux:select.option value="">{{ __('All Types') }}</flux:select.option>
+                    <flux:select.option value="finished_good">{{ __('Finished Good') }}</flux:select.option>
+                    <flux:select.option value="raw_material">{{ __('Raw Material') }}</flux:select.option>
+                </flux:select>
+            </div>
+
+            <div class="w-36">
+                <flux:select wire:model.live="stockFilter">
+                    <flux:select.option value="">{{ __('All Stock') }}</flux:select.option>
+                    <flux:select.option value="in_stock">{{ __('In Stock') }}</flux:select.option>
+                    <flux:select.option value="low_stock">{{ __('Low Stock') }}</flux:select.option>
+                    <flux:select.option value="out_of_stock">{{ __('Out of Stock') }}</flux:select.option>
+                </flux:select>
+            </div>
+
+            @if ($search !== '' || $categoryId !== '' || $typeFilter !== '' || $stockFilter !== '')
+            <flux:button variant="ghost" icon="x-mark" wire:click="resetFilters" size="sm">{{ __('Reset') }}</flux:button>
+            @endif
+        </div>
+    </div>
+
     <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
         <flux:table :paginate="$this->products">
             <flux:table.columns>
@@ -231,8 +319,8 @@ new #[Title('Products & Inventory')] class extends Component {
                 <flux:table.row wire:key="product-{{ $product->id }}">
                     <flux:table.cell>
                         <div class="flex items-center gap-3">
-                            @if ($product->image_path)
-                                <img src="{{ Storage::url($product->image_path) }}" alt="{{ $product->name }}" class="w-9 h-9 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700 shrink-0" />
+                            @if ($product->has_custom_image)
+                                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-9 h-9 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700 shrink-0" />
                             @else
                                 <div class="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 text-xs shrink-0 font-medium">📦</div>
                             @endif

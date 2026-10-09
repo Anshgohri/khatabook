@@ -28,15 +28,8 @@
 									<div class="row">
 										<div class="col-12">
 											<div class="scroll-image main-image text-center">
-												@php
-												$mainImg = $product->image_path ? Storage::url($product->image_path) : asset('website/media/product/9.jpg');
-												@endphp
 												<div class="img-item" style="border-radius: 12px; overflow: hidden; background: #f8fafc; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-													@if($mainImg)
-													<img width="900" height="900" src="{{ $mainImg }}" alt="{{ $product->name }}" style="width: 100%; max-height: 550px; object-fit: contain; border-radius: 12px; display: block; margin: 0 auto;">
-													@else
-													<img width="900" height="900" src="{{ asset('website/media/bamboo-6.jpg') }}" alt="{{ $product->name }}" style="width: 100%; max-height: 550px; object-fit: contain; border-radius: 12px; display: block; margin: 0 auto;">
-													@endif
+													<img width="900" height="900" src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 100%; max-height: 550px; object-fit: contain; border-radius: 12px; display: block; margin: 0 auto;">
 												</div>
 											</div>
 										</div>
@@ -102,11 +95,7 @@
 														<div class="products-thumb">
 															<div class="product-thumb-hover">
 																<a href="{{ route('catalog.show', $related->id) }}">
-																	@if($related->image_path)
-																	<img width="600" height="600" src="{{ Storage::url($related->image_path) }}" class="post-image" alt="{{ $related->name }}">
-																	@else
-																	<img width="600" height="600" src="{{ asset('website/media/bamboo-6.jpg') }}" class="post-image" alt="{{ $related->name }}">
-																	@endif
+																	<img width="600" height="600" src="{{ $related->image_url }}" class="post-image" alt="{{ $related->name }}">
 																</a>
 															</div>
 														</div>

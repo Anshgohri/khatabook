@@ -23,6 +23,38 @@
 				<div class="section-container p-l-r">
 					<div class="row">
 						<div class="col-xl-12 col-lg-12 col-md-12 col-12">
+							<form method="GET" action="{{ route('shop') }}" class="mb-4" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+								<div class="row align-items-center" style="gap: 10px 0;">
+									<div class="col-lg-4 col-md-5 col-12">
+										<input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search by name or keyword..." style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1;">
+									</div>
+									<div class="col-lg-3 col-md-4 col-6">
+										<select name="category" class="form-control" onchange="this.form.submit()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;">
+											<option value="">All Categories</option>
+											@foreach($categories as $cat)
+											<option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+											@endforeach
+											<option value="uncategorized" {{ request('category') == 'uncategorized' ? 'selected' : '' }}>Uncategorized</option>
+										</select>
+									</div>
+									<div class="col-lg-3 col-md-3 col-6">
+										<select name="sort" class="form-control" onchange="this.form.submit()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;">
+											<option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Sort by Latest</option>
+											<option value="price_low_high" {{ request('sort') == 'price_low_high' ? 'selected' : '' }}>Price: Low to High</option>
+											<option value="price_high_low" {{ request('sort') == 'price_high_low' ? 'selected' : '' }}>Price: High to Low</option>
+										</select>
+									</div>
+									<div class="col-lg-2 col-md-12 col-12 text-right">
+										<button type="submit" class="button" style="height: 42px; line-height: 42px; padding: 0 18px; background: #18181b; color: #fff; border-radius: 8px; font-weight: 600; border: none; width: 100%;">Search</button>
+									</div>
+								</div>
+								@if(request()->filled('search') || request()->filled('category') || request()->filled('sort'))
+								<div class="mt-2 text-right">
+									<a href="{{ route('shop') }}" class="text-muted" style="font-size: 13px; text-decoration: underline;">Clear all filters</a>
+								</div>
+								@endif
+							</form>
+
 							<div class="products-topbar clearfix">
 								<div class="products-topbar-left">
 									<div class="products-count">
@@ -63,11 +95,7 @@
 													<div class="products-thumb">
 														<div class="product-thumb-hover">
 															<a href="{{ route('catalog.show', $product->id) }}">
-																@if($product->image_path)
-																<img width="600" height="600" src="{{ Storage::url($product->image_path) }}" class="post-image" alt="{{ $product->name }}">
-																@else
-																<img width="600" height="600" src="{{ asset('website/media/bamboo-6.jpg') }}" class="post-image" alt="{{ $product->name }}">
-																@endif
+																<img width="600" height="600" src="{{ $product->image_url }}" class="post-image" alt="{{ $product->name }}">
 															</a>
 														</div>
 													</div>
@@ -101,12 +129,7 @@
 														</div>
 														<div class="product-thumb-hover">
 															<a href="{{ route('catalog.show', $product->id) }}">
-																@if($product->image_path)
-																<img width="600" height="600" src="{{ Storage::url($product->image_path) }}" class="post-image" alt="{{ $product->name }}">
-																@else
-																<img width="600" height="600" src="{{ asset('website/media/product/1.jpg') }}" class="post-image" alt="{{ $product->name }}">
-																<img width="600" height="600" src="{{ asset('website/media/product/1-2.jpg') }}" class="hover-image back" alt="{{ $product->name }}">
-																@endif
+																<img width="600" height="600" src="{{ $product->image_url }}" class="post-image" alt="{{ $product->name }}">
 															</a>
 														</div>
 														<span class="product-quickview" data-title="Quick View">

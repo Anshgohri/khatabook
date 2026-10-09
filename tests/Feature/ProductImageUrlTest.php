@@ -25,12 +25,13 @@ test('product image_url returns correct URL when image_path is full HTTP URL', f
     expect($product->image_url)->toBe($fullUrl);
 });
 
-test('product image_url returns null when image_path is null', function () {
+test('product image_url returns default fallback asset when image_path is null', function () {
     $product = Product::factory()->create([
         'image_path' => null,
     ]);
 
-    expect($product->image_url)->toBeNull();
+    expect($product->image_url)->toBe(asset('website/media/bamboo-6.jpg'));
+    expect($product->has_custom_image)->toBeFalse();
 });
 
 test('shop, details, and home views render Storage::url for products with images', function () {
