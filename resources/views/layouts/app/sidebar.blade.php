@@ -41,6 +41,9 @@
                     </flux:sidebar.item>
 
                     @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
+                    <flux:sidebar.item icon="chart-pie" :href="route('product-sales-report')" :current="request()->routeIs('product-sales-report')" wire:navigate>
+                        {{ __('Product Analytics') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="tag" :href="route('categories')" :current="request()->routeIs('categories')" wire:navigate>
                         {{ __('Categories') }}
                     </flux:sidebar.item>

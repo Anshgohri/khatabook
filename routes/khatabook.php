@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('users', 'pages::users')->name('users');
     Route::livewire('daily-pnl', 'pages::daily-pnl')->name('daily-pnl');
     Route::livewire('reports', 'pages::reports')->name('reports');
+    Route::livewire('product-sales-report', 'pages::product-sales-report')->name('product-sales-report');
     Route::livewire('audit-log', 'pages::audit-log')->name('audit-log');
     Route::livewire('inquiries', 'pages::inquiries')->name('inquiries');
     Route::livewire('store-settings', 'pages::store-settings')->name('store-settings');
