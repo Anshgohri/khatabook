@@ -7,11 +7,15 @@ use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 new #[Title('Users')] class extends Component {
     use WithPagination;
+
+    #[Url]
+    public string $search = '';
 
     public bool $showInviteForm = false;
 
@@ -72,10 +76,24 @@ new #[Title('Users')] class extends Component {
         return Role::query()->orderBy('name')->get();
     }
 
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
     #[Computed]
     public function users()
     {
-        return User::query()->with('role')->orderBy('name')->paginate(15);
+        return User::query()
+            ->with('role')
+            ->when($this->search, function ($query) {
+                $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('city', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
+            })
+            ->orderBy('name')
+            ->paginate(15);
     }
 
     public function inviteUser(): void
@@ -229,6 +247,10 @@ new #[Title('Users')] class extends Component {
         @can('create', App\Models\User::class)
         <flux:button variant="primary" icon="plus" wire:click="$set('showInviteForm', true)">{{ __('Invite user') }}</flux:button>
         @endcan
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <flux:input wire:model.live.debounce.400ms="search" :placeholder="__('Search users by name, email, phone, or city...')" icon="magnifying-glass" />
     </div>
 
     <div class="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">

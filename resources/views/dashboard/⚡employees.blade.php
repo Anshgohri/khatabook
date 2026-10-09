@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -160,7 +161,7 @@ new #[Title('Employees')] class extends Component {
         $userId = $this->editingEmployeeId ? Employee::findOrFail($this->editingEmployeeId)->employee_user_id : null;
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:users,email,' . $userId],
+            'email' => ['nullable', 'email', 'max:255', $userId ? Rule::unique('users', 'email')->ignore($userId) : 'unique:users,email'],
             'phone' => ['required', 'regex:/^[0-9]+$/', 'max:50'],
             'default_daily_rate' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
