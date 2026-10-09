@@ -18,7 +18,7 @@
                     </flux:sidebar.item>
                     @endif
 
-                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer() && ! auth()->user()?->isEmployee())
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
@@ -26,10 +26,15 @@
                     <flux:sidebar.item icon="banknotes" :href="route('sales')" :current="request()->routeIs('sales')" wire:navigate>
                         {{ __('Sales') }}
                     </flux:sidebar.item>
+                    @endif
+
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
                     <flux:sidebar.item icon="truck" :href="route('rentals')" :current="request()->routeIs('rentals')" wire:navigate>
                         {{ __('Rentals') }}
                     </flux:sidebar.item>
+                    @endif
 
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer() && ! auth()->user()?->isEmployee())
                     <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses')" wire:navigate>
                         {{ __('Expenses') }}
                     </flux:sidebar.item>
@@ -43,7 +48,18 @@
                         {{ __('Products') }}
                     </flux:sidebar.item>
 
-                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
+                    @if (auth()->user()?->isEmployee())
+                        @php
+                            $myEmployeeRecord = \App\Models\Employee::where('employee_user_id', auth()->id())->first();
+                        @endphp
+                        @if ($myEmployeeRecord)
+                        <flux:sidebar.item icon="currency-rupee" :href="route('employees.show', $myEmployeeRecord)" :current="request()->routeIs('employees.show')" wire:navigate>
+                            {{ __('My Wages & Ledger') }}
+                        </flux:sidebar.item>
+                        @endif
+                    @endif
+
+                    @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer() && ! auth()->user()?->isEmployee())
                     <flux:sidebar.item icon="chart-pie" :href="route('product-sales-report')" :current="request()->routeIs('product-sales-report')" wire:navigate>
                         {{ __('Product Analytics') }}
                     </flux:sidebar.item>
@@ -77,6 +93,7 @@
                         </flux:sidebar.item>
                     @endcan
 
+                    @if (! auth()->user()?->isEmployee())
                     <flux:sidebar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
                         {{ __('Reports') }}
                     </flux:sidebar.item>
@@ -84,6 +101,7 @@
                     <flux:sidebar.item icon="calculator" :href="route('daily-pnl')" :current="request()->routeIs('daily-pnl')" wire:navigate>
                         {{ __('Daily P&L') }}
                     </flux:sidebar.item>
+                    @endif
 
                     @can('viewAny', App\Models\User::class)
                         <flux:sidebar.item icon="users" :href="route('users')" :current="request()->routeIs('users')" wire:navigate>

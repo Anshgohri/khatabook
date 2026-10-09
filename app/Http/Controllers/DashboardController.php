@@ -25,6 +25,9 @@ class DashboardController extends Controller
         if ($user->isCustomer()) {
             return redirect()->route('my-orders');
         }
+        if ($user->isEmployee()) {
+            return redirect()->route('products');
+        }
 
         $salesToday = (float) $this->scopedSales()->whereDate('date', today())->sum('total_amount');
 

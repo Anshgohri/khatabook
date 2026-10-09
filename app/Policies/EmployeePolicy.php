@@ -12,7 +12,7 @@ class EmployeePolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier() && ! $user->isCustomer();
+        return ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee();
     }
 
     /**
@@ -20,7 +20,7 @@ class EmployeePolicy
      */
     public function view(User $user, Employee $employee): bool
     {
-        return $employee->user_id === $user->id || $user->isManager();
+        return $employee->user_id === $user->id || $employee->employee_user_id === $user->id || $user->isManager() || $user->isAdmin();
     }
 
     /**

@@ -12,7 +12,7 @@ class SupplierPolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier() && ! $user->isCustomer();
+        return ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee();
     }
 
     /**

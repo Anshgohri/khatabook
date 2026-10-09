@@ -12,7 +12,7 @@ class FinancierPolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isCustomer();
+        return ! $user->isCustomer() && ! $user->isEmployee();
     }
 
     /**

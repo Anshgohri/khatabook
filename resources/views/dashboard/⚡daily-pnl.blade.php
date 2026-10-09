@@ -15,6 +15,11 @@ use Livewire\WithPagination;
 new #[Title('Daily P&L')] class extends Component {
     use WithPagination;
 
+    public function mount(): void
+    {
+        $this->authorize('viewAny', Sale::class);
+    }
+
     #[Computed]
     public function totalSales(): float
     {
