@@ -15,6 +15,19 @@ test('product image_url returns correct path for local storage', function () {
     expect($product->image_url)->toContain('/storage/products/sample.jpg');
 });
 
+test('product image_url returns S3 bucket URL when default disk is s3', function () {
+    Config::set('filesystems.default', 's3');
+    Config::set('filesystems.disks.s3.bucket', 'my-bucket');
+    Config::set('filesystems.disks.s3.region', 'us-east-1');
+    Config::set('filesystems.disks.s3.url', 'https://my-bucket.s3.us-east-1.amazonaws.com');
+
+    $product = Product::factory()->create([
+        'image_path' => 'products/s3-image.png',
+    ]);
+
+    expect($product->image_url)->toBe('https://my-bucket.s3.us-east-1.amazonaws.com/products/s3-image.png');
+});
+
 test('product image_url returns correct URL when image_path is full HTTP URL', function () {
     $fullUrl = 'https://example.com/storage/products/custom.png';
 
