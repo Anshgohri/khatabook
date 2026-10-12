@@ -22,7 +22,7 @@ class FinancierFactory extends Factory
             'user_id' => User::factory(),
             'financier_user_id' => null,
             'name' => fake()->company().' Finance',
-            'phone' => fake()->phoneNumber(),
+            'phone' => fake()->numerify('9#########'),
             'payout_type' => fake()->randomElement(['daily', 'monthly']),
             'interest_type' => 'interest_only',
             'default_payment_amount' => fake()->randomElement([500.00, 1000.00, 5000.00]),

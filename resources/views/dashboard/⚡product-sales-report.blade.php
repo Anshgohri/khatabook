@@ -535,7 +535,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                         <th class="px-4 py-3 text-center">{{ __('Units Sold') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Total Sales Revenue') }}</th>
                         <th class="px-4 py-3 text-end">{{ __('Avg Price / Unit') }}</th>
-                        @if (auth()->user()?->isAdmin())
+                        @if (auth()->user()?->isSystemAdmin())
                         <th class="px-4 py-3 text-end">{{ __('Gross Profit') }}</th>
                         <th class="px-4 py-3 text-center">{{ __('Margin') }}</th>
                         @endif

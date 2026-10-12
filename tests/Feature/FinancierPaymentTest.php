@@ -240,3 +240,78 @@ test('financier role can only view products and their own loans', function () {
     // Employees page forbidden for Financier
     $this->get(route('employees'))->assertForbidden();
 });
+
+test('registered users like admins and managers appear in the dropdown list when adding a financier', function () {
+    $admin = User::factory()->create(['name' => 'Admin Boss', 'role_id' => Role::firstOrCreate(['name' => RoleName::Admin->value])->id]);
+    $manager = User::factory()->create(['name' => 'Manager Alex', 'role_id' => Role::firstOrCreate(['name' => RoleName::Manager->value])->id]);
+    $dummyCustomer = User::factory()->create(['name' => 'Dummy Customer', 'email' => 'cust_12345@khatabook.customer']);
+
+    $this->actingAs($admin);
+
+    $component = Livewire::test('pages::financiers');
+    $registeredUsers = $component->get('registeredUsers');
+
+    expect($registeredUsers->pluck('id'))->toContain($admin->id);
+    expect($registeredUsers->pluck('id'))->toContain($manager->id);
+    expect($registeredUsers->pluck('id'))->not->toContain($dummyCustomer->id);
+});
+
+test('selecting an already registered manager auto-fills form and links them as financier without error', function () {
+    $admin = User::factory()->create(['role_id' => Role::firstOrCreate(['name' => RoleName::Admin->value])->id]);
+    $managerRole = Role::firstOrCreate(['name' => RoleName::Manager->value]);
+    $manager = User::factory()->create([
+        'name' => 'Sanjay Manager',
+        'email' => 'sanjay.manager@example.com',
+        'phone' => '9876543210',
+        'role_id' => $managerRole->id,
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test('pages::financiers')
+        ->call('createFinancier')
+        ->set('financier_user_id', (string) $manager->id)
+        ->assertSet('name', 'Sanjay Manager')
+        ->assertSet('email', 'sanjay.manager@example.com')
+        ->assertSet('phone', '9876543210')
+        ->set('payout_type', 'daily')
+        ->set('default_payment_amount', 1500.00)
+        ->set('initial_loan_amount', 50000.00)
+        ->call('saveFinancier')
+        ->assertHasNoErrors();
+
+    $financier = Financier::where('financier_user_id', $manager->id)->first();
+    expect($financier)->not->toBeNull();
+    expect($financier->name)->toBe('Sanjay Manager');
+    expect((float) $financier->outstanding_balance)->toEqual(50000.00);
+
+    // Verify manager account preserved its role and didn't get overwritten
+    $manager->refresh();
+    expect($manager->role->name)->toBe(RoleName::Manager->value);
+    expect($manager->isManager())->toBeTrue();
+});
+
+test('typing an existing registered user email auto-matches and links user without unique email error', function () {
+    $admin = User::factory()->create(['role_id' => Role::firstOrCreate(['name' => RoleName::Admin->value])->id]);
+    $existingStaff = User::factory()->create([
+        'name' => 'Vikram Staff',
+        'email' => 'vikram@company.com',
+        'phone' => '9988776655',
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test('pages::financiers')
+        ->set('name', 'Vikram Financier Services')
+        ->set('email', 'vikram@company.com')
+        ->set('phone', '9988776655')
+        ->set('payout_type', 'monthly')
+        ->set('default_payment_amount', 2500.00)
+        ->call('saveFinancier')
+        ->assertHasNoErrors();
+
+    $financier = Financier::where('name', 'Vikram Financier Services')->first();
+    expect($financier)->not->toBeNull();
+    expect($financier->financier_user_id)->toBe($existingStaff->id);
+});
+

@@ -45,6 +45,7 @@ new #[Title('Financiers')] class extends Component {
     // Financier Modal State
     public bool $showFinancierModal = false;
     public ?int $editingFinancierId = null;
+    public ?string $financier_user_id = null;
     public string $name = '';
     public string $email = '';
     public string $phone = '';
@@ -293,11 +294,74 @@ new #[Title('Financiers')] class extends Component {
             ->paginate(15, ['*'], 'payoutsPage');
     }
 
+    #[Computed]
+    public function registeredUsers()
+    {
+        return User::query()
+            ->with('role')
+            ->where('status', '!=', 'disabled')
+            ->where(function ($query) {
+                $query->whereNull('email')
+                    ->orWhere('email', 'not like', '%@khatabook.customer');
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function selectedUser(): ?User
+    {
+        if (! $this->financier_user_id) {
+            return null;
+        }
+
+        return User::with('role')->find($this->financier_user_id);
+    }
+
+    public function formatRoleName(?string $roleName): string
+    {
+        if (! $roleName) {
+            return __('User');
+        }
+
+        return match ($roleName) {
+            RoleName::SystemAdmin->value, 'System Admin' => __('System Admin'),
+            RoleName::Admin->value, 'Admin' => __('Admin'),
+            RoleName::Manager->value, 'Manager' => __('Manager'),
+            RoleName::Staff->value, 'Staff' => __('Staff'),
+            RoleName::Viewer->value, 'Viewer' => __('Viewer'),
+            RoleName::Employee->value, 'ROLE_EMPLOYEE' => __('Employee'),
+            RoleName::Financier->value, 'ROLE_FINANCIERS' => __('Financier'),
+            RoleName::Customer->value, 'ROLE_CUSTOMER' => __('Customer'),
+            default => str_starts_with($roleName, 'ROLE_') ? ucfirst(strtolower(substr($roleName, 5))) : $roleName,
+        };
+    }
+
+    public function updatedFinancierUserId($value): void
+    {
+        if (! empty($value)) {
+            $user = User::with('role')->find($value);
+            if ($user) {
+                $this->name = $user->name;
+                $this->email = ! str_contains((string) $user->email, '@khatabook.customer') ? (string) $user->email : '';
+                $this->phone = (string) ($user->phone ?? '');
+            }
+        }
+    }
+
+    public function clearUserSelection(): void
+    {
+        $this->financier_user_id = null;
+        $this->name = '';
+        $this->email = '';
+        $this->phone = '';
+    }
+
     public function createFinancier(): void
     {
         $this->authorize('create', Financier::class);
 
-        $this->reset(['editingFinancierId', 'name', 'email', 'phone', 'default_payment_amount', 'initial_loan_amount', 'notes']);
+        $this->reset(['editingFinancierId', 'financier_user_id', 'name', 'email', 'phone', 'default_payment_amount', 'initial_loan_amount', 'notes']);
         $this->payout_type = 'daily';
         $this->interest_type = 'interest_only';
         $this->status = 'active';
@@ -310,6 +374,7 @@ new #[Title('Financiers')] class extends Component {
         $this->authorize('update', $financier);
 
         $this->editingFinancierId = $financier->id;
+        $this->financier_user_id = $financier->financier_user_id ? (string) $financier->financier_user_id : null;
         $this->name = $financier->name;
         $this->email = (string) ($financier->financierUser?->email ?? '');
         $this->phone = (string) $financier->phone;
@@ -328,7 +393,15 @@ new #[Title('Financiers')] class extends Component {
     public function saveFinancier(): void
     {
         $existingFinancier = $this->editingFinancierId ? Financier::with('financierUser')->find($this->editingFinancierId) : null;
-        $financierUserId = $existingFinancier?->financier_user_id;
+        $financierUserId = $this->financier_user_id ? (int) $this->financier_user_id : $existingFinancier?->financier_user_id;
+
+        // Auto-match existing user by email if not explicitly selected from dropdown
+        if (! $financierUserId && ! empty($this->email)) {
+            $userWithEmail = User::where('email', $this->email)->first();
+            if ($userWithEmail) {
+                $financierUserId = $userWithEmail->id;
+            }
+        }
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -350,40 +423,40 @@ new #[Title('Financiers')] class extends Component {
 
         $generatedPassword = null;
 
-        if ($email) {
+        if ($financierUserId) {
+            $linkedUser = User::find($financierUserId);
+            if ($linkedUser) {
+                // If user is exclusively a financier, keep their profile in sync
+                if ($linkedUser->isFinancier()) {
+                    $linkedUser->update([
+                        'name' => $validated['name'],
+                        'email' => $email ?: $linkedUser->email,
+                        'phone' => $validated['phone'] ?? $linkedUser->phone,
+                    ]);
+                } elseif (! empty($validated['phone']) && empty($linkedUser->phone)) {
+                    $linkedUser->update(['phone' => $validated['phone']]);
+                }
+            }
+        } elseif ($email) {
             $financierRole = Role::firstOrCreate(
                 ['name' => RoleName::Financier->value],
                 ['description' => 'Financier account']
             );
 
-            if ($existingFinancier?->financierUser) {
-                $existingFinancier->financierUser->update([
-                    'name' => $validated['name'],
-                    'email' => $email,
-                    'phone' => $validated['phone'] ?? null,
-                ]);
-                $financierUserId = $existingFinancier->financierUser->id;
-            } else {
-                $userWithEmail = User::where('email', $email)->first();
-                if ($userWithEmail) {
-                    $financierUserId = $userWithEmail->id;
-                } else {
-                    $nameParts = array_filter(explode(' ', trim($validated['name'])));
-                    $firstName = strtolower(reset($nameParts) ?: 'financier');
-                    $generatedPassword = $firstName . '@123';
+            $nameParts = array_filter(explode(' ', trim($validated['name'])));
+            $firstName = strtolower(reset($nameParts) ?: 'financier');
+            $generatedPassword = $firstName . '@123';
 
-                    $newUser = User::create([
-                        'name' => $validated['name'],
-                        'email' => $email,
-                        'phone' => $validated['phone'] ?? null,
-                        'password' => Hash::make($generatedPassword),
-                        'role_id' => $financierRole->id,
-                        'email_verified_at' => now(),
-                        'status' => 'active',
-                    ]);
-                    $financierUserId = $newUser->id;
-                }
-            }
+            $newUser = User::create([
+                'name' => $validated['name'],
+                'email' => $email,
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($generatedPassword),
+                'role_id' => $financierRole->id,
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]);
+            $financierUserId = $newUser->id;
         }
 
         if ($this->editingFinancierId) {
@@ -617,9 +690,14 @@ new #[Title('Financiers')] class extends Component {
                         <a href="{{ route('financiers.show', $financier->id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold text-start">
                             {{ $financier->name }}
                         </a>
-                        @if ($financier->financierUser?->email)
-                            <div class="text-xs text-zinc-500 font-normal mt-0.5">
-                                ✉️ {{ $financier->financierUser->email }}
+                        @if ($financier->financierUser)
+                            <div class="text-xs text-zinc-500 font-normal mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                @if ($financier->financierUser->email && !str_contains($financier->financierUser->email, '@khatabook.customer'))
+                                    <span>✉️ {{ $financier->financierUser->email }}</span>
+                                @endif
+                                <flux:badge size="xs" :color="match ($financier->financierUser->role?->name) { 'System Admin' => 'indigo', 'Admin' => 'purple', 'Manager' => 'blue', default => 'zinc' }">
+                                    {{ $this->formatRoleName($financier->financierUser->role?->name) }}
+                                </flux:badge>
                             </div>
                         @endif
                     </flux:table.cell>
@@ -765,11 +843,37 @@ new #[Title('Financiers')] class extends Component {
     @endif
 
     <!-- Add/Edit Financier Modal -->
-    <flux:modal wire:model.self="showFinancierModal" class="md:w-96">
+    <flux:modal wire:model.self="showFinancierModal" class="md:w-[480px]">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ $editingFinancierId ? __('Edit Financier') : __('Add New Financier') }}</flux:heading>
+            <div>
+                <flux:heading size="lg">{{ $editingFinancierId ? __('Edit Financier') : __('Add New Financier') }}</flux:heading>
+                <flux:subheading size="sm">{{ __('Link an already registered system user (Admin, Manager, Staff) or enter new financier details manually.') }}</flux:subheading>
+            </div>
 
             <form wire:submit="saveFinancier" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <flux:select wire:model.live="financier_user_id" :label="__('Registered User (Optional)')" searchable>
+                        <flux:select.option value="">{{ __('-- Enter New Financier / Manual Entry --') }}</flux:select.option>
+                        @foreach ($this->registeredUsers as $u)
+                            <flux:select.option value="{{ $u->id }}">
+                                {{ $u->name }} ({{ $this->formatRoleName($u->role?->name) }}){{ $u->phone ? " • {$u->phone}" : '' }}{{ (!str_contains((string) $u->email, '@khatabook.customer')) && $u->email ? " • {$u->email}" : '' }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    @if ($this->selectedUser)
+                        <div class="flex items-center justify-between p-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/60 text-xs">
+                            <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
+                                <flux:icon name="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <span><strong>{{ __('Linked User:') }}</strong> {{ $this->selectedUser->name }} ({{ $this->formatRoleName($this->selectedUser->role?->name) }})</span>
+                            </div>
+                            <button type="button" wire:click="clearUserSelection" class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 underline font-medium">
+                                {{ __('Clear / New') }}
+                            </button>
+                        </div>
+                    @endif
+                </div>
+
                 <flux:input wire:model="name" :label="__('Financier / Company Name')" placeholder="e.g. Mahindra Finance" required />
                 <flux:input type="email" wire:model="email" :label="__('Financier Email (Dashboard Login)')" placeholder="e.g. mahindra@example.com" />
                 <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
