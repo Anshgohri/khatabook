@@ -149,7 +149,7 @@ new #[Title('Users')] class extends Component {
         $this->editingId = $target->id;
         $this->edit_name = $target->name;
         $this->edit_email = $target->email ?? '';
-        $this->edit_phone = $target->phone ?? '';
+        $this->edit_phone = preg_replace('/[^0-9]/', '', (string) ($target->phone ?? ''));
         $this->edit_address = $target->address ?? '';
         $this->edit_city = $target->city ?? '';
         $this->edit_role_id = (string) $target->role_id;
@@ -163,12 +163,14 @@ new #[Title('Users')] class extends Component {
 
         $this->authorize('update', $target);
 
-        if ($this->edit_email === '' && ! $this->showEditForm) {
-            $this->edit_email = (string) ($target->email ?? '');
-        }
+        if (! $this->showEditForm) {
+            if ($this->edit_email === '') {
+                $this->edit_email = (string) ($target->email ?? '');
+            }
 
-        if ($this->edit_phone === '' && ! $this->showEditForm && ! empty($target->phone)) {
-            $this->edit_phone = (string) $target->phone;
+            if ($this->edit_phone === '') {
+                $this->edit_phone = preg_replace('/[^0-9]/', '', (string) ($target->phone ?? ''));
+            }
         }
 
         $validated = $this->validate([
@@ -200,15 +202,15 @@ new #[Title('Users')] class extends Component {
             return;
         }
 
-        $newEmail = (string) $validated['edit_email'];
-        $oldEmail = (string) ($target->email ?? '');
+        $newEmail = trim((string) $validated['edit_email']);
+        $oldEmail = trim((string) ($target->email ?? ''));
         if (strcasecmp($newEmail, $oldEmail) !== 0 && ! $isSystemAdmin) {
             $this->addError('edit_email', __('Only System Admins are allowed to update a user\'s email address.'));
             return;
         }
 
-        $newPhone = (string) ($validated['edit_phone'] ?? '');
-        $oldPhone = (string) ($target->phone ?? '');
+        $newPhone = preg_replace('/[^0-9]/', '', (string) ($validated['edit_phone'] ?? ''));
+        $oldPhone = preg_replace('/[^0-9]/', '', (string) ($target->phone ?? ''));
         if ($newPhone !== $oldPhone && ! $isSystemAdmin) {
             $this->addError('edit_phone', __('Only System Admins are allowed to update a user\'s contact number.'));
             return;
