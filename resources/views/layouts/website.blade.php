@@ -180,8 +180,11 @@
         <!-- Global Responsive Login & Register Modal -->
         <div class="form-login-register" id="global-auth-modal" role="dialog" aria-modal="true" aria-labelledby="modal-auth-heading">
             <div class="box-form-login">
-                <button type="button" class="close-modal-btn active-login" aria-label="Close dialog">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close-modal-btn" aria-label="Close dialog">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                 </button>
                 <div class="box-content">
                     <div class="form-login active">
@@ -611,27 +614,47 @@
             position: absolute !important;
             top: 14px !important;
             right: 14px !important;
-            width: 34px !important;
-            height: 34px !important;
+            width: 32px !important;
+            height: 32px !important;
             border-radius: 50% !important;
             background: #f1f5f9 !important;
             border: none !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            font-size: 24px !important;
-            line-height: 1 !important;
             color: #64748b !important;
             cursor: pointer !important;
             z-index: 20 !important;
             transition: all 0.2s ease !important;
             padding: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .form-login-register .box-form-login .close-modal-btn::before,
+        .form-login-register .box-form-login .close-modal-btn::after,
+        .form-login-register .box-form-login .close-modal-btn:hover::before,
+        .form-login-register .box-form-login .close-modal-btn:hover::after {
+            display: none !important;
+            content: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
         }
 
         .form-login-register .box-form-login .close-modal-btn:hover {
             background: #e2e8f0 !important;
             color: #0f172a !important;
-            transform: scale(1.08);
+            transform: scale(1.08) !important;
+        }
+
+        .form-login-register .box-form-login .close-modal-btn svg {
+            width: 15px !important;
+            height: 15px !important;
+            stroke: currentColor !important;
+            display: block !important;
+            pointer-events: none !important;
         }
 
         /* Modal Typography */
@@ -1025,7 +1048,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             // Modal event handling (delegated for dynamically created mobile navigation links)
-            $(document).on('click', '.active-login', function(e) {
+            $(document).on('click', '.active-login, .close-modal-btn', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
