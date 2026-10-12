@@ -45,11 +45,21 @@
 											<div class="my-account-content tab-content">
 												<div class="tab-pane fade show active" id="dashboard" role="tabpanel">
 													<div class="my-account-dashboard">
+														@auth
 														<p>
-															Hello <strong>Rosie</strong> (not <strong>Rosie</strong>? <a href="/login">Log out</a>)
+															Hello <strong>{{ auth()->user()->name }}</strong> (not <strong>{{ auth()->user()->name }}</strong>? 
+															<form method="POST" action="{{ route('logout') }}" class="d-inline">
+																@csrf
+																<button type="submit" class="btn btn-link p-0 m-0 align-baseline" style="font-size: inherit; text-decoration: underline;">Log out</button>
+															</form>)
 														</p>
+														@else
 														<p>
-															From your account dashboard you can view your <a href="/my-account">recent orders</a>, manage your <a href="/my-account">shipping and billing addresses</a>, and <a href="/my-account">edit your password and account details</a>.
+															Hello <strong>Guest</strong>. You are currently not signed in. <a href="javascript:void(0);" class="active-login" style="text-decoration: underline; font-weight: 600;">Sign in to your account</a>
+														</p>
+														@endauth
+														<p>
+															From your account dashboard you can view your <a href="/shop">products catalog</a>, contact support, and manage your account details.
 														</p>
 													</div>
 												</div>

@@ -25,10 +25,10 @@
 						<div class="col-xl-12 col-lg-12 col-md-12 col-12">
 							<form method="GET" action="{{ route('shop') }}" class="mb-4" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
 								<div class="row align-items-center" style="gap: 10px 0;">
-									<div class="col-lg-4 col-md-5 col-12">
+									<div class="col-lg-4 col-md-5 col-12 mb-2 mb-md-0">
 										<input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search by name or keyword..." style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1;">
 									</div>
-									<div class="col-lg-3 col-md-4 col-6">
+									<div class="col-lg-3 col-md-3 col-6 mb-2 mb-md-0">
 										<select name="category" class="form-control" onchange="this.form.submit()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;">
 											<option value="">All Categories</option>
 											@foreach($categories as $cat)
@@ -37,7 +37,7 @@
 											<option value="uncategorized" {{ request('category') == 'uncategorized' ? 'selected' : '' }}>Uncategorized</option>
 										</select>
 									</div>
-									<div class="col-lg-3 col-md-3 col-6">
+									<div class="col-lg-3 col-md-4 col-6 mb-2 mb-md-0">
 										<select name="sort" class="form-control" onchange="this.form.submit()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;">
 											<option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Sort by Latest</option>
 											<option value="price_low_high" {{ request('sort') == 'price_low_high' ? 'selected' : '' }}>Price: Low to High</option>
@@ -90,7 +90,7 @@
 									<div class="products-list grid">
 										<div class="row">
 											@forelse($products as $product)
-											<div class="col-xl-3 col-lg-4 col-md-4 col-sm-6">
+											<div class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3">
 												<div class="products-entry clearfix product-wapper">
 													<div class="products-thumb">
 														<div class="product-thumb-hover">

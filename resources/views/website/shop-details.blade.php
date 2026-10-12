@@ -52,6 +52,24 @@
 										<span class="posted-in">Category: <a href="{{ route('shop') }}" rel="tag">{{ $product->category->name }}</a></span>
 										@endif
 									</div>
+									<div class="product-actions mt-4 d-flex flex-wrap" style="gap: 12px;">
+										@php
+											$rawPhone = $storeDetails['storePhonesArray'][0] ?? ($storeDetails['storePhone'] ?? '');
+											$cleanPhone = preg_replace('/[^0-9]/', '', (string)$rawPhone);
+											if (strlen($cleanPhone) === 10) {
+												$cleanPhone = '91' . $cleanPhone;
+											}
+											$whatsappMsg = urlencode("Hello, I am interested in ordering " . $product->name . " (Rs. " . number_format($product->unit_price, 2) . "). Please share details.");
+										@endphp
+										@if($cleanPhone)
+										<a href="https://wa.me/{{ $cleanPhone }}?text={{ $whatsappMsg }}" target="_blank" rel="noopener noreferrer" class="button" style="background: #25D366; color: #fff; border-radius: 8px; font-weight: 600; padding: 12px 22px; display: inline-flex; align-items: center; gap: 8px; border: none; text-decoration: none;">
+											<i class="fa fa-whatsapp" style="font-size: 18px;"></i> Inquire on WhatsApp
+										</a>
+										@endif
+										<a href="/contact" class="button" style="background: #0f172a; color: #fff; border-radius: 8px; font-weight: 600; padding: 12px 22px; display: inline-flex; align-items: center; gap: 8px; border: none; text-decoration: none;">
+											<i class="fa fa-phone" style="font-size: 16px;"></i> Contact Us
+										</a>
+									</div>
 								</div>
 							</div>
 						</div>

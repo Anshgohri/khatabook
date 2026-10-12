@@ -37,15 +37,30 @@
             <div class="header-mobile">
                 <div class="section-padding">
                     <div class="section-container">
-                        <div class="row">
-                            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-3 col-3 header-left">
+                        <div class="row align-items-center">
+                            <div class="col-3 col-sm-3 header-left">
                                 <div class="navbar-header">
-                                    <button type="button" id="show-megamenu" class="navbar-toggle"></button>
+                                    <button type="button" id="show-megamenu" class="navbar-toggle" aria-label="Toggle navigation"></button>
                                 </div>
                             </div>
-                            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-6 header-center">
+                            <div class="col-6 col-sm-6 header-center text-center">
                                 <div class="site-logo">
-                                    <x-app-logo href="/" textColor="#FFFFFF" height="52px" />
+                                    <x-app-logo href="/" textColor="#FFFFFF" height="44px" />
+                                </div>
+                            </div>
+                            <div class="col-3 col-sm-3 header-right text-right">
+                                <div class="header-page-link">
+                                    <div class="login-header">
+                                        @auth
+                                        <a href="{{ route('dashboard') }}" class="mobile-user-link" title="Dashboard">
+                                            <i class="wpb-icon-user"></i>
+                                        </a>
+                                        @else
+                                        <a href="javascript:void(0);" class="active-login mobile-user-link" title="Login / Register">
+                                            <i class="wpb-icon-user"></i>
+                                        </a>
+                                        @endauth
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -53,15 +68,44 @@
                 </div>
 
                 <div class="header-mobile-fixed">
-                    <!-- Shop -->
-                    <div class="shop-page">
-                        <a href="/shop"><i class="wpb-icon-shop"></i></a>
+                    <!-- Home -->
+                    <div class="home-page {{ request()->is('/') ? 'active' : '' }}">
+                        <a href="/">
+                            <i class="fa fa-home"></i>
+                            <span>Home</span>
+                        </a>
                     </div>
 
-                    <!-- Login -->
+                    <!-- Shop -->
+                    <div class="shop-page {{ request()->is('shop*') || request()->is('catalog*') ? 'active' : '' }}">
+                        <a href="/shop">
+                            <i class="wpb-icon-shop"></i>
+                            <span>Shop</span>
+                        </a>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="contact-page {{ request()->is('contact*') ? 'active' : '' }}">
+                        <a href="/contact">
+                            <i class="fa fa-phone"></i>
+                            <span>Contact</span>
+                        </a>
+                    </div>
+
+                    <!-- Login / Account -->
                     <div class="my-account">
                         <div class="login-header">
-                            <a href="/my-account"><i class="wpb-icon-user"></i></a>
+                            @auth
+                            <a href="{{ route('dashboard') }}">
+                                <i class="wpb-icon-user"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            @else
+                            <a href="javascript:void(0);" class="active-login">
+                                <i class="wpb-icon-user"></i>
+                                <span>Login</span>
+                            </a>
+                            @endauth
                         </div>
                     </div>
                 </div>
@@ -71,7 +115,7 @@
                 <div class="header-wrapper">
                     <div class="section-padding">
                         <div class="section-container p-l-r">
-                            <div class="row">
+                            <div class="row align-items-center">
                                 <div class="col-xl-3 col-lg-2 col-md-12 col-sm-12 col-12 header-left">
                                     <div class="site-logo">
                                         <x-app-logo href="/" textColor="#FFFFFF" height="52px" />
@@ -82,21 +126,27 @@
                                     <div class="site-navigation">
                                         <nav id="main-navigation">
                                             <ul id="menu-main-menu" class="menu">
-                                                <li class="level-0 menu-item current-menu-item">
+                                                <li class="level-0 menu-item {{ request()->is('/') ? 'current-menu-item' : '' }}">
                                                     <a href="/"><span class="menu-item-text">Home</span></a>
                                                 </li>
-                                                <li class="level-0 menu-item">
+                                                <li class="level-0 menu-item {{ request()->is('about*') ? 'current-menu-item' : '' }}">
                                                     <a href="/about"><span class="menu-item-text">About</span></a>
                                                 </li>
-                                                <li class="level-0 menu-item">
+                                                <li class="level-0 menu-item {{ request()->is('shop*') || request()->is('catalog*') ? 'current-menu-item' : '' }}">
                                                     <a href="/shop"><span class="menu-item-text">Shop</span></a>
                                                 </li>
-                                                <li class="level-0 menu-item">
+                                                <li class="level-0 menu-item {{ request()->is('contact*') ? 'current-menu-item' : '' }}">
                                                     <a href="/contact"><span class="menu-item-text">Contact</span></a>
                                                 </li>
+                                                @auth
                                                 <li class="level-0 menu-item">
-                                                    <a href="/my-account"><span class="menu-item-text">My Account</span></a>
+                                                    <a href="{{ route('dashboard') }}"><span class="menu-item-text">Dashboard</span></a>
                                                 </li>
+                                                @else
+                                                <li class="level-0 menu-item">
+                                                    <a href="javascript:void(0);" class="active-login"><span class="menu-item-text">Login / Register</span></a>
+                                                </li>
+                                                @endauth
                                             </ul>
                                         </nav>
                                     </div>
@@ -107,77 +157,14 @@
                                         <!-- Login / Dashboard -->
                                         <div class="login-header">
                                             @auth
-                                            <a href="{{ route('dashboard') }}">
+                                            <a href="{{ route('dashboard') }}" class="desktop-login-link">
                                                 <span class="menu-item-text">Go to Dashboard</span>
                                             </a>
                                             @else
-                                            <a class="active-login" href="/">Login</a>
-                                            <div class="form-login-register">
-                                                <div class="box-form-login">
-                                                    <div class="active-login"></div>
-                                                    <div class="box-content">
-                                                        <div class="form-login active">
-                                                            <form id="login_ajax" method="POST" action="{{ route('login.store') }}" class="login">
-                                                                @csrf
-                                                                <h2>Sign in</h2>
-                                                                <div class="ajax-status-message status" style="display: none;">
-                                                                    <span class="ajax-status-icon"></span>
-                                                                    <span class="ajax-status-text"></span>
-                                                                </div>
-                                                                <div class="content">
-                                                                    <div class="username">
-                                                                        <input type="email" required="required" class="input-text" name="email" id="email" placeholder="Your Email">
-                                                                    </div>
-                                                                    <div class="password">
-                                                                        <input class="input-text" required="required" type="password" name="password" id="password" placeholder="Password">
-                                                                    </div>
-                                                                    <div class="rememberme-lost">
-                                                                        <div class="rememberme">
-                                                                            <input name="rememberme" type="checkbox" id="rememberme" value="forever">
-                                                                            <label for="rememberme" class="inline">Remember me</label>
-                                                                        </div>
-                                                                        <div class="lost_password">
-                                                                            <a href="{{ route('password.request') }}">Lost your password?</a>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="button-login">
-                                                                        <input type="submit" class="button" name="login" value="Login">
-                                                                    </div>
-                                                                    <div class="button-next-reregister">Create An Account</div>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                        <div class="form-register">
-                                                            <form id="register_ajax" method="POST" action="{{ route('register.store') }}" class="register">
-                                                                @csrf
-                                                                <h2>REGISTER</h2>
-                                                                <div class="ajax-status-message register-status" style="display: none;">
-                                                                    <span class="ajax-status-icon"></span>
-                                                                    <span class="ajax-status-text"></span>
-                                                                </div>
-                                                                <div class="content">
-                                                                    <div class="name">
-                                                                        <input type="text" class="input-text" placeholder="Name" name="name" id="reg_name" required>
-                                                                    </div>
-                                                                    <div class="email">
-                                                                        <input type="email" class="input-text" placeholder="Email" name="email" id="reg_email" required>
-                                                                    </div>
-                                                                    <div class="password">
-                                                                        <input type="password" class="input-text" placeholder="Password" name="password" id="reg_password" required>
-                                                                    </div>
-                                                                    <div class="password-confirm">
-                                                                        <input type="password" class="input-text" placeholder="Confirm Password" name="password_confirmation" id="reg_password_confirmation" required>
-                                                                    </div>
-                                                                    <div class="button-register">
-                                                                        <input type="submit" class="button" name="register" value="Register">
-                                                                    </div>
-                                                                    <div class="button-next-login">Already has an account</div>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <a class="active-login desktop-login-link" href="javascript:void(0);">
+                                                <i class="wpb-icon-user mr-1"></i>
+                                                <span class="menu-item-text">Login / Register</span>
+                                            </a>
                                             @endauth
                                         </div>
                                     </div>
@@ -188,6 +175,92 @@
                 </div>
             </div>
         </header>
+
+        @guest
+        <!-- Global Responsive Login & Register Modal -->
+        <div class="form-login-register" id="global-auth-modal" role="dialog" aria-modal="true" aria-labelledby="modal-auth-heading">
+            <div class="box-form-login">
+                <button type="button" class="close-modal-btn active-login" aria-label="Close dialog">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div class="box-content">
+                    <div class="form-login active">
+                        <form id="login_ajax" method="POST" action="{{ route('login.store') }}" class="login">
+                            @csrf
+                            <h2 id="modal-auth-heading">Sign In</h2>
+                            <p class="modal-subtitle">Welcome back! Please enter your details.</p>
+                            <div class="ajax-status-message status" style="display: none;">
+                                <span class="ajax-status-icon"></span>
+                                <span class="ajax-status-text"></span>
+                            </div>
+                            <div class="content">
+                                <div class="username form-group">
+                                    <label for="modal_email">Email Address <span class="required">*</span></label>
+                                    <input type="email" required="required" class="input-text" name="email" id="modal_email" placeholder="name@example.com" autocomplete="username">
+                                </div>
+                                <div class="password form-group">
+                                    <label for="modal_password">Password <span class="required">*</span></label>
+                                    <input class="input-text" required="required" type="password" name="password" id="modal_password" placeholder="••••••••" autocomplete="current-password">
+                                </div>
+                                <div class="rememberme-lost">
+                                    <div class="rememberme">
+                                        <input name="rememberme" type="checkbox" id="modal_rememberme" value="forever">
+                                        <label for="modal_rememberme" class="inline">Remember me</label>
+                                    </div>
+                                    <div class="lost_password">
+                                        <a href="{{ route('password.request') }}">Forgot password?</a>
+                                    </div>
+                                </div>
+                                <div class="button-login">
+                                    <input type="submit" class="button btn-block" name="login" value="Sign In">
+                                </div>
+                                <div class="switch-form text-center">
+                                    <span>Don't have an account?</span>
+                                    <a href="javascript:void(0);" class="button-next-reregister">Create an account</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="form-register">
+                        <form id="register_ajax" method="POST" action="{{ route('register.store') }}" class="register">
+                            @csrf
+                            <h2>Create Account</h2>
+                            <p class="modal-subtitle">Register to manage your orders with ease.</p>
+                            <div class="ajax-status-message register-status" style="display: none;">
+                                <span class="ajax-status-icon"></span>
+                                <span class="ajax-status-text"></span>
+                            </div>
+                            <div class="content">
+                                <div class="name form-group">
+                                    <label for="modal_reg_name">Full Name <span class="required">*</span></label>
+                                    <input type="text" class="input-text" placeholder="Your Full Name" name="name" id="modal_reg_name" required autocomplete="name">
+                                </div>
+                                <div class="email form-group">
+                                    <label for="modal_reg_email">Email Address <span class="required">*</span></label>
+                                    <input type="email" class="input-text" placeholder="name@example.com" name="email" id="modal_reg_email" required autocomplete="email">
+                                </div>
+                                <div class="password form-group">
+                                    <label for="modal_reg_password">Password <span class="required">*</span></label>
+                                    <input type="password" class="input-text" placeholder="At least 8 characters" name="password" id="modal_reg_password" required autocomplete="new-password">
+                                </div>
+                                <div class="password-confirm form-group">
+                                    <label for="modal_reg_password_confirmation">Confirm Password <span class="required">*</span></label>
+                                    <input type="password" class="input-text" placeholder="Re-enter password" name="password_confirmation" id="modal_reg_password_confirmation" required autocomplete="new-password">
+                                </div>
+                                <div class="button-register">
+                                    <input type="submit" class="button btn-block" name="register" value="Register Now">
+                                </div>
+                                <div class="switch-form text-center">
+                                    <span>Already have an account?</span>
+                                    <a href="javascript:void(0);" class="button-next-login">Sign in</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endguest
 
         <div id="site-main" class="site-main">
             @yield('content')
@@ -328,13 +401,495 @@
     <script src="{{ asset('website/assets/js/app.js') }}"></script>
 
     <style>
+        /* ========================================================
+           GLOBAL RESPONSIVE RESET & CONTAINER ADJUSTMENTS
+           ======================================================== */
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+        }
+
+        body.modal-open {
+            overflow: hidden !important;
+        }
+
+        img, video, iframe {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Prevent header logo distortion on mobile */
+        .site-header .site-logo img,
+        .site-header .site-logo svg {
+            max-height: 44px;
+            width: auto;
+            max-width: 100%;
+            display: inline-block;
+        }
+
+        /* Top Mobile Header bar */
+        .site-header .header-mobile .section-container > .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mobile-user-link {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff !important;
+            font-size: 18px;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+        }
+
+        .site-header.header-v1:not(.color-white) .mobile-user-link {
+            background: rgba(15, 23, 42, 0.08);
+            color: #0f172a !important;
+        }
+
+        .mobile-user-link:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Desktop Login Link */
+        .desktop-login-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            color: inherit;
+            text-decoration: none !important;
+            transition: opacity 0.2s;
+        }
+
+        .desktop-login-link:hover {
+            opacity: 0.85;
+        }
+
+        /* ========================================================
+           FIXED BOTTOM NAVIGATION (Mobile App Experience)
+           ======================================================== */
+        @media (max-width: 991px) {
+            body {
+                padding-bottom: 64px !important;
+            }
+
+            .site-header .header-mobile .header-mobile-fixed {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                height: 60px !important;
+                background: #ffffff !important;
+                border-top: 1px solid #e2e8f0 !important;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-around !important;
+                z-index: 99999 !important;
+                padding: 0 4px !important;
+                margin: 0 !important;
+            }
+
+            .header-mobile-fixed > div {
+                flex: 1 !important;
+                text-align: center !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .header-mobile-fixed a {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                color: #64748b !important;
+                text-decoration: none !important;
+                font-size: 11px !important;
+                font-weight: 500 !important;
+                padding: 6px 2px !important;
+                line-height: 1.2 !important;
+                transition: color 0.15s ease !important;
+            }
+
+            .header-mobile-fixed a i {
+                font-size: 18px !important;
+                line-height: 1 !important;
+                margin-bottom: 3px !important;
+                display: block !important;
+            }
+
+            .header-mobile-fixed > div.active a,
+            .header-mobile-fixed a:hover {
+                color: #0f172a !important;
+                font-weight: 600 !important;
+            }
+
+            .back-top {
+                bottom: 74px !important;
+            }
+        }
+
+        /* ========================================================
+           GLOBAL RESPONSIVE LOGIN / REGISTER MODAL
+           ======================================================== */
+        .form-login-register {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: rgba(15, 23, 42, 0.75) !important;
+            backdrop-filter: blur(6px) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+            z-index: 9999999 !important;
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 16px !important;
+            box-sizing: border-box !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        .form-login-register.active {
+            display: flex !important;
+        }
+
+        .form-login-register .box-form-login {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            margin: auto !important;
+            width: 100% !important;
+            max-width: 440px !important;
+            max-height: calc(100vh - 32px) !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            background: #ffffff !important;
+            border-radius: 16px !important;
+            padding: 30px 24px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Modal Close Button */
+        .form-login-register .box-form-login .close-modal-btn {
+            position: absolute !important;
+            top: 14px !important;
+            right: 14px !important;
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 50% !important;
+            background: #f1f5f9 !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 24px !important;
+            line-height: 1 !important;
+            color: #64748b !important;
+            cursor: pointer !important;
+            z-index: 20 !important;
+            transition: all 0.2s ease !important;
+            padding: 0 !important;
+        }
+
+        .form-login-register .box-form-login .close-modal-btn:hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+            transform: scale(1.08);
+        }
+
+        /* Modal Typography */
+        .form-login-register .box-form-login h2 {
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            margin: 0 0 4px 0 !important;
+            text-transform: none !important;
+            letter-spacing: -0.3px;
+        }
+
+        .form-login-register .box-form-login .modal-subtitle {
+            font-size: 13.5px !important;
+            color: #64748b !important;
+            margin-bottom: 20px !important;
+            line-height: 1.4 !important;
+        }
+
+        /* Form Controls */
+        .form-login-register .box-form-login .form-group {
+            margin-bottom: 15px !important;
+        }
+
+        .form-login-register .box-form-login label {
+            display: block !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #334155 !important;
+            margin-bottom: 5px !important;
+            text-align: left !important;
+        }
+
+        .form-login-register .box-form-login input.input-text {
+            width: 100% !important;
+            height: 44px !important;
+            padding: 0 14px !important;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            font-size: 14px !important;
+            background: #f8fafc !important;
+            color: #0f172a !important;
+            box-sizing: border-box !important;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .form-login-register .box-form-login input.input-text:focus {
+            border-color: #0f172a !important;
+            background: #ffffff !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        /* Remember Me & Lost Password */
+        .form-login-register .box-form-login .rememberme-lost {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            margin: 14px 0 18px !important;
+            font-size: 13px !important;
+        }
+
+        .form-login-register .box-form-login .rememberme {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin: 0 !important;
+        }
+
+        .form-login-register .box-form-login .rememberme input {
+            width: 16px !important;
+            height: 16px !important;
+            margin: 0 !important;
+            accent-color: #0f172a !important;
+            cursor: pointer !important;
+        }
+
+        .form-login-register .box-form-login .rememberme label {
+            margin: 0 !important;
+            cursor: pointer !important;
+            font-weight: 500 !important;
+            color: #475569 !important;
+        }
+
+        .form-login-register .box-form-login .lost_password a {
+            color: #2563eb !important;
+            text-decoration: none !important;
+            font-weight: 500 !important;
+        }
+
+        .form-login-register .box-form-login .lost_password a:hover {
+            text-decoration: underline !important;
+        }
+
+        /* Submit Buttons */
+        .form-login-register .box-form-login input.button[type="submit"] {
+            width: 100% !important;
+            height: 46px !important;
+            line-height: 46px !important;
+            background: #0f172a !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            font-size: 14.5px !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            border: none !important;
+            cursor: pointer !important;
+            transition: background 0.2s, transform 0.1s !important;
+        }
+
+        .form-login-register .box-form-login input.button[type="submit"]:hover {
+            background: #1e293b !important;
+        }
+
+        /* Switch Login/Register footer */
+        .form-login-register .box-form-login .switch-form {
+            margin-top: 16px !important;
+            font-size: 13px !important;
+            color: #64748b !important;
+        }
+
+        .form-login-register .box-form-login .switch-form a {
+            color: #0f172a !important;
+            font-weight: 600 !important;
+            text-decoration: underline !important;
+            margin-left: 5px !important;
+            cursor: pointer !important;
+        }
+
+        /* Active/Inactive tabs in modal */
+        .form-login-register .box-content > div:not(.active) {
+            display: none !important;
+        }
+
+        .form-login-register .box-content > div.active {
+            display: block !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .form-login-register .box-form-login .box-content {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        /* ========================================================
+           RESPONSIVE POLISH ACROSS ALL PAGES
+           ======================================================== */
+        @media (max-width: 767px) {
+            .section-padding {
+                padding-top: 30px !important;
+                padding-bottom: 30px !important;
+            }
+
+            .section-container.p-l-r {
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+            }
+
+            .page-title {
+                padding: 30px 0 !important;
+            }
+
+            .page-title .text-title-heading {
+                font-size: 26px !important;
+                line-height: 1.2 !important;
+            }
+
+            /* Shop listing topbar */
+            .products-topbar {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+
+            .products-topbar .products-topbar-right {
+                width: 100% !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+
+            /* Product cards grid (2 columns on mobile) */
+            .products-list.grid .row > [class*="col-"] {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+                padding-left: 7px !important;
+                padding-right: 7px !important;
+            }
+
+            .products-entry {
+                margin-bottom: 18px !important;
+            }
+
+            .products-content .product-title {
+                font-size: 13.5px !important;
+                line-height: 1.35 !important;
+            }
+
+            .products-content .price {
+                font-size: 14px !important;
+            }
+
+            /* Cart Page responsive */
+            .shop-cart .bottom-cart {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                align-items: stretch !important;
+            }
+
+            .shop-cart .bottom-cart .coupon {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+
+            .shop-cart .bottom-cart .coupon input {
+                width: 100% !important;
+            }
+
+            .shop-cart .bottom-cart .coupon button,
+            .shop-cart .bottom-cart button[name="update_cart"] {
+                width: 100% !important;
+            }
+
+            .shop-cart .cart-items .product-thumbnail img {
+                max-width: 65px !important;
+                height: auto !important;
+            }
+
+            /* Product detail image */
+            .shop-details .product-images .img-item img {
+                max-height: 320px !important;
+            }
+
+            .shop-details .product-info {
+                margin-top: 20px !important;
+            }
+
+            .shop-details .product-info h1.title {
+                font-size: 22px !important;
+            }
+
+            /* Dedicated Login / Register page */
+            .page-login-register .box-form-login {
+                padding: 24px 18px !important;
+                margin-bottom: 25px !important;
+            }
+
+            .page-login-register .box-form-login .box-content {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+
+        @media (max-width: 359px) {
+            .products-list.grid .row > [class*="col-"] {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        /* Status Messages */
         .ajax-status-message {
             display: flex;
             align-items: center;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
+            margin-bottom: 16px;
+            font-size: 13.5px;
             font-weight: 500;
             line-height: 1.4;
             text-align: left;
@@ -359,48 +914,86 @@
         }
 
         .ajax-status-icon {
-            margin-right: 12px;
+            margin-right: 10px;
             display: flex;
             align-items: center;
             flex-shrink: 0;
         }
 
         .ajax-status-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
 
         @keyframes ajax-spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
         .ajax-spin-icon {
             animation: ajax-spin 1s linear infinite;
         }
 
-        /* Remove scrollbar from login modal */
-        .form-login-register .box-form-login .box-content {
-            max-height: none !important;
-            overflow: visible !important;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .form-login-register .box-form-login .box-content::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Ensure SweetAlert shows above everything */
         .swal2-container {
-            z-index: 999999 !important;
+            z-index: 99999999 !important;
         }
     </style>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Modal event handling (delegated for dynamically created mobile navigation links)
+            $(document).on('click', '.active-login', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Close mobile drawer if open
+                if ($('.site-mobile-navigation').length) {
+                    $('.site-mobile-navigation').removeClass('active');
+                }
+                $('#remove-megamenu').trigger('click');
+
+                const $modal = $('.form-login-register');
+                if ($(this).hasClass('close-modal-btn') || $(this).closest('.box-form-login').length > 0 && !$(this).hasClass('desktop-login-link')) {
+                    $modal.removeClass('active');
+                    $('body').removeClass('modal-open');
+                } else {
+                    $modal.addClass('active');
+                    $('body').addClass('modal-open');
+                    // Reset to login form tab by default
+                    $('.form-login').addClass('active');
+                    $('.form-register').removeClass('active');
+                }
+            });
+
+            // Close modal when clicking outside modal box
+            $(document).on('click', '.form-login-register', function(e) {
+                if (!$(e.target).closest('.box-form-login').length) {
+                    $(this).removeClass('active');
+                    $('body').removeClass('modal-open');
+                }
+            });
+
+            // Close on Escape key
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' || e.keyCode === 27) {
+                    $('.form-login-register').removeClass('active');
+                    $('body').removeClass('modal-open');
+                }
+            });
+
+            // Switch between Login and Register tabs
+            $(document).on('click', '.button-next-reregister', function(e) {
+                e.preventDefault();
+                $('.form-login').removeClass('active');
+                $('.form-register').addClass('active');
+            });
+
+            $(document).on('click', '.button-next-login', function(e) {
+                e.preventDefault();
+                $('.form-register').removeClass('active');
+                $('.form-login').addClass('active');
+            });
+
             const errorIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`;
             const successIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>`;
             const processingIcon = `<svg class="ajax-spin-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;

@@ -31,6 +31,12 @@
 							</a>
 						</div>
 						@else
+						@if (\App\Models\User::doesntExist())
+						<div class="alert alert-info text-center mb-4 p-3" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+							<p class="mb-2 text-primary font-weight-bold">System setup required</p>
+							<a href="{{ route('setup') }}" class="button" style="display: inline-block;">{{ __('Set up admin account') }}</a>
+						</div>
+						@endif
 						<div class="row">
 							<div class="col-lg-6 col-md-6 col-sm-12 sm-m-b-50">
 								<div class="box-form-login">
