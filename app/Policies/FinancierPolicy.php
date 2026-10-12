@@ -12,7 +12,7 @@ class FinancierPolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isCustomer() && ! $user->isEmployee();
+        return ! $user->isCustomer() && ! $user->isEmployee() && ! $user->isSupplier();
     }
 
     /**
@@ -28,14 +28,18 @@ class FinancierPolicy
      */
     public function create(User $user): bool
     {
-        return ! $user->isViewer();
+        return ! $user->isViewer() && ! $user->isFinancier() && ! $user->isSupplier();
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Financier $financier): bool
+    public function update(User $user, ?Financier $financier = null): bool
     {
+        if ($financier === null) {
+            return ! $user->isViewer() && ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee() && ! $user->isSupplier();
+        }
+
         return $financier->user_id === $user->id || $financier->financier_user_id === $user->id || $user->isManager();
     }
 

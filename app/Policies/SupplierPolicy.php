@@ -12,7 +12,7 @@ class SupplierPolicy
      */
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee();
+        return ! $user->isCustomer() && ! $user->isEmployee();
     }
 
     /**
@@ -20,7 +20,7 @@ class SupplierPolicy
      */
     public function view(User $user, Supplier $supplier): bool
     {
-        return $supplier->user_id === $user->id || $user->isManager();
+        return $supplier->user_id === $user->id || $supplier->supplier_user_id === $user->id || $user->isManager();
     }
 
     /**
@@ -28,15 +28,19 @@ class SupplierPolicy
      */
     public function create(User $user): bool
     {
-        return ! $user->isViewer();
+        return ! $user->isViewer() && ! $user->isSupplier();
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Supplier $supplier): bool
+    public function update(User $user, ?Supplier $supplier = null): bool
     {
-        return $supplier->user_id === $user->id || $user->isManager();
+        if ($supplier === null) {
+            return ! $user->isViewer() && ! $user->isCustomer() && ! $user->isEmployee() && ! $user->isSupplier();
+        }
+
+        return $supplier->user_id === $user->id || $supplier->supplier_user_id === $user->id || $user->isManager();
     }
 
     /**

@@ -1,9 +1,13 @@
 <?php
 
+use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\Sale;
+use App\Models\User;
 use App\Services\ExcelSyncService;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -191,6 +195,91 @@ new #[Title('Sales')] class extends Component {
         Flux::toast(variant: 'success', text: __('Sale deleted.'));
     }
 
+    public function syncSaleCustomer(int $saleId): void
+    {
+        $sale = Sale::with('customer')->findOrFail($saleId);
+        $this->authorize('update', $sale);
+
+        if ($sale->customer_id && $sale->customer) {
+            Flux::toast(variant: 'info', text: __('Customer is already linked to user account ":name".', ['name' => $sale->customer->name]));
+            return;
+        }
+
+        $customerRole = Role::firstOrCreate(
+            ['name' => RoleName::Customer->value],
+            ['description' => 'Customer account for tracking customer sales and details.']
+        );
+
+        $existingCustomer = User::whereHas('role', fn ($q) => $q->where('name', RoleName::Customer->value))
+            ->where('name', $sale->customer_name)
+            ->first();
+
+        if (! $existingCustomer) {
+            $nameParts = array_filter(explode(' ', trim($sale->customer_name)));
+            $firstName = strtolower(reset($nameParts) ?: 'customer');
+            $generatedPassword = $firstName . '@123';
+            $generatedEmail = 'cust_' . $sale->id . '_' . time() . '@khatabook.customer';
+
+            $existingCustomer = User::create([
+                'name' => $sale->customer_name,
+                'email' => $generatedEmail,
+                'password' => Hash::make($generatedPassword),
+                'role_id' => $customerRole->id,
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]);
+        }
+
+        $sale->update(['customer_id' => $existingCustomer->id]);
+        unset($this->sales);
+        Flux::toast(variant: 'success', text: __('Customer ":name" linked successfully to sale.', ['name' => $existingCustomer->name]));
+    }
+
+    public function syncAllSalesCustomers(): void
+    {
+        $this->authorize('update', Sale::class);
+
+        $unlinkedSales = Sale::whereNull('customer_id')->get();
+        if ($unlinkedSales->isEmpty()) {
+            Flux::toast(variant: 'info', text: __('All sales are already linked to customer accounts.'));
+            return;
+        }
+
+        $customerRole = Role::firstOrCreate(
+            ['name' => RoleName::Customer->value],
+            ['description' => 'Customer account for tracking customer sales and details.']
+        );
+
+        $count = 0;
+        foreach ($unlinkedSales as $sale) {
+            $existingCustomer = User::whereHas('role', fn ($q) => $q->where('name', RoleName::Customer->value))
+                ->where('name', $sale->customer_name)
+                ->first();
+
+            if (! $existingCustomer) {
+                $nameParts = array_filter(explode(' ', trim($sale->customer_name)));
+                $firstName = strtolower(reset($nameParts) ?: 'customer');
+                $generatedPassword = $firstName . '@123';
+                $generatedEmail = 'cust_' . $sale->id . '_' . time() . '_' . rand(100, 999) . '@khatabook.customer';
+
+                $existingCustomer = User::create([
+                    'name' => $sale->customer_name,
+                    'email' => $generatedEmail,
+                    'password' => Hash::make($generatedPassword),
+                    'role_id' => $customerRole->id,
+                    'email_verified_at' => now(),
+                    'status' => 'active',
+                ]);
+            }
+
+            $sale->update(['customer_id' => $existingCustomer->id]);
+            $count++;
+        }
+
+        unset($this->sales);
+        Flux::toast(variant: 'success', text: __(':count sale(s) successfully linked to customer accounts.', ['count' => $count]));
+    }
+
     #[Computed]
     public function lastExcelSync(): ?string
     {
@@ -203,6 +292,8 @@ new #[Title('Sales')] class extends Component {
         <flux:heading size="xl">{{ __('Sales') }}</flux:heading>
 
         <div class="flex items-center gap-2 flex-wrap">
+            <flux:button variant="subtle" icon="arrow-path" wire:click="syncAllSalesCustomers" title="{{ __('Link unlinked sales to customer accounts') }}">{{ __('Sync Customers') }}</flux:button>
+
             {{-- Excel Export / Backup Button --}}
             <a
                 href="{{ route('sales.export.excel') }}"
@@ -304,10 +395,19 @@ new #[Title('Sales')] class extends Component {
                     <flux:table.cell>
                         <div class="flex flex-col">
                             <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $sale->customer_name }}</span>
-                            @if ($sale->customer?->phone || $sale->customer?->city)
-                            <span class="text-xs text-zinc-500">
-                                {{ implode(' • ', array_filter([$sale->customer?->phone, $sale->customer?->city])) }}
-                            </span>
+                            @if ($sale->customer)
+                                @if ($sale->customer->phone || $sale->customer->city)
+                                <span class="text-xs text-zinc-500">
+                                    {{ implode(' • ', array_filter([$sale->customer->phone, $sale->customer->city])) }}
+                                </span>
+                                @endif
+                            @else
+                                <div class="text-xs font-normal mt-1 flex items-center gap-1.5">
+                                    <flux:badge size="xs" color="amber">{{ __('No customer account') }}</flux:badge>
+                                    <flux:button size="xs" variant="subtle" icon="arrow-path" wire:click="syncSaleCustomer({{ $sale->id }})">
+                                        {{ __('Sync Customer') }}
+                                    </flux:button>
+                                </div>
                             @endif
                         </div>
                     </flux:table.cell>

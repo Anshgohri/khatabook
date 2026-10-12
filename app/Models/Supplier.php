@@ -14,8 +14,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $user_id
+ * @property int|null $supplier_user_id
  * @property string $name
+ * @property string|null $email
  * @property string|null $phone
  * @property string|null $location
  * @property string|null $material_supplied
@@ -25,9 +26,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property User $user
+ * @property User|null $supplierUser
  * @property Collection<int, SupplierPayment> $payments
  */
-#[Fillable(['user_id', 'name', 'phone', 'location', 'material_supplied', 'outstanding_balance', 'status', 'notes'])]
+#[Fillable(['user_id', 'supplier_user_id', 'name', 'email', 'phone', 'location', 'material_supplied', 'outstanding_balance', 'status', 'notes'])]
 class Supplier extends Model
 {
     /** @use HasFactory<SupplierFactory> */
@@ -49,6 +51,14 @@ class Supplier extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function supplierUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'supplier_user_id');
     }
 
     /**

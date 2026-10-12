@@ -64,6 +64,7 @@ new #[Title('Users')] class extends Component {
             \App\Enums\RoleName::Employee->value => 'Employee account for viewing payments and advance details.',
             \App\Enums\RoleName::Financier->value => 'Financier account for tracking daily/monthly payout details.',
             \App\Enums\RoleName::Customer->value => 'Customer account for tracking customer sales and details.',
+            \App\Enums\RoleName::Supplier->value => 'Supplier account for raw material vendors and purchases.',
         ];
 
         foreach (\App\Enums\RoleName::cases() as $role) {
@@ -293,7 +294,7 @@ new #[Title('Users')] class extends Component {
                         </div>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge :color="match ($targetUser->role?->name) { 'System Admin' => 'indigo', 'Admin' => 'purple', 'Manager' => 'blue', 'ROLE_CUSTOMER' => 'emerald', default => 'zinc' }" size="sm">
+                        <flux:badge :color="match ($targetUser->role?->name) { 'System Admin' => 'indigo', 'Admin' => 'purple', 'Manager' => 'blue', 'ROLE_CUSTOMER' => 'emerald', 'ROLE_FINANCIERS' => 'amber', 'ROLE_SUPPLIERS' => 'cyan', default => 'zinc' }" size="sm">
                             {{ $targetUser->role?->name ?? __('None') }}
                         </flux:badge>
                     </flux:table.cell>

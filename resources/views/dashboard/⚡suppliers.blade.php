@@ -1,10 +1,15 @@
 <?php
 
+use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -30,7 +35,9 @@ new #[Title('Suppliers')] class extends Component {
     // Supplier Modal State
     public bool $showSupplierModal = false;
     public ?int $editingSupplierId = null;
+    public ?string $supplier_user_id = null;
     public string $name = '';
+    public string $email = '';
     public string $phone = '';
     public string $location = '';
     public string $material_supplied = '';
@@ -138,14 +145,81 @@ new #[Title('Suppliers')] class extends Component {
             ->with(['payments' => function ($q) {
                 $q->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
                   ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo));
-            }])
+            }, 'supplierUser.role'])
             ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
-            ->when($this->search, fn ($query) => $query->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
-                ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
-                ->orWhere('material_supplied', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
-                ->orWhere('location', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
+            ->when($this->search, fn ($query) => $query->where(function ($sub) {
+                $sub->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('location', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhere('material_supplied', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                    ->orWhereHas('supplierUser', fn ($q) => $q->where('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"));
+            }))
             ->latest()
             ->paginate(15);
+    }
+
+    #[Computed]
+    public function registeredUsers()
+    {
+        return User::query()
+            ->with('role')
+            ->where('status', '!=', 'disabled')
+            ->where(function ($query) {
+                $query->whereNull('email')
+                    ->orWhere('email', 'not like', '%@khatabook.customer');
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function selectedUser(): ?User
+    {
+        if (! $this->supplier_user_id) {
+            return null;
+        }
+
+        return User::with('role')->find($this->supplier_user_id);
+    }
+
+    public function formatRoleName(?string $roleName): string
+    {
+        if (! $roleName) {
+            return __('User');
+        }
+
+        return match ($roleName) {
+            RoleName::SystemAdmin->value, 'System Admin' => __('System Admin'),
+            RoleName::Admin->value, 'Admin' => __('Admin'),
+            RoleName::Manager->value, 'Manager' => __('Manager'),
+            RoleName::Staff->value, 'Staff' => __('Staff'),
+            RoleName::Viewer->value, 'Viewer' => __('Viewer'),
+            RoleName::Employee->value, 'ROLE_EMPLOYEE' => __('Employee'),
+            RoleName::Financier->value, 'ROLE_FINANCIERS' => __('Financier'),
+            RoleName::Customer->value, 'ROLE_CUSTOMER' => __('Customer'),
+            RoleName::Supplier->value, 'ROLE_SUPPLIERS', 'ROLE_SUPPLIER' => __('Supplier'),
+            default => str_starts_with($roleName, 'ROLE_') ? ucfirst(strtolower(substr($roleName, 5))) : $roleName,
+        };
+    }
+
+    public function updatedSupplierUserId($value): void
+    {
+        if (! empty($value)) {
+            $user = User::with('role')->find($value);
+            if ($user) {
+                $this->name = $user->name;
+                $this->email = ! str_contains((string) $user->email, '@khatabook.customer') ? (string) $user->email : '';
+                $this->phone = (string) ($user->phone ?? '');
+            }
+        }
+    }
+
+    public function clearUserSelection(): void
+    {
+        $this->supplier_user_id = null;
+        $this->name = '';
+        $this->email = '';
+        $this->phone = '';
     }
 
     #[Computed]
@@ -167,18 +241,20 @@ new #[Title('Suppliers')] class extends Component {
     {
         $this->authorize('create', Supplier::class);
 
-        $this->reset(['editingSupplierId', 'name', 'phone', 'location', 'material_supplied', 'initial_balance', 'notes']);
+        $this->reset(['editingSupplierId', 'supplier_user_id', 'name', 'email', 'phone', 'location', 'material_supplied', 'initial_balance', 'notes']);
         $this->status = 'active';
         $this->showSupplierModal = true;
     }
 
     public function editSupplier(int $id): void
     {
-        $supplier = Supplier::findOrFail($id);
+        $supplier = Supplier::with('supplierUser')->findOrFail($id);
         $this->authorize('update', $supplier);
 
         $this->editingSupplierId = $supplier->id;
+        $this->supplier_user_id = $supplier->supplier_user_id ? (string) $supplier->supplier_user_id : null;
         $this->name = $supplier->name;
+        $this->email = (string) ($supplier->supplierUser?->email ?? $supplier->email ?? '');
         $this->phone = (string) $supplier->phone;
         $this->location = (string) $supplier->location;
         $this->material_supplied = (string) $supplier->material_supplied;
@@ -190,8 +266,20 @@ new #[Title('Suppliers')] class extends Component {
 
     public function saveSupplier(): void
     {
+        $existingSupplier = $this->editingSupplierId ? Supplier::with('supplierUser')->find($this->editingSupplierId) : null;
+        $supplierUserId = $this->supplier_user_id ? (int) $this->supplier_user_id : $existingSupplier?->supplier_user_id;
+
+        // Auto-match existing user by email if not explicitly selected from dropdown
+        if (! $supplierUserId && ! empty($this->email)) {
+            $userWithEmail = User::where('email', $this->email)->first();
+            if ($userWithEmail) {
+                $supplierUserId = $userWithEmail->id;
+            }
+        }
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($supplierUserId)],
             'phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50'],
             'location' => ['nullable', 'string', 'max:255'],
             'material_supplied' => ['nullable', 'string', 'max:255'],
@@ -203,17 +291,63 @@ new #[Title('Suppliers')] class extends Component {
         ]);
 
         $initialBalance = (float) ($validated['initial_balance'] ?? 0.0);
-        unset($validated['initial_balance']);
+        $email = $validated['email'] ?? null;
+        unset($validated['initial_balance'], $validated['email']);
+
+        $generatedPassword = null;
+
+        if ($supplierUserId) {
+            $linkedUser = User::find($supplierUserId);
+            if ($linkedUser) {
+                // If user is exclusively a supplier, keep their profile in sync
+                if ($linkedUser->isSupplier()) {
+                    $linkedUser->update([
+                        'name' => $validated['name'],
+                        'email' => $email ?: $linkedUser->email,
+                        'phone' => $validated['phone'] ?? $linkedUser->phone,
+                    ]);
+                } elseif (! empty($validated['phone']) && empty($linkedUser->phone)) {
+                    $linkedUser->update(['phone' => $validated['phone']]);
+                }
+            }
+        } else {
+            $supplierRole = Role::firstOrCreate(
+                ['name' => RoleName::Supplier->value],
+                ['description' => 'Supplier account']
+            );
+
+            $nameParts = array_filter(explode(' ', trim($validated['name'])));
+            $firstName = strtolower(reset($nameParts) ?: 'supplier');
+            $generatedPassword = $firstName . '@123';
+            $generatedEmail = $email ?: 'sup_'.time().'_'.rand(1000, 9999).'@khatabook.supplier';
+
+            $newUser = User::create([
+                'name' => $validated['name'],
+                'email' => $generatedEmail,
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($generatedPassword),
+                'role_id' => $supplierRole->id,
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]);
+            $supplierUserId = $newUser->id;
+        }
 
         if ($this->editingSupplierId) {
             $supplier = Supplier::findOrFail($this->editingSupplierId);
             $this->authorize('update', $supplier);
-            $supplier->update($validated);
+            $supplier->update([
+                ...$validated,
+                'supplier_user_id' => $supplierUserId,
+                'email' => $email,
+            ]);
         } else {
             $this->authorize('create', Supplier::class);
             $supplier = Supplier::create([
                 ...$validated,
                 'user_id' => Auth::id(),
+                'supplier_user_id' => $supplierUserId,
+                'email' => $email,
                 'outstanding_balance' => 0.00,
             ]);
 
@@ -232,7 +366,123 @@ new #[Title('Suppliers')] class extends Component {
 
         $this->showSupplierModal = false;
         unset($this->suppliers);
-        Flux::toast(variant: 'success', text: __('Supplier saved successfully.'));
+
+        if ($generatedPassword) {
+            Flux::toast(variant: 'success', text: __('Supplier saved. User created with password: :password', ['password' => $generatedPassword]));
+        } else {
+            Flux::toast(variant: 'success', text: __('Supplier saved successfully.'));
+        }
+    }
+
+    public function syncSupplierUser(int $supplierId): void
+    {
+        $this->authorize('update', Supplier::class);
+
+        $supplier = Supplier::findOrFail($supplierId);
+        if ($supplier->supplier_user_id && $supplier->supplierUser) {
+            Flux::toast(variant: 'info', text: __('Supplier is already linked with user account ":name".', ['name' => $supplier->supplierUser->name]));
+            return;
+        }
+
+        $supplierRole = Role::firstOrCreate(
+            ['name' => RoleName::Supplier->value],
+            ['description' => 'Supplier account']
+        );
+
+        $existingUser = null;
+        if (! empty($supplier->phone)) {
+            $existingUser = User::where('phone', $supplier->phone)->first();
+        }
+        if (! $existingUser && ! empty($supplier->email)) {
+            $existingUser = User::where('email', $supplier->email)->first();
+        }
+
+        if (! $existingUser) {
+            $nameParts = array_filter(explode(' ', trim($supplier->name)));
+            $firstName = strtolower(reset($nameParts) ?: 'supplier');
+            $generatedPassword = $firstName . '@123';
+            $generatedEmail = $supplier->email ?: 'sup_' . $supplier->id . '_' . time() . '@khatabook.supplier';
+
+            $existingUser = User::create([
+                'name' => $supplier->name,
+                'email' => $generatedEmail,
+                'phone' => $supplier->phone,
+                'password' => Hash::make($generatedPassword),
+                'role_id' => $supplierRole->id,
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]);
+        }
+
+        $supplier->update([
+            'supplier_user_id' => $existingUser->id,
+            'email' => $existingUser->email && ! str_contains($existingUser->email, '@khatabook.supplier') ? $existingUser->email : $supplier->email,
+        ]);
+        unset($this->suppliers);
+        Flux::toast(variant: 'success', text: __('Supplier linked with user account ":name" successfully.', ['name' => $existingUser->name]));
+    }
+
+    public function syncAllSuppliersWithUsers(): void
+    {
+        $this->authorize('update', Supplier::class);
+
+        $unlinked = Supplier::whereNull('supplier_user_id')->get();
+        if ($unlinked->isEmpty()) {
+            Flux::toast(variant: 'info', text: __('All suppliers are already linked with user accounts.'));
+            return;
+        }
+
+        $supplierRole = Role::firstOrCreate(
+            ['name' => RoleName::Supplier->value],
+            ['description' => 'Supplier account']
+        );
+
+        $count = 0;
+        foreach ($unlinked as $supplier) {
+            $existingUser = null;
+            if (! empty($supplier->phone)) {
+                $existingUser = User::where('phone', $supplier->phone)->first();
+            }
+            if (! $existingUser && ! empty($supplier->email)) {
+                $existingUser = User::where('email', $supplier->email)->first();
+            }
+
+            if (! $existingUser) {
+                $nameParts = array_filter(explode(' ', trim($supplier->name)));
+                $firstName = strtolower(reset($nameParts) ?: 'supplier');
+                $generatedPassword = $firstName . '@123';
+                $generatedEmail = $supplier->email ?: 'sup_' . $supplier->id . '_' . time() . '_' . rand(100, 999) . '@khatabook.supplier';
+
+                $existingUser = User::create([
+                    'name' => $supplier->name,
+                    'email' => $generatedEmail,
+                    'phone' => $supplier->phone,
+                    'password' => Hash::make($generatedPassword),
+                    'role_id' => $supplierRole->id,
+                    'email_verified_at' => now(),
+                    'status' => 'active',
+                ]);
+            }
+
+            $supplier->update([
+                'supplier_user_id' => $existingUser->id,
+                'email' => $existingUser->email && ! str_contains($existingUser->email, '@khatabook.supplier') ? $existingUser->email : $supplier->email,
+            ]);
+            $count++;
+        }
+
+        unset($this->suppliers);
+        Flux::toast(variant: 'success', text: __(':count supplier(s) successfully synced with user accounts.', ['count' => $count]));
+    }
+
+    public function deleteSupplier(int $id): void
+    {
+        $supplier = Supplier::findOrFail($id);
+        $this->authorize('delete', $supplier);
+
+        $supplier->delete();
+        unset($this->suppliers);
+        Flux::toast(variant: 'success', text: __('Supplier deleted successfully.'));
     }
 
     public function openPaymentModal(int $supplierId, string $defaultType = 'raw_material_purchase'): void
@@ -306,9 +556,12 @@ new #[Title('Suppliers')] class extends Component {
             <flux:text class="mt-1">{{ __('Manage raw material vendors (e.g. Raja Assam for Baans, Suraj for Fatta), purchases, and balance ledgers.') }}</flux:text>
         </div>
 
-        @can('create', App\Models\Supplier::class)
-        <flux:button variant="primary" icon="plus" wire:click="createSupplier">{{ __('Add Supplier') }}</flux:button>
-        @endcan
+        <div class="flex items-center gap-2">
+            <flux:button variant="subtle" icon="arrow-path" wire:click="syncAllSuppliersWithUsers" title="{{ __('Link unlinked suppliers to user accounts') }}">{{ __('Sync with Users') }}</flux:button>
+            @can('create', App\Models\Supplier::class)
+            <flux:button variant="primary" icon="plus" wire:click="createSupplier">{{ __('Add Supplier') }}</flux:button>
+            @endcan
+        </div>
     </div>
 
     <!-- Summary Stat Cards -->
@@ -370,6 +623,23 @@ new #[Title('Suppliers')] class extends Component {
                         <a href="{{ route('suppliers.show', $supplier->id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold text-start">
                             {{ $supplier->name }}
                         </a>
+                        @if ($supplier->supplierUser)
+                            <div class="text-xs text-zinc-500 font-normal mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                @if ($supplier->supplierUser->email && !str_contains($supplier->supplierUser->email, '@khatabook.supplier'))
+                                    <span>✉️ {{ $supplier->supplierUser->email }}</span>
+                                @endif
+                                <flux:badge size="xs" :color="match ($supplier->supplierUser->role?->name) { 'System Admin' => 'indigo', 'Admin' => 'purple', 'Manager' => 'blue', default => 'zinc' }">
+                                    {{ $this->formatRoleName($supplier->supplierUser->role?->name) }}
+                                </flux:badge>
+                            </div>
+                        @else
+                            <div class="text-xs font-normal mt-1 flex items-center gap-1.5">
+                                <flux:badge size="xs" color="amber">{{ __('No user linked') }}</flux:badge>
+                                <flux:button size="xs" variant="subtle" icon="arrow-path" wire:click="syncSupplierUser({{ $supplier->id }})">
+                                    {{ __('Sync User') }}
+                                </flux:button>
+                            </div>
+                        @endif
                     </flux:table.cell>
                     <flux:table.cell>{{ $supplier->phone ?? '-' }}</flux:table.cell>
                     <flux:table.cell>{{ $supplier->location ?? '-' }}</flux:table.cell>
@@ -420,12 +690,39 @@ new #[Title('Suppliers')] class extends Component {
     </div>
 
     <!-- Add/Edit Supplier Modal -->
-    <flux:modal wire:model.self="showSupplierModal" class="md:w-96">
+    <flux:modal wire:model.self="showSupplierModal" class="md:w-[480px]">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ $editingSupplierId ? __('Edit Supplier') : __('Add New Supplier') }}</flux:heading>
+            <div>
+                <flux:heading size="lg">{{ $editingSupplierId ? __('Edit Supplier') : __('Add New Supplier') }}</flux:heading>
+                <flux:subheading size="sm">{{ __('Link an already registered system user (Admin, Manager, Staff) or enter new supplier details manually.') }}</flux:subheading>
+            </div>
 
             <form wire:submit="saveSupplier" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <flux:select wire:model.live="supplier_user_id" :label="__('Registered User (Optional)')" searchable>
+                        <flux:select.option value="">{{ __('-- Enter New Supplier / Manual Entry --') }}</flux:select.option>
+                        @foreach ($this->registeredUsers as $u)
+                            <flux:select.option value="{{ $u->id }}">
+                                {{ $u->name }} ({{ $this->formatRoleName($u->role?->name) }}){{ $u->phone ? " • {$u->phone}" : '' }}{{ (!str_contains((string) $u->email, '@khatabook.customer')) && $u->email ? " • {$u->email}" : '' }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    @if ($this->selectedUser)
+                        <div class="flex items-center justify-between p-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/60 text-xs">
+                            <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
+                                <flux:icon name="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <span><strong>{{ __('Linked User:') }}</strong> {{ $this->selectedUser->name }} ({{ $this->formatRoleName($this->selectedUser->role?->name) }})</span>
+                            </div>
+                            <button type="button" wire:click="clearUserSelection" class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 underline font-medium">
+                                {{ __('Clear / New') }}
+                            </button>
+                        </div>
+                    @endif
+                </div>
+
                 <flux:input wire:model="name" :label="__('Supplier Name')" placeholder="e.g. Raja Assam" required />
+                <flux:input type="email" wire:model="email" :label="__('Supplier Email (Dashboard Login)')" placeholder="e.g. raja@example.com" />
                 <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
                 <flux:input wire:model="location" :label="__('Location / City')" placeholder="e.g. Assam" />
                 <flux:input wire:model="material_supplied" :label="__('Material Supplied')" placeholder="e.g. Baans (Bamboo), Fatta" />

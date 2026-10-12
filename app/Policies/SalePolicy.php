@@ -9,7 +9,7 @@ class SalePolicy
 {
     public function viewAny(User $user): bool
     {
-        return ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee();
+        return ! $user->isFinancier() && ! $user->isCustomer() && ! $user->isEmployee() && ! $user->isSupplier();
     }
 
     /**
@@ -39,8 +39,12 @@ class SalePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Sale $sale): bool
+    public function update(User $user, ?Sale $sale = null): bool
     {
+        if ($sale === null) {
+            return $user->isManager() || $user->isStaff();
+        }
+
         if ($user->isManager()) {
             return true;
         }

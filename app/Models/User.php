@@ -126,4 +126,17 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return $this->role?->name === RoleName::Customer->value;
     }
+
+    public function isSupplier(): bool
+    {
+        return $this->role?->name === RoleName::Supplier->value || $this->role?->name === 'ROLE_SUPPLIERS' || $this->role?->name === 'ROLE_SUPPLIER';
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Supplier, $this>
+     */
+    public function supplierRecords(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Supplier::class, 'supplier_user_id');
+    }
 }

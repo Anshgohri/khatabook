@@ -265,9 +265,14 @@ new #[Title('Sales Form')] class extends Component {
             return;
         }
 
-        // Auto-match existing customer by phone or email if not explicitly selected by dropdown
+        // Auto-match existing customer by phone or email (or name if no phone/email provided)
         if (! $customerUser) {
             $customerUser = $existingPhoneUser ?? $existingEmailUser;
+            if (! $customerUser && empty($validated['customer_phone']) && empty($validated['customer_email'])) {
+                $customerUser = User::whereHas('role', fn ($q) => $q->where('name', RoleName::Customer->value))
+                    ->where('name', $validated['customer_name'])
+                    ->first();
+            }
         } else {
             // If customer_id was selected, verify it doesn't conflict with another user's phone or email
             if ($existingPhoneUser && $customerUser->id !== $existingPhoneUser->id) {

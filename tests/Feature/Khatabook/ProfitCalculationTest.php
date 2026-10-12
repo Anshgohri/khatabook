@@ -73,8 +73,8 @@ test('profit calculation handles multi-item sales and discounts correctly', func
     expect($sale->profit())->toBe(570.0);
 });
 
-test('sales page computes daily profit and period profit for admin', function () {
-    $admin = User::factory()->role(RoleName::Admin)->create();
+test('sales page computes daily profit and period profit for system admin', function () {
+    $admin = User::factory()->role(RoleName::SystemAdmin)->create();
 
     $prod = Product::factory()->create(['name' => 'Table', 'unit_price' => 1000, 'cost_price' => 600]);
 

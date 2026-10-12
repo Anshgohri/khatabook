@@ -333,6 +333,7 @@ new #[Title('Financiers')] class extends Component {
             RoleName::Employee->value, 'ROLE_EMPLOYEE' => __('Employee'),
             RoleName::Financier->value, 'ROLE_FINANCIERS' => __('Financier'),
             RoleName::Customer->value, 'ROLE_CUSTOMER' => __('Customer'),
+            RoleName::Supplier->value, 'ROLE_SUPPLIERS', 'ROLE_SUPPLIER' => __('Supplier'),
             default => str_starts_with($roleName, 'ROLE_') ? ucfirst(strtolower(substr($roleName, 5))) : $roleName,
         };
     }
@@ -437,7 +438,7 @@ new #[Title('Financiers')] class extends Component {
                     $linkedUser->update(['phone' => $validated['phone']]);
                 }
             }
-        } elseif ($email) {
+        } else {
             $financierRole = Role::firstOrCreate(
                 ['name' => RoleName::Financier->value],
                 ['description' => 'Financier account']
@@ -446,10 +447,11 @@ new #[Title('Financiers')] class extends Component {
             $nameParts = array_filter(explode(' ', trim($validated['name'])));
             $firstName = strtolower(reset($nameParts) ?: 'financier');
             $generatedPassword = $firstName . '@123';
+            $generatedEmail = $email ?: 'fin_'.time().'_'.rand(1000, 9999).'@khatabook.financier';
 
             $newUser = User::create([
                 'name' => $validated['name'],
-                'email' => $email,
+                'email' => $generatedEmail,
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($generatedPassword),
                 'role_id' => $financierRole->id,
@@ -605,6 +607,95 @@ new #[Title('Financiers')] class extends Component {
         Flux::toast(variant: 'success', text: __('Payment deleted successfully.'));
     }
 
+    public function syncFinancierUser(int $financierId): void
+    {
+        $this->authorize('update', Financier::class);
+
+        $financier = Financier::findOrFail($financierId);
+        if ($financier->financier_user_id && $financier->financierUser) {
+            Flux::toast(variant: 'info', text: __('Financier is already linked with user account ":name".', ['name' => $financier->financierUser->name]));
+            return;
+        }
+
+        $financierRole = Role::firstOrCreate(
+            ['name' => RoleName::Financier->value],
+            ['description' => 'Financier account']
+        );
+
+        $existingUser = null;
+        if (! empty($financier->phone)) {
+            $existingUser = User::where('phone', $financier->phone)->first();
+        }
+
+        if (! $existingUser) {
+            $nameParts = array_filter(explode(' ', trim($financier->name)));
+            $firstName = strtolower(reset($nameParts) ?: 'financier');
+            $generatedPassword = $firstName . '@123';
+            $generatedEmail = 'fin_' . $financier->id . '_' . time() . '@khatabook.financier';
+
+            $existingUser = User::create([
+                'name' => $financier->name,
+                'email' => $generatedEmail,
+                'phone' => $financier->phone,
+                'password' => Hash::make($generatedPassword),
+                'role_id' => $financierRole->id,
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]);
+        }
+
+        $financier->update(['financier_user_id' => $existingUser->id]);
+        unset($this->financiers);
+        Flux::toast(variant: 'success', text: __('Financier linked with user account ":name" successfully.', ['name' => $existingUser->name]));
+    }
+
+    public function syncAllFinanciersWithUsers(): void
+    {
+        $this->authorize('update', Financier::class);
+
+        $unlinked = Financier::whereNull('financier_user_id')->get();
+        if ($unlinked->isEmpty()) {
+            Flux::toast(variant: 'info', text: __('All financiers are already linked with user accounts.'));
+            return;
+        }
+
+        $financierRole = Role::firstOrCreate(
+            ['name' => RoleName::Financier->value],
+            ['description' => 'Financier account']
+        );
+
+        $count = 0;
+        foreach ($unlinked as $financier) {
+            $existingUser = null;
+            if (! empty($financier->phone)) {
+                $existingUser = User::where('phone', $financier->phone)->first();
+            }
+
+            if (! $existingUser) {
+                $nameParts = array_filter(explode(' ', trim($financier->name)));
+                $firstName = strtolower(reset($nameParts) ?: 'financier');
+                $generatedPassword = $firstName . '@123';
+                $generatedEmail = 'fin_' . $financier->id . '_' . time() . '_' . rand(100, 999) . '@khatabook.financier';
+
+                $existingUser = User::create([
+                    'name' => $financier->name,
+                    'email' => $generatedEmail,
+                    'phone' => $financier->phone,
+                    'password' => Hash::make($generatedPassword),
+                    'role_id' => $financierRole->id,
+                    'email_verified_at' => now(),
+                    'status' => 'active',
+                ]);
+            }
+
+            $financier->update(['financier_user_id' => $existingUser->id]);
+            $count++;
+        }
+
+        unset($this->financiers);
+        Flux::toast(variant: 'success', text: __(':count financier(s) successfully synced with user accounts.', ['count' => $count]));
+    }
+
     // Ledger Navigation
     public function viewLedger(int $financierId)
     {
@@ -619,9 +710,12 @@ new #[Title('Financiers')] class extends Component {
             <flux:text class="mt-1">{{ __('Manage daily & monthly financier payouts, loan amounts, and repayments.') }}</flux:text>
         </div>
 
-        @can('create', App\Models\Financier::class)
-        <flux:button variant="primary" icon="plus" wire:click="createFinancier">{{ __('Add Financier') }}</flux:button>
-        @endcan
+        <div class="flex items-center gap-2">
+            <flux:button variant="subtle" icon="arrow-path" wire:click="syncAllFinanciersWithUsers" title="{{ __('Link unlinked financiers to user accounts') }}">{{ __('Sync with Users') }}</flux:button>
+            @can('create', App\Models\Financier::class)
+            <flux:button variant="primary" icon="plus" wire:click="createFinancier">{{ __('Add Financier') }}</flux:button>
+            @endcan
+        </div>
     </div>
 
     <!-- Summary Stat Cards -->
@@ -698,6 +792,13 @@ new #[Title('Financiers')] class extends Component {
                                 <flux:badge size="xs" :color="match ($financier->financierUser->role?->name) { 'System Admin' => 'indigo', 'Admin' => 'purple', 'Manager' => 'blue', default => 'zinc' }">
                                     {{ $this->formatRoleName($financier->financierUser->role?->name) }}
                                 </flux:badge>
+                            </div>
+                        @else
+                            <div class="text-xs font-normal mt-1 flex items-center gap-1.5">
+                                <flux:badge size="xs" color="amber">{{ __('No user linked') }}</flux:badge>
+                                <flux:button size="xs" variant="subtle" icon="arrow-path" wire:click="syncFinancierUser({{ $financier->id }})">
+                                    {{ __('Sync User') }}
+                                </flux:button>
                             </div>
                         @endif
                     </flux:table.cell>
