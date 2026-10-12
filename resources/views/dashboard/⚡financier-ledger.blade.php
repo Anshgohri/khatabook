@@ -132,6 +132,8 @@ new #[Title('Financier Ledger')] class extends Component {
 
     public function removeExistingBill(): void
     {
+        $this->authorize('update', $this->financier);
+
         if ($this->editingPaymentId) {
             $payment = FinancierPayment::where('financier_id', $this->financier->id)->find($this->editingPaymentId);
             if ($payment && $payment->bill_path) {
@@ -253,9 +255,11 @@ new #[Title('Financier Ledger')] class extends Component {
                 <flux:badge color="zinc" size="lg">₹0.00 Outstanding</flux:badge>
             @endif
 
+            @can('update', $this->financier)
             <flux:button variant="primary" icon="plus" wire:click="openPaymentModal">
                 {{ __('Log Payment / Loan') }}
             </flux:button>
+            @endcan
         </div>
     </div>
 
@@ -303,11 +307,13 @@ new #[Title('Financier Ledger')] class extends Component {
             <flux:select.option value="interest_payment">{{ __('Interest Payment') }}</flux:select.option>
         </flux:select>
 
+        @can('update', $this->financier)
         <div class="flex items-center gap-2 sm:justify-end">
             <flux:button size="sm" variant="subtle" icon="banknotes" wire:click="openPaymentModal">
                 {{ __('Pay Installment') }}
             </flux:button>
         </div>
+        @endcan
     </div>
 
     <!-- Paginated Ledger Table -->

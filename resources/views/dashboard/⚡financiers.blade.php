@@ -564,14 +564,17 @@ new #[Title('Financiers')] class extends Component {
     public function removeExistingBill(): void
     {
         if ($this->editingPaymentId) {
-            $payment = FinancierPayment::find($this->editingPaymentId);
-            if ($payment && $payment->bill_path) {
-                if (Storage::exists($payment->bill_path)) {
-                    Storage::delete($payment->bill_path);
+            $payment = FinancierPayment::with('financier')->find($this->editingPaymentId);
+            if ($payment) {
+                $this->authorize('update', $payment->financier);
+                if ($payment->bill_path) {
+                    if (Storage::exists($payment->bill_path)) {
+                        Storage::delete($payment->bill_path);
+                    }
+                    $payment->update(['bill_path' => null]);
+                    $this->existing_bill_path = null;
+                    Flux::toast(variant: 'success', text: __('Receipt removed.'));
                 }
-                $payment->update(['bill_path' => null]);
-                $this->existing_bill_path = null;
-                Flux::toast(variant: 'success', text: __('Receipt removed.'));
             }
         }
     }
@@ -774,7 +777,9 @@ new #[Title('Financiers')] class extends Component {
         </div>
 
         <div class="flex items-center gap-2">
+            @can('update', App\Models\Financier::class)
             <flux:button variant="subtle" icon="arrow-path" wire:click="syncAllFinanciersWithUsers" title="{{ __('Link unlinked financiers to user accounts') }}">{{ __('Sync with Users') }}</flux:button>
+            @endcan
             @can('create', App\Models\Financier::class)
             <flux:button variant="primary" icon="plus" wire:click="createFinancier">{{ __('Add Financier') }}</flux:button>
             @endcan
@@ -897,11 +902,15 @@ new #[Title('Financiers')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2">
+                            @can('update', $financier)
                             <flux:button size="sm" variant="subtle" icon="banknotes" wire:click="openPaymentModal({{ $financier->id }})">
                                 {{ __('Pay Now') }}
                             </flux:button>
+                            @endcan
                             <flux:button size="sm" variant="subtle" icon="eye" :href="route('financiers.show', $financier->id)" wire:navigate>{{ __('View Ledger') }}</flux:button>
+                            @can('update', $financier)
                             <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editFinancier({{ $financier->id }})" />
+                            @endcan
                             @can('delete', $financier)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteFinancier({{ $financier->id }})" wire:confirm="{{ __('Delete this financier and all their payment records?') }}" title="{{ __('Delete Financier') }}" />
                             @endcan

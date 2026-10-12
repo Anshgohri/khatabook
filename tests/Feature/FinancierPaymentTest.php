@@ -389,3 +389,74 @@ test('user can update financier payout history from financier ledger page', func
     expect($payment->notes)->toBe('New ledger note');
 });
 
+test('financier cannot add finance log or edit payments and cannot see action buttons on ledger', function () {
+    $financierRole = Role::firstOrCreate(['name' => RoleName::Financier->value]);
+    $financierUser = User::factory()->create(['role_id' => $financierRole->id]);
+
+    $admin = User::factory()->create(['role_id' => Role::firstOrCreate(['name' => RoleName::Admin->value])->id]);
+    $financier = Financier::factory()->create([
+        'user_id' => $admin->id,
+        'financier_user_id' => $financierUser->id,
+        'name' => 'Self Finance Co',
+        'payout_type' => 'daily',
+        'default_payment_amount' => 500.00,
+    ]);
+
+    $payment = FinancierPayment::create([
+        'financier_id' => $financier->id,
+        'user_id' => $admin->id,
+        'date' => now()->toDateString(),
+        'type' => 'daily_payment',
+        'amount' => 500.00,
+        'payment_method' => 'cash',
+        'notes' => 'Existing admin log',
+    ]);
+
+    // Financier viewing ledger page:
+    // 1. Can view ledger
+    // 2. Does NOT see "Log Payment / Loan" or "Pay Installment" buttons
+    Livewire::actingAs($financierUser)
+        ->test('pages::financier-ledger', ['financier' => $financier])
+        ->assertOk()
+        ->assertDontSee('Log Payment / Loan')
+        ->assertDontSee('Pay Installment');
+
+    // Financier trying to call openPaymentModal must be forbidden
+    Livewire::actingAs($financierUser)
+        ->test('pages::financier-ledger', ['financier' => $financier])
+        ->call('openPaymentModal')
+        ->assertForbidden();
+
+    // Financier trying to call savePayment must be forbidden
+    Livewire::actingAs($financierUser)
+        ->test('pages::financier-ledger', ['financier' => $financier])
+        ->set('amount', 500.00)
+        ->set('payment_date', now()->toDateString())
+        ->set('type', 'daily_payment')
+        ->set('payment_method', 'cash')
+        ->call('savePayment')
+        ->assertForbidden();
+
+    // Financier trying to edit or delete payment must be forbidden
+    Livewire::actingAs($financierUser)
+        ->test('pages::financier-ledger', ['financier' => $financier])
+        ->call('editPayment', $payment->id)
+        ->assertForbidden();
+
+    Livewire::actingAs($financierUser)
+        ->test('pages::financier-ledger', ['financier' => $financier])
+        ->call('deletePayment', $payment->id)
+        ->assertForbidden();
+
+    // Financier accessing pages::financiers is redirected to their own ledger
+    Livewire::actingAs($financierUser)
+        ->test('pages::financiers')
+        ->assertRedirect(route('financiers.show', $financier->id));
+
+    // Financier cannot create a financier
+    expect($financierUser->can('create', Financier::class))->toBeFalse();
+    expect($financierUser->can('update', $financier))->toBeFalse();
+    expect($financierUser->can('delete', $financier))->toBeFalse();
+});
+
+
