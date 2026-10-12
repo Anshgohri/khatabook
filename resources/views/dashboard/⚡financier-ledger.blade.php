@@ -2,6 +2,7 @@
 
 use App\Models\Financier;
 use App\Models\FinancierPayment;
+use App\Services\CacheService;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -28,12 +29,14 @@ new #[Title('Financier Ledger')] class extends Component {
 
     // Payment Modal State
     public bool $showPaymentModal = false;
+    public ?int $editingPaymentId = null;
     public string $type = 'daily_payment';
     public float $amount = 0.0;
     public string $payment_method = 'cash';
     public string $payment_date = '';
     public string $payment_notes = '';
     public $bill_image = null;
+    public ?string $existing_bill_path = null;
 
     public function mount(Financier $financier): void
     {
@@ -96,6 +99,8 @@ new #[Title('Financier Ledger')] class extends Component {
     {
         $this->authorize('update', $this->financier);
 
+        $this->editingPaymentId = null;
+        $this->existing_bill_path = null;
         $this->type = $defaultType ?? match ($this->financier->payout_type) {
             'monthly' => 'monthly_payment',
             'weekly' => 'weekly_payment',
@@ -107,6 +112,37 @@ new #[Title('Financier Ledger')] class extends Component {
         $this->payment_notes = '';
         $this->bill_image = null;
         $this->showPaymentModal = true;
+    }
+
+    public function editPayment(int $paymentId): void
+    {
+        $payment = FinancierPayment::where('financier_id', $this->financier->id)->findOrFail($paymentId);
+        $this->authorize('update', $this->financier);
+
+        $this->editingPaymentId = $payment->id;
+        $this->type = $payment->type;
+        $this->amount = (float) $payment->amount;
+        $this->payment_method = $payment->payment_method;
+        $this->payment_date = $payment->date->toDateString();
+        $this->payment_notes = (string) $payment->notes;
+        $this->bill_image = null;
+        $this->existing_bill_path = $payment->bill_path;
+        $this->showPaymentModal = true;
+    }
+
+    public function removeExistingBill(): void
+    {
+        if ($this->editingPaymentId) {
+            $payment = FinancierPayment::where('financier_id', $this->financier->id)->find($this->editingPaymentId);
+            if ($payment && $payment->bill_path) {
+                if (Storage::exists($payment->bill_path)) {
+                    Storage::delete($payment->bill_path);
+                }
+                $payment->update(['bill_path' => null]);
+                $this->existing_bill_path = null;
+                Flux::toast(variant: 'success', text: __('Receipt removed.'));
+            }
+        }
     }
 
     public function savePayment(): void
@@ -127,35 +163,63 @@ new #[Title('Financier Ledger')] class extends Component {
             'bill_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
 
-        $billPath = null;
-        if ($this->bill_image) {
-            $billPath = $this->bill_image->store('bills');
+        if ($this->editingPaymentId) {
+            $payment = FinancierPayment::where('financier_id', $this->financier->id)->findOrFail($this->editingPaymentId);
+            $billPath = $payment->bill_path;
+            if ($this->bill_image) {
+                if ($billPath && Storage::exists($billPath)) {
+                    Storage::delete($billPath);
+                }
+                $billPath = $this->bill_image->store('bills');
+            }
+
+            $payment->update([
+                'date' => $validated['payment_date'],
+                'type' => $validated['type'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'notes' => $validated['payment_notes'],
+                'bill_path' => $billPath,
+            ]);
+
+            $toastMsg = __('Financier payout updated successfully.');
+        } else {
+            $billPath = null;
+            if ($this->bill_image) {
+                $billPath = $this->bill_image->store('bills');
+            }
+
+            FinancierPayment::create([
+                'financier_id' => $this->financier->id,
+                'user_id' => Auth::id(),
+                'date' => $validated['payment_date'],
+                'type' => $validated['type'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'notes' => $validated['payment_notes'],
+                'bill_path' => $billPath,
+            ]);
+
+            $toastMsg = __('Financier payment recorded successfully.');
         }
 
-        FinancierPayment::create([
-            'financier_id' => $this->financier->id,
-            'user_id' => Auth::id(),
-            'date' => $validated['payment_date'],
-            'type' => $validated['type'],
-            'amount' => $validated['amount'],
-            'payment_method' => $validated['payment_method'],
-            'notes' => $validated['payment_notes'],
-            'bill_path' => $billPath,
-        ]);
-
+        CacheService::invalidateUser(Auth::id());
         $this->financier->refresh();
         $this->showPaymentModal = false;
         $this->bill_image = null;
+        $this->existing_bill_path = null;
+        $this->editingPaymentId = null;
         unset($this->payments, $this->totalPaidInPeriod, $this->loansReceivedInPeriod);
-        Flux::toast(variant: 'success', text: __('Financier payment recorded successfully.'));
+        Flux::toast(variant: 'success', text: $toastMsg);
     }
 
     public function deletePayment(int $paymentId): void
     {
         $payment = FinancierPayment::where('financier_id', $this->financier->id)->findOrFail($paymentId);
-        $this->authorize('update', $this->financier);
+        $this->authorize('delete', $this->financier);
 
         $payment->delete();
+        CacheService::invalidateUser(Auth::id());
         $this->financier->refresh();
         unset($this->payments, $this->totalPaidInPeriod, $this->loansReceivedInPeriod);
         Flux::toast(variant: 'success', text: __('Payment entry deleted.'));
@@ -291,8 +355,13 @@ new #[Title('Financier Ledger')] class extends Component {
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        <div class="flex justify-end">
+                        <div class="flex items-center gap-1 justify-end">
+                            @can('update', $this->financier)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editPayment({{ $payment->id }})" title="{{ __('Edit entry') }}" />
+                            @endcan
+                            @can('delete', $this->financier)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this payment entry?') }}" />
+                            @endcan
                         </div>
                     </flux:table.cell>
                 </flux:table.row>
@@ -306,9 +375,12 @@ new #[Title('Financier Ledger')] class extends Component {
     </div>
 
     <!-- Record Payment / Loan Modal -->
-    <flux:modal wire:model.self="showPaymentModal" class="md:w-96">
+    <flux:modal wire:model.self="showPaymentModal" class="md:w-[480px]">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ __('Log Financier Payment / Loan') }}</flux:heading>
+            <div>
+                <flux:heading size="lg">{{ $editingPaymentId ? __('Edit Financier Payout / Entry') : __('Log Financier Payment / Loan') }}</flux:heading>
+                <flux:subheading size="sm">{{ __('Financier:') }} <strong>{{ $this->financier->name }}</strong> ({{ ucfirst($this->financier->payout_type) }})</flux:subheading>
+            </div>
 
             <form wire:submit="savePayment" class="flex flex-col gap-4">
                 <flux:select wire:model="type" :label="__('Transaction Type')" required>
@@ -333,11 +405,23 @@ new #[Title('Financier Ledger')] class extends Component {
 
                 <flux:textarea wire:model="payment_notes" :label="__('Notes / Reason')" placeholder="e.g. Daily installment paid" rows="2" />
 
-                <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
+                @if ($existing_bill_path)
+                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-xs border border-zinc-200 dark:border-zinc-700">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span>📄 {{ __('Existing Receipt:') }}</span>
+                            <a href="{{ Storage::url($existing_bill_path) }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline font-medium truncate">{{ basename($existing_bill_path) }}</a>
+                        </div>
+                        <button type="button" wire:click="removeExistingBill" class="text-rose-600 hover:text-rose-700 dark:text-rose-400 font-medium shrink-0 ml-2">
+                            {{ __('Remove') }}
+                        </button>
+                    </div>
+                @endif
+
+                <flux:input type="file" wire:model="bill_image" :label="$existing_bill_path ? __('Replace Receipt Image (Optional)') : __('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showPaymentModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Save Payment') }}</flux:button>
+                    <flux:button type="submit" variant="primary">{{ $editingPaymentId ? __('Update Payout') : __('Save Payment') }}</flux:button>
                 </div>
             </form>
         </div>

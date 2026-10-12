@@ -315,3 +315,77 @@ test('typing an existing registered user email auto-matches and links user witho
     expect($financier->financier_user_id)->toBe($existingStaff->id);
 });
 
+test('user can update financier payout history from financiers page', function () {
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $financier = Financier::factory()->create([
+        'user_id' => $admin->id,
+        'payout_type' => 'daily',
+        'interest_type' => 'principal_reducing',
+        'default_payment_amount' => 500,
+    ]);
+
+    $payment = FinancierPayment::create([
+        'financier_id' => $financier->id,
+        'user_id' => $admin->id,
+        'date' => now()->toDateString(),
+        'type' => 'daily_payment',
+        'amount' => 500.00,
+        'payment_method' => 'cash',
+        'notes' => 'Original payment note',
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test('pages::financiers')
+        ->call('editPayment', $payment->id)
+        ->assertSet('editingPaymentId', $payment->id)
+        ->assertSet('amount', 500.00)
+        ->set('amount', 750.00)
+        ->set('payment_notes', 'Updated payment note')
+        ->call('savePayment')
+        ->assertHasNoErrors()
+        ->assertSet('editingPaymentId', null)
+        ->assertSet('showPaymentModal', false);
+
+    $payment->refresh();
+    expect((float) $payment->amount)->toBe(750.00);
+    expect($payment->notes)->toBe('Updated payment note');
+});
+
+test('user can update financier payout history from financier ledger page', function () {
+    $admin = User::factory()->role(RoleName::Admin)->create();
+    $financier = Financier::factory()->create([
+        'user_id' => $admin->id,
+        'payout_type' => 'monthly',
+        'interest_type' => 'principal_reducing',
+        'default_payment_amount' => 2000,
+    ]);
+
+    $payment = FinancierPayment::create([
+        'financier_id' => $financier->id,
+        'user_id' => $admin->id,
+        'date' => now()->toDateString(),
+        'type' => 'monthly_payment',
+        'amount' => 2000.00,
+        'payment_method' => 'bank_transfer',
+        'notes' => 'Old ledger note',
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test('pages::financier-ledger', ['financier' => $financier])
+        ->call('editPayment', $payment->id)
+        ->assertSet('editingPaymentId', $payment->id)
+        ->assertSet('amount', 2000.00)
+        ->set('amount', 2500.00)
+        ->set('payment_notes', 'New ledger note')
+        ->call('savePayment')
+        ->assertHasNoErrors()
+        ->assertSet('editingPaymentId', null)
+        ->assertSet('showPaymentModal', false);
+
+    $payment->refresh();
+    expect((float) $payment->amount)->toBe(2500.00);
+    expect($payment->notes)->toBe('New ledger note');
+});
+
