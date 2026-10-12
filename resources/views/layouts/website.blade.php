@@ -200,7 +200,13 @@
                                 </div>
                                 <div class="password form-group">
                                     <label for="modal_password">Password <span class="required">*</span></label>
-                                    <input class="input-text" required="required" type="password" name="password" id="modal_password" placeholder="••••••••" autocomplete="current-password">
+                                    <div class="password-wrapper">
+                                        <input class="input-text" required="required" type="password" name="password" id="modal_password" placeholder="••••••••" autocomplete="current-password">
+                                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('modal_password', this)" aria-label="Toggle password visibility">
+                                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            <svg class="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="rememberme-lost">
                                     <div class="rememberme">
@@ -241,11 +247,23 @@
                                 </div>
                                 <div class="password form-group">
                                     <label for="modal_reg_password">Password <span class="required">*</span></label>
-                                    <input type="password" class="input-text" placeholder="At least 8 characters" name="password" id="modal_reg_password" required autocomplete="new-password">
+                                    <div class="password-wrapper">
+                                        <input type="password" class="input-text" placeholder="At least 8 characters" name="password" id="modal_reg_password" required autocomplete="new-password">
+                                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('modal_reg_password', this)" aria-label="Toggle password visibility">
+                                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            <svg class="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="password-confirm form-group">
                                     <label for="modal_reg_password_confirmation">Confirm Password <span class="required">*</span></label>
-                                    <input type="password" class="input-text" placeholder="Re-enter password" name="password_confirmation" id="modal_reg_password_confirmation" required autocomplete="new-password">
+                                    <div class="password-wrapper">
+                                        <input type="password" class="input-text" placeholder="Re-enter password" name="password_confirmation" id="modal_reg_password_confirmation" required autocomplete="new-password">
+                                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('modal_reg_password_confirmation', this)" aria-label="Toggle password visibility">
+                                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            <svg class="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="button-register">
                                     <input type="submit" class="button btn-block" name="register" value="Register Now">
@@ -936,10 +954,75 @@
         .swal2-container {
             z-index: 99999999 !important;
         }
+
+        /* Password Visibility Toggle */
+        .password-wrapper {
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
+        }
+
+        .password-wrapper input.input-text,
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            padding-right: 44px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .btn-toggle-password {
+            position: absolute !important;
+            right: 12px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            background: transparent !important;
+            border: none !important;
+            cursor: pointer !important;
+            color: #64748b !important;
+            padding: 4px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 10 !important;
+            line-height: 1 !important;
+            transition: color 0.15s ease, transform 0.15s ease !important;
+        }
+
+        .btn-toggle-password:hover {
+            color: #0f172a !important;
+        }
+
+        .btn-toggle-password:focus {
+            outline: none !important;
+            color: #0f172a !important;
+        }
     </style>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Global Password Visibility Toggle
+        window.togglePasswordVisibility = function(inputId, btn) {
+            let input = typeof inputId === 'string' ? document.getElementById(inputId) : inputId;
+            if (!input && btn) {
+                const wrapper = btn.closest('.password-wrapper') || btn.parentElement;
+                input = wrapper ? wrapper.querySelector('input') : null;
+            }
+            if (!input) return;
+
+            const eyeIcon = btn ? btn.querySelector('.eye-icon') : null;
+            const eyeOffIcon = btn ? btn.querySelector('.eye-off-icon') : null;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (eyeIcon) eyeIcon.style.display = 'none';
+                if (eyeOffIcon) eyeOffIcon.style.display = 'inline-block';
+            } else {
+                input.type = 'password';
+                if (eyeIcon) eyeIcon.style.display = 'inline-block';
+                if (eyeOffIcon) eyeOffIcon.style.display = 'none';
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             // Modal event handling (delegated for dynamically created mobile navigation links)
             $(document).on('click', '.active-login', function(e) {

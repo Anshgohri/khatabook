@@ -51,3 +51,32 @@ test('product detail page includes whatsapp inquiry and store contact actions', 
     $response->assertSee('Inquire on WhatsApp');
     $response->assertSee('Contact Us');
 });
+
+test('password fields across website forms have eye icon toggle buttons', function () {
+    // 1. Home / Layout Modal
+    $response = $this->get(route('home'));
+    $response->assertOk();
+    $response->assertSee("togglePasswordVisibility('modal_password', this)", false);
+    $response->assertSee("togglePasswordVisibility('modal_reg_password', this)", false);
+    $response->assertSee("togglePasswordVisibility('modal_reg_password_confirmation', this)", false);
+
+    // 2. Dedicated Login / Register page
+    $loginResponse = $this->get(route('login'));
+    $loginResponse->assertOk();
+    $loginResponse->assertSee("togglePasswordVisibility('page_login_password', this)", false);
+    $loginResponse->assertSee("togglePasswordVisibility('page_reg_password', this)", false);
+    $loginResponse->assertSee("togglePasswordVisibility('page_reg_password_confirmation', this)", false);
+
+    // 3. Checkout page
+    $checkoutResponse = $this->get(route('checkout'));
+    $checkoutResponse->assertOk();
+    $checkoutResponse->assertSee("togglePasswordVisibility('checkout_account_password', this)", false);
+
+    // 4. My Account page
+    $myAccountResponse = $this->get(route('my-account'));
+    $myAccountResponse->assertOk();
+    $myAccountResponse->assertSee("togglePasswordVisibility('account_password_current', this)", false);
+    $myAccountResponse->assertSee("togglePasswordVisibility('account_password_1', this)", false);
+    $myAccountResponse->assertSee("togglePasswordVisibility('account_password_2', this)", false);
+});
+
