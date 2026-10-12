@@ -1,7 +1,9 @@
 <?php
 
 use App\Actions\InviteUser;
+use App\Models\Financier;
 use App\Models\Role;
+use App\Models\Supplier;
 use App\Models\User;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
@@ -36,6 +38,8 @@ new #[Title('Users')] class extends Component {
     public ?int $editingId = null;
 
     public string $edit_name = '';
+
+    public string $edit_email = '';
 
     public string $edit_phone = '';
 
@@ -141,8 +145,10 @@ new #[Title('Users')] class extends Component {
 
         $this->authorize('update', $target);
 
+        $this->resetValidation();
         $this->editingId = $target->id;
         $this->edit_name = $target->name;
+        $this->edit_email = $target->email ?? '';
         $this->edit_phone = $target->phone ?? '';
         $this->edit_address = $target->address ?? '';
         $this->edit_city = $target->city ?? '';
@@ -157,36 +163,76 @@ new #[Title('Users')] class extends Component {
 
         $this->authorize('update', $target);
 
+        if ($this->edit_email === '' && ! $this->showEditForm) {
+            $this->edit_email = (string) ($target->email ?? '');
+        }
+
+        if ($this->edit_phone === '' && ! $this->showEditForm && ! empty($target->phone)) {
+            $this->edit_phone = (string) $target->phone;
+        }
+
         $validated = $this->validate([
             'edit_name' => ['required', 'string', 'max:255'],
+            'edit_email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->editingId)],
             'edit_phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:50', Rule::unique('users', 'phone')->ignore($this->editingId)],
             'edit_address' => ['nullable', 'string', 'max:255'],
             'edit_city' => ['nullable', 'string', 'max:100'],
             'edit_role_id' => ['required', 'exists:roles,id'],
             'edit_status' => ['required', 'in:active,disabled'],
         ], [
+            'edit_email.required' => __('The email address is required.'),
+            'edit_email.email' => __('Please enter a valid email address.'),
+            'edit_email.unique' => __('The email address has already been registered to another user.'),
             'edit_phone.regex' => __('The phone number must contain only numbers.'),
             'edit_phone.unique' => __('The phone number has already been registered to another user.'),
         ]);
 
+        $isSystemAdmin = (bool) auth()->user()?->isSystemAdmin();
+
         $selectedRole = Role::find($validated['edit_role_id']);
-        if ((int) $target->role_id !== (int) $validated['edit_role_id'] && ! auth()->user()?->isSystemAdmin()) {
+        if ((int) $target->role_id !== (int) $validated['edit_role_id'] && ! $isSystemAdmin) {
             $this->addError('edit_role_id', __('Only System Admins are allowed to update a user\'s role.'));
             return;
         }
 
-        if ($selectedRole && $selectedRole->name === \App\Enums\RoleName::SystemAdmin->value && ! auth()->user()?->isSystemAdmin()) {
+        if ($selectedRole && $selectedRole->name === \App\Enums\RoleName::SystemAdmin->value && ! $isSystemAdmin) {
             $this->addError('edit_role_id', __('Only System Admins can assign the System Admin role.'));
+            return;
+        }
+
+        $newEmail = (string) $validated['edit_email'];
+        $oldEmail = (string) ($target->email ?? '');
+        if (strcasecmp($newEmail, $oldEmail) !== 0 && ! $isSystemAdmin) {
+            $this->addError('edit_email', __('Only System Admins are allowed to update a user\'s email address.'));
+            return;
+        }
+
+        $newPhone = (string) ($validated['edit_phone'] ?? '');
+        $oldPhone = (string) ($target->phone ?? '');
+        if ($newPhone !== $oldPhone && ! $isSystemAdmin) {
+            $this->addError('edit_phone', __('Only System Admins are allowed to update a user\'s contact number.'));
             return;
         }
 
         $target->update([
             'name' => $validated['edit_name'],
+            'email' => $validated['edit_email'],
             'phone' => $validated['edit_phone'] ?: null,
             'address' => $validated['edit_address'] ?: null,
             'city' => $validated['edit_city'] ?: null,
             'role_id' => $validated['edit_role_id'],
             'status' => $validated['edit_status'],
+        ]);
+
+        Financier::where('financier_user_id', $target->id)->update([
+            'name' => $target->name,
+            'phone' => $target->phone,
+        ]);
+
+        Supplier::where('supplier_user_id', $target->id)->update([
+            'name' => $target->name,
+            'email' => $target->email,
+            'phone' => $target->phone,
         ]);
 
         $this->showEditForm = false;
@@ -370,14 +416,35 @@ new #[Title('Users')] class extends Component {
         </div>
     </flux:modal>
 
-    <flux:modal wire:model.self="showEditForm" class="md:w-96">
+    <flux:modal wire:model.self="showEditForm" class="md:w-[480px]">
         <div class="flex flex-col gap-6">
             <flux:heading size="lg">{{ __('Edit user') }}</flux:heading>
 
             <form wire:submit="saveUser" class="flex flex-col gap-4">
                 <flux:input wire:model="edit_name" :label="__('Name')" required />
-                <flux:input type="tel" wire:model="edit_phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
-                <flux:input wire:model="edit_city" :label="__('City')" />
+
+                <div>
+                    <flux:input type="email" wire:model="edit_email" :label="__('Email Address')" placeholder="e.g. rahul@example.com" required :disabled="! auth()->user()?->isSystemAdmin()" />
+                    @if (! auth()->user()?->isSystemAdmin())
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1 block">⚠️ {{ __('Only System Admins are allowed to update user email.') }}</span>
+                    @endif
+                </div>
+
+                <div>
+                    <flux:input type="tel" wire:model="edit_phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" :disabled="! auth()->user()?->isSystemAdmin()" />
+                    @if (! auth()->user()?->isSystemAdmin())
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1 block">⚠️ {{ __('Only System Admins are allowed to update contact number.') }}</span>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:input wire:model="edit_city" :label="__('City')" />
+                    <flux:select wire:model="edit_status" :label="__('Status')">
+                        <flux:select.option value="active">{{ __('Active') }}</flux:select.option>
+                        <flux:select.option value="disabled">{{ __('Disabled') }}</flux:select.option>
+                    </flux:select>
+                </div>
+
                 <flux:input wire:model="edit_address" :label="__('Address')" />
 
                 <div>
@@ -391,12 +458,7 @@ new #[Title('Users')] class extends Component {
                     @endif
                 </div>
 
-                <flux:select wire:model="edit_status" :label="__('Status')">
-                    <flux:select.option value="active">{{ __('Active') }}</flux:select.option>
-                    <flux:select.option value="disabled">{{ __('Disabled') }}</flux:select.option>
-                </flux:select>
-
-                <div class="flex justify-end gap-2">
+                <div class="flex justify-end gap-2 pt-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showEditForm', false)">{{ __('Cancel') }}</flux:button>
                     <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
                 </div>

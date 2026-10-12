@@ -57,3 +57,108 @@ test('profit figures are only visible to system admin', function () {
         ->assertDontSee('Total Sales Profit')
         ->assertDontSee('Gross Profit');
 });
+
+test('system admin can update user email and contact number', function () {
+    $sysRole = Role::firstOrCreate(['name' => RoleName::SystemAdmin->value]);
+    $staffRole = Role::firstOrCreate(['name' => RoleName::Staff->value]);
+
+    $systemAdmin = User::factory()->create(['role_id' => $sysRole->id]);
+    $targetUser = User::factory()->create([
+        'name' => 'Original Name',
+        'email' => 'original@example.com',
+        'phone' => '9876543210',
+        'role_id' => $staffRole->id,
+    ]);
+
+    Livewire::actingAs($systemAdmin)
+        ->test('pages::users')
+        ->call('editUser', $targetUser->id)
+        ->set('edit_email', 'updated.email@example.com')
+        ->set('edit_phone', '9123456789')
+        ->call('saveUser')
+        ->assertHasNoErrors();
+
+    $targetUser->refresh();
+    expect($targetUser->email)->toBe('updated.email@example.com')
+        ->and($targetUser->phone)->toBe('9123456789');
+});
+
+test('non system admin cannot update user email or contact number', function () {
+    $adminRole = Role::firstOrCreate(['name' => RoleName::Admin->value]);
+    $staffRole = Role::firstOrCreate(['name' => RoleName::Staff->value]);
+
+    $admin = User::factory()->create(['role_id' => $adminRole->id]);
+    $targetUser = User::factory()->create([
+        'name' => 'Original Name',
+        'email' => 'original@example.com',
+        'phone' => '9876543210',
+        'role_id' => $staffRole->id,
+    ]);
+
+    // Regular admin trying to change email should fail
+    Livewire::actingAs($admin)
+        ->test('pages::users')
+        ->call('editUser', $targetUser->id)
+        ->set('edit_email', 'hacked@example.com')
+        ->call('saveUser')
+        ->assertHasErrors(['edit_email']);
+
+    expect($targetUser->fresh()->email)->toBe('original@example.com');
+
+    // Regular admin trying to change contact number should fail
+    Livewire::actingAs($admin)
+        ->test('pages::users')
+        ->call('editUser', $targetUser->id)
+        ->set('edit_phone', '9111222333')
+        ->call('saveUser')
+        ->assertHasErrors(['edit_phone']);
+
+    expect($targetUser->fresh()->phone)->toBe('9876543210');
+});
+
+test('system admin updating user email and contact number syncs linked financier and supplier records', function () {
+    $sysRole = Role::firstOrCreate(['name' => RoleName::SystemAdmin->value]);
+    $financierRole = Role::firstOrCreate(['name' => RoleName::Financier->value]);
+
+    $systemAdmin = User::factory()->create(['role_id' => $sysRole->id]);
+    $targetUser = User::factory()->create([
+        'name' => 'Partner User',
+        'email' => 'partner@example.com',
+        'phone' => '9888877777',
+        'role_id' => $financierRole->id,
+    ]);
+
+    $financier = \App\Models\Financier::factory()->create([
+        'user_id' => $systemAdmin->id,
+        'financier_user_id' => $targetUser->id,
+        'name' => 'Partner User',
+        'phone' => '9888877777',
+    ]);
+
+    $supplier = \App\Models\Supplier::factory()->create([
+        'user_id' => $systemAdmin->id,
+        'supplier_user_id' => $targetUser->id,
+        'name' => 'Partner User',
+        'email' => 'partner@example.com',
+        'phone' => '9888877777',
+    ]);
+
+    Livewire::actingAs($systemAdmin)
+        ->test('pages::users')
+        ->call('editUser', $targetUser->id)
+        ->set('edit_name', 'Renamed Partner')
+        ->set('edit_email', 'newpartner@example.com')
+        ->set('edit_phone', '9999900000')
+        ->call('saveUser')
+        ->assertHasNoErrors();
+
+    $financier->refresh();
+    $supplier->refresh();
+
+    expect($financier->name)->toBe('Renamed Partner')
+        ->and($financier->phone)->toBe('9999900000')
+        ->and($supplier->name)->toBe('Renamed Partner')
+        ->and($supplier->email)->toBe('newpartner@example.com')
+        ->and($supplier->phone)->toBe('9999900000');
+});
+
