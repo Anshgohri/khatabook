@@ -18,5 +18,11 @@ php artisan route:cache 2>/dev/null || true
 php artisan view:cache 2>/dev/null || true
 php artisan event:cache 2>/dev/null || true
 
+echo "Starting Laravel scheduler in background..."
+(while true; do
+    php artisan schedule:run --no-interaction >> /proc/1/fd/1 2>&1
+    sleep 60
+done) &
+
 echo "Starting FrankenPHP..."
 exec frankenphp run --config /etc/frankenphp/Caddyfile
