@@ -37,9 +37,10 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $avatar_path
  * @property Role|null $role
  */
-#[Fillable(['name', 'email', 'password', 'role_id', 'phone', 'address', 'city', 'status'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'phone', 'address', 'city', 'status', 'avatar_path'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -69,6 +70,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return Str::length($initials) > 1
             ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
             : $initials;
+    }
+
+    /**
+     * Return the public URL for the user's avatar, or null if none exists.
+     */
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($this->avatar_path);
     }
 
     /**

@@ -11,10 +11,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Title('Users')] class extends Component {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     #[Url]
     public string $search = '';
@@ -50,6 +51,8 @@ new #[Title('Users')] class extends Component {
     public string $edit_role_id = '';
 
     public string $edit_status = 'active';
+    public $edit_avatar = null;
+    public ?string $edit_existing_avatar = null;
 
     public function mount(): void
     {
@@ -154,6 +157,8 @@ new #[Title('Users')] class extends Component {
         $this->edit_city = $target->city ?? '';
         $this->edit_role_id = (string) $target->role_id;
         $this->edit_status = $target->status;
+        $this->edit_avatar = null;
+        $this->edit_existing_avatar = $target->avatar_path;
         $this->showEditForm = true;
     }
 
@@ -216,6 +221,17 @@ new #[Title('Users')] class extends Component {
             return;
         }
 
+        // Handle avatar upload
+        if ($this->edit_avatar) {
+            $this->validate(['edit_avatar' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120']]);
+            if ($this->edit_existing_avatar && \Illuminate\Support\Facades\Storage::exists($this->edit_existing_avatar)) {
+                \Illuminate\Support\Facades\Storage::delete($this->edit_existing_avatar);
+            }
+            $avatarPath = $this->edit_avatar->store('avatars', 'public');
+        } else {
+            $avatarPath = $this->edit_existing_avatar;
+        }
+
         $target->update([
             'name' => $validated['edit_name'],
             'email' => $validated['edit_email'],
@@ -224,6 +240,7 @@ new #[Title('Users')] class extends Component {
             'city' => $validated['edit_city'] ?: null,
             'role_id' => $validated['edit_role_id'],
             'status' => $validated['edit_status'],
+            'avatar_path' => $avatarPath,
         ]);
 
         Financier::where('financier_user_id', $target->id)->update([
@@ -317,7 +334,20 @@ new #[Title('Users')] class extends Component {
             <flux:table.rows>
                 @foreach ($this->users as $targetUser)
                 <flux:table.row wire:key="user-{{ $targetUser->id }}">
-                    <flux:table.cell class="font-medium">{{ $targetUser->name }}</flux:table.cell>
+                    <flux:table.cell class="font-medium">
+                        <div class="flex items-center gap-2.5">
+                            @if ($targetUser->avatar_path)
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($targetUser->avatar_path) }}"
+                                     alt="{{ $targetUser->name }}"
+                                     class="w-8 h-8 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shrink-0" />
+                            @else
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                    {{ $targetUser->initials() }}
+                                </div>
+                            @endif
+                            <span>{{ $targetUser->name }}</span>
+                        </div>
+                    </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex flex-col text-xs">
                             @if (!str_contains($targetUser->email, '@khatabook.customer'))
@@ -423,6 +453,32 @@ new #[Title('Users')] class extends Component {
             <flux:heading size="lg">{{ __('Edit user') }}</flux:heading>
 
             <form wire:submit="saveUser" class="flex flex-col gap-4">
+
+                {{-- Avatar Upload --}}
+                <div>
+                    <flux:text size="sm" class="font-medium mb-2">{{ __('Profile Photo') }}</flux:text>
+                    <div class="flex items-center gap-3">
+                        @if ($edit_existing_avatar)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($edit_existing_avatar) }}"
+                                 alt="" class="w-12 h-12 rounded-full object-cover ring-2 ring-zinc-200 dark:ring-zinc-700" />
+                        @else
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                                {{ strlen($edit_name) > 0 ? strtoupper(substr($edit_name, 0, 1)) : '?' }}
+                            </div>
+                        @endif
+                        <div class="flex-1">
+                            <flux:input type="file" wire:model="edit_avatar" accept="image/*" />
+                            @error('edit_avatar') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                        @if ($edit_existing_avatar)
+                        <flux:button size="sm" variant="ghost" class="text-red-500"
+                                     wire:click="$set('edit_existing_avatar', null)"
+                                     title="{{ __('Remove photo') }}">
+                            {{ __('Remove') }}
+                        </flux:button>
+                        @endif
+                    </div>
+                </div>
                 <flux:input wire:model="edit_name" :label="__('Name')" required />
 
                 <div>
