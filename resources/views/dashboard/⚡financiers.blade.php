@@ -274,13 +274,9 @@ new #[Title('Financiers')] class extends Component {
         }])->find($this->ledgerFinancierId);
     }
 
-    #[Computed]
+    #[Computed(cache: false)]
     public function payments()
     {
-        if ($this->activeTab !== 'payouts') {
-            return collect();
-        }
-
         $user = Auth::user();
         [$startDate, $endDate] = $this->dateRange;
 
@@ -294,6 +290,21 @@ new #[Title('Financiers')] class extends Component {
             ->latest('date')
             ->latest('id')
             ->paginate(15, ['*'], 'payoutsPage');
+    }
+
+    #[Computed(cache: false)]
+    public function filteredPaymentsTotal(): float
+    {
+        $user = Auth::user();
+        [$startDate, $endDate] = $this->dateRange;
+
+        return (float) FinancierPayment::query()
+            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+            ->when($this->payoutSearch, fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")))
+            ->when($this->payoutTypeFilter, fn ($query) => $query->where('type', $this->payoutTypeFilter))
+            ->whereBetween('date', [$startDate, $endDate])
+            ->sum('amount');
     }
 
     #[Computed]
@@ -787,7 +798,7 @@ new #[Title('Financiers')] class extends Component {
     </div>
 
     <!-- Summary Stat Cards -->
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <flux:card class="flex flex-col gap-1">
             <flux:text size="sm">{{ __('Paid to Financiers (This Week)') }}</flux:text>
             <flux:heading size="lg">₹{{ number_format($this->paymentsThisWeek, 2) }}</flux:heading>
@@ -807,6 +818,18 @@ new #[Title('Financiers')] class extends Component {
             <flux:text size="sm">{{ __('Total Outstanding Loan Balance') }}</flux:text>
             <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">₹{{ number_format($this->totalOutstandingBalance, 2) }}</flux:heading>
         </flux:card>
+
+        @if ($this->activeTab === 'payouts')
+        <flux:card class="flex flex-col gap-1 border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/30">
+            <flux:text size="sm" class="text-indigo-600 dark:text-indigo-400">{{ __('Filtered Payouts Total') }}</flux:text>
+            <flux:heading size="lg" class="text-indigo-700 dark:text-indigo-300">₹{{ number_format($this->filteredPaymentsTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-indigo-500 dark:text-indigo-500 truncate">
+                {{ $datePreset === 'custom'
+                    ? ($payoutDateFrom ? \Illuminate\Support\Carbon::parse($payoutDateFrom)->format('d M') : '—') . ' → ' . ($payoutDateTo ? \Illuminate\Support\Carbon::parse($payoutDateTo)->format('d M Y') : '—')
+                    : ucfirst($datePreset) }}
+            </flux:text>
+        </flux:card>
+        @endif
     </div>
 
     <!-- Tabs -->
