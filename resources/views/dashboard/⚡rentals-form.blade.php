@@ -85,6 +85,17 @@ new class extends Component {
         $this->calculateRent();
     }
 
+    public function updatedCustomerId($value): void
+    {
+        if ($value) {
+            $customer = User::find($value);
+            if ($customer) {
+                $this->customer_name = $customer->name ?? $this->customer_name;
+                $this->customer_phone = $customer->phone ?? $this->customer_phone;
+            }
+        }
+    }
+
     public function updated($name, $value): void
     {
         if (preg_match('/items\.(\d+)\.product_id/', $name, $matches)) {
@@ -169,6 +180,7 @@ new class extends Component {
         DB::transaction(function () use ($validated) {
             if ($this->rental) {
                 $this->rental->update([
+                    'customer_id' => $this->customer_id ?: null,
                     'customer_name' => $validated['customer_name'],
                     'customer_phone' => $validated['customer_phone'],
                     'rented_at' => $validated['rented_at'],
@@ -182,6 +194,7 @@ new class extends Component {
                 $this->rental->items()->delete(); // recreate items
             } else {
                 $this->rental = Rental::create([
+                    'customer_id' => $this->customer_id ?: null,
                     'customer_name' => $validated['customer_name'],
                     'customer_phone' => $validated['customer_phone'],
                     'rented_at' => $validated['rented_at'],
@@ -212,14 +225,34 @@ new class extends Component {
 <div class="max-w-4xl mx-auto flex flex-col gap-6">
     <div class="flex items-center gap-3">
         <flux:button variant="ghost" icon="arrow-left" :href="route('rentals')" wire:navigate />
-        <flux:heading size="xl">{{ $rental ? __('Edit Rental') : __('New Rental') }}</flux:heading>
+        <div>
+            <flux:heading size="xl">{{ $rental ? __('Edit Rental') : __('New Rental') }}</flux:heading>
+            <flux:subheading size="sm">{{ __('Assign rental equipment to customers, track duration, and manage deposits.') }}</flux:subheading>
+        </div>
     </div>
 
     <form wire:submit="save" class="flex flex-col gap-6">
         <flux:card>
+            <div class="mb-4">
+                <flux:heading size="lg">{{ __('Customer & Rental Details') }}</flux:heading>
+            </div>
+
             <div class="grid gap-4 sm:grid-cols-2">
-                <flux:input wire:model="customer_name" :label="__('Customer Name')" required />
-                <flux:input wire:model="customer_phone" :label="__('Customer Phone')" />
+                @if ($this->registeredCustomers->isNotEmpty())
+                <div class="sm:col-span-2">
+                    <flux:select wire:model.live="customer_id" :label="__('Quick Select Existing Customer (Optional)')">
+                        <flux:select.option value="">{{ __('-- Enter customer manually or select from registered customers --') }}</flux:select.option>
+                        @foreach ($this->registeredCustomers as $cust)
+                        <flux:select.option value="{{ $cust->id }}">
+                            {{ $cust->name }} {{ $cust->phone ? '('.$cust->phone.')' : '' }}
+                        </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                @endif
+
+                <flux:input wire:model="customer_name" :label="__('Customer Name')" :placeholder="__('e.g. Ramesh Kumar')" required />
+                <flux:input wire:model="customer_phone" :label="__('Customer Phone')" :placeholder="__('e.g. 9876543210')" />
                 
                 <flux:input type="date" wire:model.live="rented_at" :label="__('Rented At')" required />
                 
@@ -233,71 +266,90 @@ new class extends Component {
                     <flux:input type="date" wire:model.live="returned_at" :label="__('Returned At')" required />
                 @endif
                 
-                <flux:input type="number" step="0.01" wire:model="security_deposit" :label="__('Security Deposit (₹)')" />
-                <flux:input type="number" step="0.01" wire:model.live="discount" :label="__('Discount (₹)')" />
+                <flux:input type="number" step="0.01" wire:model="security_deposit" :label="__('Security Deposit (₹)')" placeholder="0.00" />
+                <flux:input type="number" step="0.01" wire:model.live="discount" :label="__('Discount (₹)')" placeholder="0.00" />
             </div>
             
             <div class="mt-4">
-                <flux:textarea wire:model="notes" :label="__('Notes')" />
+                <flux:textarea wire:model="notes" :label="__('Notes / Terms')" :placeholder="__('Optional notes, condition of equipment, remarks...')" />
             </div>
         </flux:card>
 
         <flux:card>
             <div class="flex items-center justify-between mb-4">
-                <flux:heading size="lg">{{ __('Rental Items') }}</flux:heading>
+                <div>
+                    <flux:heading size="lg">{{ __('Rental Products') }}</flux:heading>
+                    <flux:subheading size="sm" class="hidden sm:block">{{ __('Select products and specify quantity and daily rates.') }}</flux:subheading>
+                </div>
                 <flux:button size="sm" variant="subtle" icon="plus" wire:click="addItem">{{ __('Add Item') }}</flux:button>
             </div>
 
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-3">
                 @foreach ($items as $index => $item)
-                <div class="flex items-end gap-3 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" wire:key="item-{{ $index }}">
-                    <div class="flex-1">
-                        <flux:select wire:model.live="items.{{ $index }}.product_id" :label="__('Product')" required searchable>
-                            <flux:select.option value="" disabled>{{ __('Select product...') }}</flux:select.option>
-                            @foreach ($this->availableProducts as $product)
-                            <flux:select.option value="{{ $product->id }}">{{ $product->name }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                <div class="p-3 sm:p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 shadow-xs" wire:key="item-{{ $index }}">
+                    <!-- Mobile card top with item label and delete button -->
+                    <div class="flex items-center justify-between sm:hidden pb-2 mb-2 border-b border-zinc-200 dark:border-zinc-700/60">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500">{{ __('Item #:num', ['num' => $index + 1]) }}</span>
+                        @if (count($items) > 1)
+                        <flux:button size="xs" variant="ghost" icon="trash" class="text-red-500 hover:text-red-600" wire:click="removeItem({{ $index }})" title="{{ __('Remove Item') }}">
+                            {{ __('Remove') }}
+                        </flux:button>
+                        @endif
                     </div>
 
-                    <div class="w-24">
-                        <flux:input type="number" wire:model.live="items.{{ $index }}.quantity" :label="__('Qty')" min="1" required />
-                    </div>
+                    <div class="grid grid-cols-12 gap-3 items-end">
+                        <div class="col-span-12 sm:col-span-6 md:col-span-5">
+                            <flux:select wire:model.live="items.{{ $index }}.product_id" :label="__('Product')" :placeholder="__('Select product...')" required>
+                                <flux:select.option value="">{{ __('-- Select Product --') }}</flux:select.option>
+                                @foreach ($this->availableProducts as $product)
+                                <flux:select.option value="{{ $product->id }}">
+                                    {{ $product->name }}@if((float) $product->rent_price > 0) (₹{{ number_format((float) $product->rent_price, 2) }}/day)@endif
+                                </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </div>
 
-                    <div class="w-32">
-                        <flux:input type="number" step="0.01" wire:model.live="items.{{ $index }}.daily_rent" :label="__('Daily Rent (₹)')" min="0" required />
-                    </div>
+                        <div class="col-span-6 sm:col-span-2">
+                            <flux:input type="number" wire:model.live="items.{{ $index }}.quantity" :label="__('Qty')" min="1" required />
+                        </div>
 
-                    @if (count($items) > 1)
-                    <div class="pb-1">
-                        <flux:button variant="danger" icon="trash" wire:click="removeItem({{ $index }})" />
+                        <div class="col-span-6 sm:col-span-3">
+                            <flux:input type="number" step="0.01" wire:model.live="items.{{ $index }}.daily_rent" :label="__('Daily Rent (₹)')" min="0" required />
+                        </div>
+
+                        <div class="hidden sm:flex sm:col-span-1 md:col-span-2 items-center justify-end pb-1">
+                            @if (count($items) > 1)
+                            <flux:button variant="danger" icon="trash" size="sm" wire:click="removeItem({{ $index }})" title="{{ __('Remove Item') }}" />
+                            @endif
+                        </div>
                     </div>
-                    @endif
                 </div>
                 @endforeach
             </div>
 
-            <div class="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-700 flex justify-end">
-                <div class="text-right">
+            <div class="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <flux:button size="sm" variant="subtle" icon="plus" wire:click="addItem">{{ __('Add Another Product') }}</flux:button>
+                    <flux:button size="sm" variant="ghost" icon="arrow-path" wire:click="calculateRent">{{ __('Recalculate Rent') }}</flux:button>
+                </div>
+
+                <div class="text-left sm:text-right p-3 sm:p-0 rounded-lg bg-zinc-100/70 dark:bg-zinc-800/50 sm:bg-transparent">
                     @if($discount > 0)
-                        <flux:text class="text-zinc-500 line-through decoration-rose-500 mb-1">
+                        <flux:text class="text-zinc-500 line-through decoration-rose-500 text-sm mb-0.5">
                             {{ __('Subtotal: ₹') }}{{ number_format($total_rent + $discount, 2) }}
                         </flux:text>
                     @endif
-                    <flux:text class="text-zinc-500 mb-1">{{ __('Total Calculated Rent (based on days)') }}</flux:text>
-                    <flux:heading size="xl" class="text-emerald-600 dark:text-emerald-400">
+                    <div class="text-xs text-zinc-500">{{ __('Total Calculated Rent (based on days)') }}</div>
+                    <flux:heading size="xl" class="text-emerald-600 dark:text-emerald-400 font-bold">
                         ₹{{ number_format($total_rent, 2) }}
                     </flux:heading>
-                    <div class="mt-2">
-                        <flux:button size="sm" variant="subtle" wire:click="calculateRent">{{ __('Recalculate Rent') }}</flux:button>
-                    </div>
                 </div>
             </div>
         </flux:card>
 
-        <div class="flex justify-end gap-3">
+        <div class="flex items-center justify-end gap-3 pt-2">
             <flux:button variant="ghost" :href="route('rentals')" wire:navigate>{{ __('Cancel') }}</flux:button>
-            <flux:button type="submit" variant="primary">{{ __('Save Rental') }}</flux:button>
+            <flux:button type="submit" variant="primary" icon="check">{{ __('Save Rental') }}</flux:button>
         </div>
     </form>
 </div>
