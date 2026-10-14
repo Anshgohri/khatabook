@@ -22,8 +22,12 @@ new #[Title('Store Settings')] class extends Component {
 
     public string $invoicePrefix = 'INV-';
 
+    public bool $whatsappEnabled = true;
+
     public function mount(): void
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         $details = Setting::getStoreDetails();
 
         $this->storeName = $details['storeName'];
@@ -34,6 +38,7 @@ new #[Title('Store Settings')] class extends Component {
         $this->storeEmail = $details['storeEmail'];
         $this->storeTerms = $details['storeTerms'];
         $this->invoicePrefix = $details['invoicePrefix'];
+        $this->whatsappEnabled = (bool) Setting::get('whatsapp_enabled', '1');
     }
 
     public function saveSettings(): void
@@ -62,6 +67,7 @@ new #[Title('Store Settings')] class extends Component {
         Setting::set('store_email', $validated['storeEmail']);
         Setting::set('store_terms', $validated['storeTerms']);
         Setting::set('invoice_prefix', strtoupper($validated['invoicePrefix']));
+        Setting::set('whatsapp_enabled', $this->whatsappEnabled ? '1' : '0');
 
         Flux::toast(variant: 'success', text: __('Store credentials & invoice settings saved successfully!'));
     }
@@ -81,6 +87,7 @@ new #[Title('Store Settings')] class extends Component {
         Setting::set('store_email', config('khatabook.store_email'));
         Setting::set('store_terms', config('khatabook.store_terms'));
         Setting::set('invoice_prefix', config('khatabook.invoice_prefix'));
+        Setting::set('whatsapp_enabled', '1');
 
         $this->mount();
 
@@ -146,6 +153,32 @@ new #[Title('Store Settings')] class extends Component {
                     <div class="grid gap-4 sm:grid-cols-2">
                         <flux:input wire:model="storePhone" :label="__('Official Phone Numbers')" placeholder="9255523276 | 8950304888" required />
                         <flux:input wire:model="storeEmail" :label="__('Official Email Address')" placeholder="anshgohri8950@gmail.com" type="email" required />
+                    </div>
+                </div>
+
+                <!-- WhatsApp Messenger Service Control Section -->
+                <div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm flex flex-col gap-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">💬</span>
+                            <div>
+                                <h3 class="font-extrabold text-base text-zinc-900 dark:text-zinc-100">{{ __('WhatsApp Messenger Service') }}</h3>
+                                <p class="text-xs text-zinc-500">{{ __('Enable or disable customer WhatsApp invoice messaging across sales.') }}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $whatsappEnabled ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40' : 'bg-zinc-500/20 text-zinc-500 border border-zinc-500/40' }}">
+                            {{ $whatsappEnabled ? __('Enabled') : __('Disabled') }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 rounded-xl {{ $whatsappEnabled ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40' : 'bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700/60' }}">
+                        <div class="pr-4">
+                            <div class="font-bold text-sm text-zinc-900 dark:text-zinc-100">{{ __('WhatsApp Invoice Notifications') }}</div>
+                            <div class="text-xs text-zinc-500 mt-0.5">
+                                {{ __('When enabled, staff can send invoice summaries directly to customer WhatsApp, and a send popup appears after adding a new sale. When disabled, all WhatsApp buttons and popups are completely hidden.') }}
+                            </div>
+                        </div>
+                        <flux:switch wire:model.live="whatsappEnabled" />
                     </div>
                 </div>
 

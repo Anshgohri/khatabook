@@ -31,7 +31,9 @@ test('viewer cannot create a sale', function () {
         ->assertForbidden();
 });
 
-test('staff can create a sale and the total is computed automatically', function () {
+test('staff can create a sale and redirects to sales list when whatsapp is disabled', function () {
+    \App\Models\Setting::set('whatsapp_enabled', '0');
+
     $staff = User::factory()->role(RoleName::Staff)->create();
 
     Livewire::actingAs($staff)
@@ -50,6 +52,38 @@ test('staff can create a sale and the total is computed automatically', function
 
     expect($sale->user_id)->toBe($staff->id);
     expect((float) $sale->total_amount)->toBe(500.0);
+});
+
+test('staff sees whatsapp modal and no redirect when whatsapp is enabled', function () {
+    \App\Models\Setting::set('whatsapp_enabled', '1');
+
+    $staff = User::factory()->role(RoleName::Staff)->create();
+
+    $component = Livewire::actingAs($staff)
+        ->test('pages::sales-form')
+        ->set('date', now()->toDateString())
+        ->set('customer_name', 'Acme Traders')
+        ->set('customer_phone', '9876543210')
+        ->set('saleItems', [
+            ['product_id' => '', 'quantity' => 10, 'unit_price' => 50, 'total_price' => 500],
+        ])
+        ->set('payment_status', 'paid')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSet('showSuccessModal', true);
+
+    expect($component->get('whatsAppUrl'))->toContain('https://api.whatsapp.com/send');
+});
+
+test('whatsapp buttons are hidden on sales page when whatsapp is disabled', function () {
+    \App\Models\Setting::set('whatsapp_enabled', '0');
+    $staff = User::factory()->role(RoleName::Staff)->create();
+    Sale::factory()->create(['user_id' => $staff->id]);
+
+    Livewire::actingAs($staff)
+        ->test('pages::sales')
+        ->assertDontSee(__('Send on WhatsApp'))
+        ->assertDontSee(__('Send Invoice on WhatsApp'));
 });
 
 test('staff can create multi-product sale and product stock levels are automatically reduced', function () {

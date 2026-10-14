@@ -43,6 +43,16 @@ new #[Title('Sales Form')] class extends Component {
      */
     public array $saleItems = [];
 
+    public ?int $savedSaleId = null;
+
+    public bool $showSuccessModal = false;
+
+    public string $whatsAppUrl = '';
+
+    public string $whatsAppPhone = '';
+
+    public string $whatsAppMessage = '';
+
     public function mount(?Sale $sale = null): void
     {
         if ($sale && $sale->exists) {
@@ -381,13 +391,53 @@ new #[Title('Sales Form')] class extends Component {
 
         $sale->syncItemsAndInventory($validated['saleItems']);
 
-        Flux::toast(variant: 'success', text: __('Sale saved successfully.'));
+        if (\App\Services\WhatsAppService::isEnabled()) {
+            $sale->loadMissing(['customer', 'items.product', 'user']);
+            $this->savedSaleId = $sale->id;
+            $this->whatsAppPhone = $customerUser?->phone ?: ($validated['customer_phone'] ?? '');
+            $this->whatsAppMessage = \App\Services\WhatsAppService::buildSaleInvoiceMessage($sale);
+            $this->whatsAppUrl = \App\Services\WhatsAppService::getSaleWhatsAppUrl($sale, $this->whatsAppPhone);
+            $this->showSuccessModal = true;
+
+            Flux::toast(variant: 'success', text: __('Sale saved successfully! You can send the WhatsApp invoice below.'));
+        } else {
+            Flux::toast(variant: 'success', text: __('Sale saved successfully.'));
+            return $this->redirect(route('sales'), navigate: true);
+        }
 
         if ($emailFailed) {
             Flux::toast(variant: 'warning', text: __('Sale saved, but failed to send email notification to customer. Please check mail settings.'));
         }
+    }
 
-        return $this->redirect(route('sales'), navigate: true);
+    public function updatedWhatsAppPhone(): void
+    {
+        if ($this->savedSaleId) {
+            $sale = Sale::find($this->savedSaleId);
+            if ($sale) {
+                $this->whatsAppUrl = \App\Services\WhatsAppService::getSaleWhatsAppUrl($sale, $this->whatsAppPhone);
+            }
+        }
+    }
+
+    public function resetForNewSale(): void
+    {
+        $this->showSuccessModal = false;
+        $this->editingId = null;
+        $this->savedSaleId = null;
+        $this->date = now()->toDateString();
+        $this->customer_id = '';
+        $this->customerSearch = '';
+        $this->customer_name = '';
+        $this->customer_phone = '';
+        $this->customer_email = '';
+        $this->customer_address = '';
+        $this->customer_city = '';
+        $this->discount = 0;
+        $this->payment_status = 'paid';
+        $this->notes = '';
+        $this->saleItems = [];
+        $this->addItem();
     }
 }; ?>
 
@@ -560,4 +610,87 @@ new #[Title('Sales Form')] class extends Component {
             </flux:card>
         </div>
     </form>
+
+    @if (\App\Services\WhatsAppService::isEnabled())
+    {{-- Post-Sale WhatsApp Invoice Modal --}}
+    <flux:modal wire:model="showSuccessModal" class="md:w-[600px]">
+        <div class="flex flex-col gap-5">
+            <!-- Modal Header -->
+            <div class="flex items-center gap-3.5 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-sm">
+                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400 font-bold">
+                        {{ __('Sale Saved Successfully!') }}
+                    </flux:heading>
+                    <flux:subheading size="sm">
+                        {{ __('Send tax invoice to customer\'s WhatsApp instantly at zero cost.') }}
+                    </flux:subheading>
+                </div>
+            </div>
+
+            <!-- WhatsApp Action Box -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/40 dark:from-emerald-950/30 dark:to-teal-950/20 border border-emerald-200 dark:border-emerald-800/60 flex flex-col gap-3.5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold">1</span>
+                        <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ __('Customer WhatsApp Number') }}</span>
+                    </div>
+                    <span class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded-md">
+                        {{ __('100% Free Service') }}
+                    </span>
+                </div>
+
+                <div class="flex gap-2">
+                    <flux:input wire:model.live.debounce.300ms="whatsAppPhone" placeholder="Enter 10-digit mobile number (e.g. 9876543210)" class="flex-1" icon="phone" />
+                </div>
+
+                <!-- Prominent WhatsApp Button -->
+                <a href="{{ $whatsAppUrl }}" target="_blank" class="w-full py-3.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.01] text-center">
+                    <svg class="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
+                        <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.3a8.17 8.17 0 0 1-1.26-4.48c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.66c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43s-.56-1.35-.77-1.85c-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.02 2.57c.12.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.53.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29z"/>
+                    </svg>
+                    <span>{{ __('Send Invoice on Customer WhatsApp') }}</span>
+                </a>
+
+                <!-- Message Preview Accordion -->
+                <details class="text-xs group">
+                    <summary class="cursor-pointer text-emerald-700 dark:text-emerald-300 font-semibold hover:underline flex items-center justify-between">
+                        <span>💬 {{ __('Preview WhatsApp message text') }}</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="mt-2 p-3 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100 dark:border-emerald-950 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-zinc-700 dark:text-zinc-300 max-h-48 overflow-y-auto">
+                        {{ $whatsAppMessage }}
+                    </div>
+                </details>
+            </div>
+
+            <!-- Other Options / Invoice Actions -->
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-800 flex-wrap">
+                <div class="flex items-center gap-2">
+                    @if ($savedSaleId)
+                    <flux:button size="sm" variant="subtle" icon="printer" :href="route('invoices.sale.print', $savedSaleId)" target="_blank">
+                        {{ __('Print Invoice') }}
+                    </flux:button>
+                    <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('invoices.sale.download', $savedSaleId)">
+                        {{ __('Download PDF') }}
+                    </flux:button>
+                    @endif
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <flux:button size="sm" variant="ghost" wire:click="resetForNewSale" icon="plus">
+                        {{ __('Create Another Sale') }}
+                    </flux:button>
+                    <flux:button size="sm" variant="primary" :href="route('sales')" wire:navigate>
+                        {{ __('Done / Sales List') }}
+                    </flux:button>
+                </div>
+            </div>
+        </div>
+    </flux:modal>
+    @endif
 </div>

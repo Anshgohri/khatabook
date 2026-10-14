@@ -21,6 +21,10 @@ Route::get('/my-account', [WebsiteController::class, 'myAccount'])->name('my-acc
 Route::get('/catalog', [PublicCatalogController::class, 'catalog'])->name('catalog.index');
 Route::get('/catalog/{product}', [PublicCatalogController::class, 'show'])->name('catalog.show');
 
+// Public Invoice View & Download for WhatsApp Customers (Cryptographically Signed)
+Route::get('/invoices/sale/{sale}/public', [\App\Http\Controllers\InvoiceController::class, 'publicSaleInvoice'])->name('invoices.sale.public');
+Route::get('/invoices/sale/{sale}/public/download', [\App\Http\Controllers\InvoiceController::class, 'publicDownloadSaleInvoice'])->name('invoices.sale.public.download');
+
 Route::livewire('setup', 'pages::auth.setup-admin')->name('setup');
 
 Route::livewire('invite/{user}', 'pages::auth.accept-invite')

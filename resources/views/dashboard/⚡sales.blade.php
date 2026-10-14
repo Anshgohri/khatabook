@@ -463,8 +463,18 @@ new #[Title('Sales')] class extends Component {
                                     <flux:menu.item icon="eye" :href="route('invoices.sale.view', $sale->id)" target="_blank">
                                         {{ __('View Stream PDF') }}
                                     </flux:menu.item>
+                                    @if (\App\Services\WhatsAppService::isEnabled())
+                                    <flux:menu.separator />
+                                    <flux:menu.item icon="chat-bubble-left-ellipsis" :href="\App\Services\WhatsAppService::getSaleWhatsAppUrl($sale)" target="_blank" class="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                        {{ __('Send on WhatsApp') }}
+                                    </flux:menu.item>
+                                    @endif
                                 </flux:menu>
                             </flux:dropdown>
+
+                            @if (\App\Services\WhatsAppService::isEnabled())
+                            <flux:button size="sm" variant="subtle" class="!bg-emerald-50 dark:!bg-emerald-950/40 !text-emerald-700 dark:!text-emerald-300 !border-emerald-300 dark:!border-emerald-800 hover:!bg-emerald-100 dark:hover:!bg-emerald-900/60" icon="chat-bubble-left-ellipsis" :href="\App\Services\WhatsAppService::getSaleWhatsAppUrl($sale)" target="_blank" title="{{ __('Send Invoice on WhatsApp') }}" />
+                            @endif
 
                             @can('update', $sale)
                             <flux:button size="sm" variant="subtle" icon="pencil" :href="route('sales.edit', $sale->id)" wire:navigate>{{ __('Edit') }}</flux:button>
