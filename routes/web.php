@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactInquiryController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 Route::get('/', [WebsiteController::class, 'index'])->name('home');
 Route::get('/login', [WebsiteController::class, 'login'])->name('login');
+Route::get('/register', [WebsiteController::class, 'register'])->name('register');
 Route::get('/about', [WebsiteController::class, 'about'])->name('about');
 Route::get('/contact', [WebsiteController::class, 'contact'])->name('contact');
 Route::post('/contact', [ContactInquiryController::class, 'store'])->name('contact.store');
@@ -22,8 +24,8 @@ Route::get('/catalog', [PublicCatalogController::class, 'catalog'])->name('catal
 Route::get('/catalog/{product}', [PublicCatalogController::class, 'show'])->name('catalog.show');
 
 // Public Invoice View & Download for WhatsApp Customers (Cryptographically Signed)
-Route::get('/invoices/sale/{sale}/public', [\App\Http\Controllers\InvoiceController::class, 'publicSaleInvoice'])->name('invoices.sale.public');
-Route::get('/invoices/sale/{sale}/public/download', [\App\Http\Controllers\InvoiceController::class, 'publicDownloadSaleInvoice'])->name('invoices.sale.public.download');
+Route::get('/invoices/sale/{sale}/public', [InvoiceController::class, 'publicSaleInvoice'])->name('invoices.sale.public');
+Route::get('/invoices/sale/{sale}/public/download', [InvoiceController::class, 'publicDownloadSaleInvoice'])->name('invoices.sale.public.download');
 
 Route::livewire('setup', 'pages::auth.setup-admin')->name('setup');
 
@@ -32,11 +34,11 @@ Route::livewire('invite/{user}', 'pages::auth.accept-invite')
     ->name('invite.accept');
 
 if (app()->environment('local')) {
-    Route::get('/test-error/{code}', fn($code) => abort((int) $code));
+    Route::get('/test-error/{code}', fn ($code) => abort((int) $code));
 }
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/khatabook.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/khatabook.php';
 
 Route::get('/storage/{path}', function (string $path) {
     $normalized = str_replace(['..', "\0"], '', $path);

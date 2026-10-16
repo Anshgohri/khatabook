@@ -29,6 +29,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="@yield('body_class', 'home')">
@@ -56,7 +59,7 @@
                                             <i class="wpb-icon-user"></i>
                                         </a>
                                         @else
-                                        <a href="javascript:void(0);" class="active-login mobile-user-link" title="Login / Register">
+                                        <a href="javascript:void(0);" class="active-login mobile-user-link" title="Login">
                                             <i class="wpb-icon-user"></i>
                                         </a>
                                         @endauth
@@ -143,8 +146,11 @@
                                                     <a href="{{ route('dashboard') }}"><span class="menu-item-text">Dashboard</span></a>
                                                 </li>
                                                 @else
-                                                <li class="level-0 menu-item">
-                                                    <a href="javascript:void(0);" class="active-login"><span class="menu-item-text">Login / Register</span></a>
+                                                <li class="level-0 menu-item {{ request()->is('login*') ? 'current-menu-item' : '' }}">
+                                                    <a href="{{ route('login') }}" class="active-login"><span class="menu-item-text">Login</span></a>
+                                                </li>
+                                                <li class="level-0 menu-item {{ request()->is('register*') ? 'current-menu-item' : '' }}">
+                                                    <a href="{{ route('register') }}"><span class="menu-item-text">Register</span></a>
                                                 </li>
                                                 @endauth
                                             </ul>
@@ -163,7 +169,7 @@
                                             @else
                                             <a class="active-login desktop-login-link" href="javascript:void(0);">
                                                 <i class="wpb-icon-user mr-1"></i>
-                                                <span class="menu-item-text">Login / Register</span>
+                                                <span class="menu-item-text">Login</span>
                                             </a>
                                             @endauth
                                         </div>
@@ -180,8 +186,8 @@
         <!-- Global Responsive Login & Register Modal -->
         <div class="form-login-register" id="global-auth-modal" role="dialog" aria-modal="true" aria-labelledby="modal-auth-heading">
             <div class="box-form-login">
-                <button type="button" class="close-modal-btn" aria-label="Close dialog">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <button type="button" class="close-modal-btn" onclick="closeAuthModal(event)" aria-label="Close dialog">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -609,6 +615,11 @@
             box-sizing: border-box !important;
         }
 
+        /* Ensure SweetAlert2 is always on top of modal */
+        .swal2-container {
+            z-index: 99999999 !important;
+        }
+
         /* Modal Close Button */
         .form-login-register .box-form-login .close-modal-btn {
             position: absolute !important;
@@ -624,7 +635,7 @@
             justify-content: center !important;
             color: #64748b !important;
             cursor: pointer !important;
-            z-index: 20 !important;
+            z-index: 100 !important;
             transition: all 0.2s ease !important;
             padding: 0 !important;
             box-shadow: none !important;
@@ -904,7 +915,7 @@
                 font-size: 22px !important;
             }
 
-            /* Dedicated Login / Register page */
+            /* Dedicated Login and Register pages */
             .page-login-register .box-form-login {
                 padding: 24px 18px !important;
                 margin-bottom: 25px !important;
@@ -1020,8 +1031,6 @@
             color: #0f172a !important;
         }
     </style>
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Global Password Visibility Toggle
         window.togglePasswordVisibility = function(inputId, btn) {
@@ -1046,48 +1055,92 @@
             }
         };
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Modal event handling (delegated for dynamically created mobile navigation links)
-            $(document).on('click', '.active-login, .close-modal-btn', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+        // Global Modal Close Function
+        window.closeAuthModal = function(e) {
+            if (e) {
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            }
+            const modals = document.querySelectorAll('.form-login-register');
+            modals.forEach(function(m) {
+                m.classList.remove('active');
+            });
+            document.body.classList.remove('modal-open');
+            if (typeof $ !== 'undefined') {
+                $('.form-login-register').removeClass('active');
+                $('body').removeClass('modal-open');
+            }
+            return false;
+        };
 
-                // Close mobile drawer if open
+        // Global Modal Open Function
+        window.openAuthModal = function(e, tab) {
+            if (e) {
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            }
+            if (typeof $ !== 'undefined') {
                 if ($('.site-mobile-navigation').length) {
                     $('.site-mobile-navigation').removeClass('active');
                 }
                 $('#remove-megamenu').trigger('click');
-
                 const $modal = $('.form-login-register');
-                if ($(this).hasClass('close-modal-btn') || $(this).closest('.box-form-login').length > 0 && !$(this).hasClass('desktop-login-link')) {
-                    $modal.removeClass('active');
-                    $('body').removeClass('modal-open');
+                $modal.addClass('active');
+                $('body').addClass('modal-open');
+                if (tab === 'register') {
+                    $('.form-login').removeClass('active');
+                    $('.form-register').addClass('active');
                 } else {
-                    $modal.addClass('active');
-                    $('body').addClass('modal-open');
-                    // Reset to login form tab by default
                     $('.form-login').addClass('active');
                     $('.form-register').removeClass('active');
                 }
+            } else {
+                const modals = document.querySelectorAll('.form-login-register');
+                modals.forEach(function(m) {
+                    m.classList.add('active');
+                });
+                document.body.classList.add('modal-open');
+            }
+            return false;
+        };
+
+        // Native Capture Listener for Close Button (Executes before any other listener can prevent it)
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest ? e.target.closest('.close-modal-btn') : null;
+            if (btn) {
+                window.closeAuthModal(e);
+            }
+        }, true);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Open Modal Handler
+            $(document).on('click', '.active-login', function(e) {
+                if ($(this).closest('.box-form-login').length) {
+                    return;
+                }
+                window.openAuthModal(e, 'login');
+            });
+
+            // Close modal button delegated handler
+            $(document).on('click', '.close-modal-btn', function(e) {
+                window.closeAuthModal(e);
             });
 
             // Close modal when clicking outside modal box
             $(document).on('click', '.form-login-register', function(e) {
                 if (!$(e.target).closest('.box-form-login').length) {
-                    $(this).removeClass('active');
-                    $('body').removeClass('modal-open');
+                    window.closeAuthModal(e);
                 }
             });
 
             // Close on Escape key
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' || e.keyCode === 27) {
-                    $('.form-login-register').removeClass('active');
-                    $('body').removeClass('modal-open');
+                    window.closeAuthModal(e);
                 }
             });
 
-            // Switch between Login and Register tabs
+            // Switch between Login and Register tabs inside modal
             $(document).on('click', '.button-next-reregister', function(e) {
                 e.preventDefault();
                 $('.form-login').removeClass('active');
@@ -1101,18 +1154,23 @@
             });
 
             const errorIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`;
-            const successIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>`;
+            const successIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>`;
             const processingIcon = `<svg class="ajax-spin-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
 
             function showStatus(statusEl, type, message) {
+                if (!statusEl) return;
                 statusEl.style.display = 'flex';
                 statusEl.className = 'ajax-status-message ' + type + (statusEl.classList.contains('register-status') ? ' register-status' : ' status');
                 const iconEl = statusEl.querySelector('.ajax-status-icon');
                 const textEl = statusEl.querySelector('.ajax-status-text');
-                if (type === 'error') iconEl.innerHTML = errorIcon;
-                else if (type === 'success') iconEl.innerHTML = successIcon;
-                else iconEl.innerHTML = processingIcon;
-                textEl.innerText = message;
+                if (iconEl) {
+                    if (type === 'error') iconEl.innerHTML = errorIcon;
+                    else if (type === 'success') iconEl.innerHTML = successIcon;
+                    else iconEl.innerHTML = processingIcon;
+                }
+                if (textEl) {
+                    textEl.innerText = message;
+                }
             }
 
             function handleAjaxForm(formId, statusSelector) {
@@ -1122,6 +1180,9 @@
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     const status = form.querySelector(statusSelector);
+                    const submitBtn = form.querySelector('input[type="submit"], button[type="submit"]');
+                    if (submitBtn) submitBtn.disabled = true;
+
                     showStatus(status, 'processing', 'Processing...');
 
                     fetch(form.action, {
@@ -1139,50 +1200,69 @@
                                 if (typeof Swal !== 'undefined') {
                                     Swal.fire({
                                         title: 'Success!',
-                                        text: 'You have logged in successfully!',
+                                        text: formId === 'login_ajax' ? 'You have logged in successfully!' : 'Account created successfully!',
                                         icon: 'success',
                                         showConfirmButton: false,
                                         timer: 1500,
                                         allowOutsideClick: false
                                     }).then(() => {
-                                        window.location.href = "{{ url(config('fortify.home', '/')) }}";
+                                        window.location.href = "{{ route('dashboard') }}";
                                     });
                                 } else {
-                                    alert('Success! Redirecting...');
-                                    window.location.href = "{{ url(config('fortify.home', '/')) }}";
+                                    setTimeout(() => {
+                                        window.location.href = "{{ route('dashboard') }}";
+                                    }, 600);
                                 }
                             } else {
+                                if (submitBtn) submitBtn.disabled = false;
                                 return response.json().then(data => {
-                                    let errorMsg = 'An error occurred.';
-                                    if (data.errors) {
+                                    let errorMsg = formId === 'login_ajax' ? 'These credentials do not match our records.' : 'Registration failed. Please check your details.';
+                                    if (data.errors && Object.values(data.errors).length > 0) {
                                         errorMsg = Object.values(data.errors)[0][0];
-                                    } else {
-                                        errorMsg = data.message || 'An error occurred.';
+                                    } else if (data.message) {
+                                        errorMsg = data.message;
                                     }
                                     showStatus(status, 'error', errorMsg);
                                     if (typeof Swal !== 'undefined') {
                                         Swal.fire({
-                                            title: 'Error!',
+                                            title: formId === 'login_ajax' ? 'Login Failed' : 'Registration Failed',
                                             text: errorMsg,
                                             icon: 'error',
-                                            confirmButtonText: 'OK',
-                                            confirmButtonColor: '#d33'
+                                            confirmButtonText: 'Try Again',
+                                            confirmButtonColor: '#000000'
                                         });
-                                    } else {
-                                        alert('Error: ' + errorMsg);
+                                    }
+                                    const passwordInput = form.querySelector('input[type="password"]');
+                                    if (passwordInput) {
+                                        passwordInput.value = '';
+                                        passwordInput.focus();
+                                    }
+                                }).catch(() => {
+                                    showStatus(status, 'error', 'Invalid credentials or request failed.');
+                                    if (typeof Swal !== 'undefined') {
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: 'Invalid credentials or request failed.',
+                                            icon: 'error',
+                                            confirmButtonText: 'Try Again',
+                                            confirmButtonColor: '#000000'
+                                        });
                                     }
                                 });
                             }
                         })
                         .catch(error => {
+                            if (submitBtn) submitBtn.disabled = false;
                             showStatus(status, 'error', 'A network error occurred. Please try again.');
-                            Swal.fire({
-                                title: 'Network Error',
-                                text: 'A network error occurred. Please try again.',
-                                icon: 'error',
-                                confirmButtonText: 'OK',
-                                confirmButtonColor: '#d33'
-                            });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    title: 'Network Error',
+                                    text: 'A network error occurred. Please try again.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#000000'
+                                });
+                            }
                         });
                 });
             }
