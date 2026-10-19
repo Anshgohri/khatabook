@@ -231,6 +231,24 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
     }
 
     /**
+     * Total Ghodi (trestle) units sold — only products whose name contains "ghodi"
+     * (case-insensitive), excluding Chaali and Siddhi products.
+     */
+    #[Computed]
+    public function ghodiStats(): array
+    {
+        $ghodiMetrics = $this->productSalesMetrics->filter(
+            fn ($item) => str_contains(strtolower($item['name']), 'ghodi')
+        );
+
+        return [
+            'total_quantity' => (int) $ghodiMetrics->sum('total_quantity'),
+            'total_revenue'  => (float) $ghodiMetrics->sum('total_revenue'),
+            'product_count'  => $ghodiMetrics->count(),
+        ];
+    }
+
+    /**
      * Timeline breakdown (Day / Month / Year sales velocity).
      */
     #[Computed]
@@ -442,7 +460,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
     </div>
 
     <!-- Summary KPI Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <!-- Total Quantity Sold -->
         <div class="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/30 shadow-sm flex flex-col gap-2">
             <div class="flex items-center justify-between">
@@ -454,6 +472,24 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
             </div>
             <div class="text-[11px] text-blue-600 dark:text-blue-400">
                 In period: {{ \Carbon\Carbon::parse($this->startDate)->format('d M Y') }} – {{ \Carbon\Carbon::parse($this->endDate)->format('d M Y') }}
+            </div>
+        </div>
+
+        <!-- Total Ghodi Sold -->
+        <div class="p-5 rounded-2xl border border-orange-200 dark:border-orange-900/60 bg-orange-50/50 dark:bg-orange-950/30 shadow-sm flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wider">🪜 {{ __('Total Ghodi Sold') }}</span>
+                <span class="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">🪜</span>
+            </div>
+            <div class="text-2xl font-black text-orange-950 dark:text-orange-100">
+                {{ number_format($this->ghodiStats['total_quantity']) }} <span class="text-sm font-semibold text-orange-600 dark:text-orange-300">Pcs</span>
+            </div>
+            <div class="text-[11px] text-orange-600 dark:text-orange-400">
+                @if ($this->ghodiStats['product_count'] > 0)
+                    {{ $this->ghodiStats['product_count'] }} Ghodi variant(s) · ₹{{ number_format($this->ghodiStats['total_revenue'], 2) }} revenue
+                @else
+                    No Ghodi sales in this period
+                @endif
             </div>
         </div>
 

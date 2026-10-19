@@ -68,6 +68,19 @@ new #[Title('Production Log')] class extends Component {
             ->sum('worker_wage');
     }
 
+    #[Computed]
+    public function totalGhodiProducedThisMonth(): int
+    {
+        $user = Auth::user();
+        return (int) ProductionLogItem::query()
+            ->whereHas('productionLog', function ($q) use ($user) {
+                $q->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+                  ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()]);
+            })
+            ->whereHas('finishedProduct', fn ($q) => $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), '%ghodi%'))
+            ->sum('quantity_produced');
+    }
+
     public function deleteLog(int $id): void
     {
         $log = ProductionLog::findOrFail($id);
@@ -94,10 +107,15 @@ new #[Title('Production Log')] class extends Component {
     </div>
 
     <!-- Stats -->
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <flux:card class="flex flex-col gap-1">
             <flux:text size="sm">{{ __('Units Produced (This Month)') }}</flux:text>
             <flux:heading size="lg" class="text-indigo-600 dark:text-indigo-400">{{ number_format($this->totalFinishedThisMonth, 0) }} pcs</flux:heading>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-1">
+            <flux:text size="sm">{{ __('Ghodi Produced (This Month)') }}</flux:text>
+            <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">{{ number_format($this->totalGhodiProducedThisMonth, 0) }} pcs</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1">
