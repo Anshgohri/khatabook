@@ -74,6 +74,9 @@
                         <flux:sidebar.item icon="user-group" :href="route('employees')" :current="request()->routeIs('employees')" wire:navigate>
                             {{ __('Employees') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="calculator" :href="route('employee-rates')" :current="request()->routeIs('employee-rates')" wire:navigate>
+                            {{ __('Employee Rates') }}
+                        </flux:sidebar.item>
                     @endcan
                     @endif
 

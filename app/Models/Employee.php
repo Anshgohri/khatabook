@@ -28,7 +28,7 @@ use Illuminate\Support\Carbon;
  * @property User|null $employeeUser
  * @property Collection<int, EmployeePayment> $payments
  */
-#[Fillable(['user_id', 'employee_user_id', 'name', 'phone', 'default_daily_rate', 'advance_balance', 'status', 'notes'])]
+#[Fillable(['user_id', 'employee_user_id', 'name', 'phone', 'default_daily_rate', 'ghodi_medium_rate', 'ghodi_heavy_rate', 'siddi_danda_rate', 'challi_rate', 'advance_balance', 'status', 'notes'])]
 class Employee extends Model
 {
     /** @use HasFactory<EmployeeFactory> */
@@ -41,6 +41,10 @@ class Employee extends Model
     {
         return [
             'default_daily_rate' => 'decimal:2',
+            'ghodi_medium_rate' => 'decimal:2',
+            'ghodi_heavy_rate' => 'decimal:2',
+            'siddi_danda_rate' => 'decimal:2',
+            'challi_rate' => 'decimal:2',
             'advance_balance' => 'decimal:2',
         ];
     }

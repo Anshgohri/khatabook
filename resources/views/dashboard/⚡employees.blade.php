@@ -306,9 +306,12 @@ new #[Title('Employees')] class extends Component {
             <flux:text class="mt-1">{{ __('Track daily pay (₹500 / ₹800), advance amounts given (e.g. ₹1,00,000), and repayments.') }}</flux:text>
         </div>
 
-        @can('create', App\Models\Employee::class)
-        <flux:button variant="primary" icon="plus" wire:click="createEmployee">{{ __('Add Employee') }}</flux:button>
-        @endcan
+        <div class="flex items-center gap-2">
+            <flux:button variant="subtle" icon="calculator" :href="route('employee-rates')" wire:navigate>{{ __('Piece Rates (Ghodi / Siddi / Challi)') }}</flux:button>
+            @can('create', App\Models\Employee::class)
+            <flux:button variant="primary" icon="plus" wire:click="createEmployee">{{ __('Add Employee') }}</flux:button>
+            @endcan
+        </div>
     </div>
 
     <!-- Summary Stat Cards -->

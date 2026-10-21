@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('categories', 'pages::categories')->name('categories');
     Route::livewire('employees', 'pages::employees')->name('employees');
     Route::livewire('employees/{employee}', 'pages::employee-ledger')->name('employees.show');
+    Route::livewire('employee-rates', 'pages::employee-rates')->name('employee-rates');
     Route::livewire('financiers', 'pages::financiers')->name('financiers');
     Route::livewire('financiers/{financier}', 'pages::financier-ledger')->name('financiers.show');
     Route::livewire('suppliers', 'pages::suppliers')->name('suppliers');
