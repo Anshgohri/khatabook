@@ -95,14 +95,68 @@ new #[Title('Expenses')] class extends Component {
                 $this->dateTo = now()->endOfMonth()->toDateString();
                 break;
             case 'custom':
-                // Do not change dates for custom
+                if (! $this->dateFrom) {
+                    $this->dateFrom = now()->startOfMonth()->toDateString();
+                }
+                if (! $this->dateTo) {
+                    $this->dateTo = now()->toDateString();
+                }
                 break;
+            case 'all':
+            case '':
             default:
                 $this->dateFrom = '';
                 $this->dateTo = '';
                 break;
         }
         $this->resetPage();
+    }
+
+    public function setPreset(string $preset): void
+    {
+        $this->datePreset = $preset;
+        $this->updatedDatePreset();
+    }
+
+    #[Computed]
+    public function selectedCategoryIds(): array
+    {
+        return ExpenseCategory::query()
+            ->where(function ($q) {
+                $q->whereIn('name', [
+                    'Daily Consumables',
+                    'Financial / Loan',
+                    'Household Expenses',
+                    'Medical expenses',
+                    'Utilities / Power',
+                ])
+                ->orWhere('name', 'like', '%Daily Consumable%')
+                ->orWhere('name', 'like', '%Financial%Loan%')
+                ->orWhere('name', 'like', '%Household%')
+                ->orWhere('name', 'like', '%Medical%')
+                ->orWhere('name', 'like', '%Utilities%Power%');
+            })
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->toArray();
+    }
+
+    #[Computed(cache: false)]
+    public function datePeriodLabel(): string
+    {
+        if ($this->datePreset === 'custom') {
+            $from = $this->dateFrom ? \Illuminate\Support\Carbon::parse($this->dateFrom)->format('d M') : '—';
+            $to = $this->dateTo ? \Illuminate\Support\Carbon::parse($this->dateTo)->format('d M Y') : '—';
+            return "{$from} → {$to}";
+        }
+
+        return match ($this->datePreset) {
+            'today' => __('Today'),
+            'yesterday' => __('Yesterday'),
+            'week' => __('This Week'),
+            'month' => __('This Month'),
+            default => __('All Time'),
+        };
     }
 
     #[Computed]
@@ -117,7 +171,7 @@ new #[Title('Expenses')] class extends Component {
         return User::query()->orderBy('name')->get();
     }
 
-    #[Computed]
+    #[Computed(cache: false)]
     public function expenses()
     {
         $user = Auth::user();
@@ -129,10 +183,17 @@ new #[Title('Expenses')] class extends Component {
             // If Admin selects a specific user filter
             ->when($user->isAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
             ->when($this->search, fn($query) => $query->where('description', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
-            ->when($this->categoryId, fn($query) => $query->where('expense_category_id', $this->categoryId))
+            ->when($this->categoryId, function ($query) {
+                if ($this->categoryId === 'selected_5_types') {
+                    $query->whereIn('expense_category_id', $this->selectedCategoryIds);
+                } else {
+                    $query->where('expense_category_id', $this->categoryId);
+                }
+            })
             ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
             ->latest('date')
+            ->latest('id')
             ->paginate(15);
     }
 
@@ -148,6 +209,40 @@ new #[Title('Expenses')] class extends Component {
     }
 
     #[Computed]
+    public function monthlyExpensesTotal(): float
+    {
+        $user = Auth::user();
+
+        return (float) Expense::query()
+            ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
+            ->whereBetween('date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->sum('amount');
+    }
+
+    #[Computed(cache: false)]
+    public function filteredSelectedExpensesTotal(): float
+    {
+        $user = Auth::user();
+        $targetIds = $this->selectedCategoryIds;
+
+        if ($this->categoryId && $this->categoryId !== 'selected_5_types') {
+            if (! in_array((int) $this->categoryId, $targetIds, true)) {
+                return 0.0;
+            }
+            $targetIds = [(int) $this->categoryId];
+        }
+
+        return (float) Expense::query()
+            ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
+            ->when($user->isAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
+            ->when($this->search, fn($query) => $query->where('description', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
+            ->whereIn('expense_category_id', $targetIds)
+            ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
+            ->sum('amount');
+    }
+
+    #[Computed(cache: false)]
     public function filteredExpensesTotal(): float
     {
         $user = Auth::user();
@@ -156,7 +251,13 @@ new #[Title('Expenses')] class extends Component {
             ->when(! $user->isAdmin(), fn($query) => $query->where('user_id', $user->id))
             ->when($user->isAdmin() && $this->filterUserId, fn($query) => $query->where('user_id', $this->filterUserId))
             ->when($this->search, fn($query) => $query->where('description', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%"))
-            ->when($this->categoryId, fn($query) => $query->where('expense_category_id', $this->categoryId))
+            ->when($this->categoryId, function ($query) {
+                if ($this->categoryId === 'selected_5_types') {
+                    $query->whereIn('expense_category_id', $this->selectedCategoryIds);
+                } else {
+                    $query->where('expense_category_id', $this->categoryId);
+                }
+            })
             ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
             ->sum('amount');
@@ -377,15 +478,33 @@ new #[Title('Expenses')] class extends Component {
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <flux:card class="flex flex-col gap-1 border-l-4 border-l-rose-500 bg-rose-50/20 dark:bg-rose-950/10">
             <flux:text size="sm" class="font-medium text-rose-800 dark:text-rose-300">{{ __('Today\'s Expenses') }}</flux:text>
             <flux:heading size="lg" class="text-rose-600 dark:text-rose-400">₹{{ number_format($this->dailyExpensesTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-rose-600/70 dark:text-rose-400/70 truncate">{{ __('All categories recorded today') }}</flux:text>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10">
+            <flux:text size="sm" class="font-medium text-indigo-800 dark:text-indigo-300">{{ __('This Month\'s Expenses') }}</flux:text>
+            <flux:heading size="lg" class="text-indigo-600 dark:text-indigo-400">₹{{ number_format($this->monthlyExpensesTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-indigo-600/70 dark:text-indigo-400/70 truncate">{{ now()->format('F Y') }}</flux:text>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20">
+            <flux:text size="sm" class="font-medium text-emerald-800 dark:text-emerald-300">{{ __('Filtered Key Types (5 Types)') }}</flux:text>
+            <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">₹{{ number_format($this->filteredSelectedExpensesTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-emerald-700/80 dark:text-emerald-400/80 truncate" title="{{ __('Daily Consumables, Financial / Loan, Household, Medical, Utilities') }}">
+                {{ __('Consumables+Loans+Household+Medical+Utilities') }} ({{ $this->datePeriodLabel }})
+            </flux:text>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 border-l-4 border-l-amber-500 bg-amber-50/20 dark:bg-amber-950/10">
-            <flux:text size="sm" class="font-medium text-amber-800 dark:text-amber-300">{{ __('Filtered Expenses') }}</flux:text>
+            <flux:text size="sm" class="font-medium text-amber-800 dark:text-amber-300">{{ __('Filtered Total (All Categories)') }}</flux:text>
             <flux:heading size="lg" class="text-amber-600 dark:text-amber-400">₹{{ number_format($this->filteredExpensesTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-amber-700/80 dark:text-amber-400/80 truncate">
+                {{ __('All Categories') }} ({{ $this->datePeriodLabel }})
+            </flux:text>
         </flux:card>
     </div>
 
@@ -395,6 +514,7 @@ new #[Title('Expenses')] class extends Component {
 
         <flux:select wire:model.live="categoryId" :placeholder="__('All Categories')">
             <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
+            <flux:select.option value="selected_5_types">⭐ {{ __('Consumables + Loans + Household + Medical + Utilities') }}</flux:select.option>
             @foreach ($this->categories as $category)
                 <flux:select.option value="{{ $category->id }}">
                     {{ $category->icon ?? '📁' }} {{ $category->name }} ({{ ucfirst($category->type ?? 'business') }})
