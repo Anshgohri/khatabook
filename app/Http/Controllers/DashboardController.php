@@ -131,7 +131,7 @@ class DashboardController extends Controller
         return FinancierPayment::query()
             ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
             ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment']);
+            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance']);
     }
 
     protected function scopedSupplierPayments()

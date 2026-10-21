@@ -82,13 +82,13 @@ class Financier extends Model
 
         if ($this->interest_type === 'principal_reducing') {
             $totalPrincipalDeducted = (float) $this->payments()
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'adjusted_balance'])
                 ->sum('amount');
         } else {
             // Default: interest_only. Installment payments are interest payments, principal remains intact.
-            // Only explicit loan_repaid payments reduce principal balance.
+            // Only explicit loan_repaid and adjusted_balance payments reduce principal balance.
             $totalPrincipalDeducted = (float) $this->payments()
-                ->where('type', 'loan_repaid')
+                ->whereIn('type', ['loan_repaid', 'adjusted_balance'])
                 ->sum('amount');
         }
 
@@ -107,7 +107,7 @@ class Financier extends Model
     public function getTotalPaidAttribute(): float
     {
         return (float) $this->payments
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
             ->sum('amount');
     }
 
@@ -128,12 +128,12 @@ class Financier extends Model
     {
         if ($this->interest_type === 'principal_reducing') {
             return (float) $this->payments
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'adjusted_balance'])
                 ->sum('amount');
         }
 
         return (float) $this->payments
-            ->where('type', 'loan_repaid')
+            ->whereIn('type', ['loan_repaid', 'adjusted_balance'])
             ->sum('amount');
     }
 }

@@ -23,7 +23,7 @@ class FinancierPaymentFactory extends Factory
             'financier_id' => Financier::factory(),
             'user_id' => User::factory(),
             'date' => fake()->date(),
-            'type' => fake()->randomElement(['daily_payment', 'monthly_payment', 'loan_received', 'loan_repaid', 'interest_payment']),
+            'type' => fake()->randomElement(['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_received', 'loan_repaid', 'interest_payment', 'adjusted_balance']),
             'amount' => fake()->randomElement([500.00, 1000.00, 5000.00, 50000.00]),
             'payment_method' => fake()->randomElement(['cash', 'upi', 'bank_transfer']),
             'notes' => fake()->optional()->sentence(),

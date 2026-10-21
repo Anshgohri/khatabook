@@ -31,7 +31,7 @@ new #[Title('Financiers')] class extends Component {
     public string $activeTab = 'financiers'; // financiers, payouts
 
     #[Url]
-    public string $datePreset = 'today'; // today, yesterday, week, month, custom
+    public string $datePreset = 'all'; // all, today, yesterday, week, month, custom
 
     #[Url]
     public string $payoutDateFrom = '';
@@ -60,7 +60,7 @@ new #[Title('Financiers')] class extends Component {
     public bool $showPaymentModal = false;
     public ?int $paymentFinancierId = null;
     public ?int $editingPaymentId = null;
-    public string $type = 'daily_payment'; // daily_payment, weekly_payment, monthly_payment, loan_received, loan_repaid, interest_payment
+    public string $type = 'daily_payment'; // daily_payment, weekly_payment, monthly_payment, loan_received, loan_repaid, interest_payment, adjusted_balance
     public float $amount = 0.0;
     public string $payment_method = 'cash';
     public string $payment_date = '';
@@ -106,17 +106,39 @@ new #[Title('Financiers')] class extends Component {
 
     public function updatingPayoutSearch(): void
     {
-        $this->resetPage();
+        $this->resetPage('payoutsPage');
     }
 
     public function updatingPayoutTypeFilter(): void
     {
-        $this->resetPage();
+        $this->resetPage('payoutsPage');
     }
 
     public function updatingDatePreset(): void
     {
-        $this->resetPage();
+        $this->resetPage('payoutsPage');
+    }
+
+    public function updatedDatePreset($value): void
+    {
+        if ($value === 'custom') {
+            if (! $this->payoutDateFrom) {
+                $this->payoutDateFrom = now()->startOfMonth()->toDateString();
+            }
+            if (! $this->payoutDateTo) {
+                $this->payoutDateTo = now()->toDateString();
+            }
+        }
+    }
+
+    public function updatingPayoutDateFrom(): void
+    {
+        $this->resetPage('payoutsPage');
+    }
+
+    public function updatingPayoutDateTo(): void
+    {
+        $this->resetPage('payoutsPage');
     }
 
     public function setPreset(string $preset): void
@@ -133,22 +155,23 @@ new #[Title('Financiers')] class extends Component {
             }
         }
 
-        $this->resetPage();
+        $this->resetPage('payoutsPage');
     }
 
-    #[Computed]
+    #[Computed(cache: false)]
     public function dateRange(): array
     {
         return match ($this->datePreset) {
-            'today' => [now()->startOfDay(), now()->endOfDay()],
-            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
-            'week' => [now()->startOfWeek(), now()->endOfWeek()],
-            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'today' => [now()->toDateString(), now()->toDateString()],
+            'yesterday' => [now()->subDay()->toDateString(), now()->subDay()->toDateString()],
+            'week' => [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()],
+            'month' => [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
             'custom' => [
-                $this->payoutDateFrom ? \Illuminate\Support\Carbon::parse($this->payoutDateFrom)->startOfDay() : now()->startOfMonth(),
-                $this->payoutDateTo ? \Illuminate\Support\Carbon::parse($this->payoutDateTo)->endOfDay() : now()->endOfDay(),
+                $this->payoutDateFrom ? \Illuminate\Support\Carbon::parse($this->payoutDateFrom)->toDateString() : null,
+                $this->payoutDateTo ? \Illuminate\Support\Carbon::parse($this->payoutDateTo)->toDateString() : null,
             ],
-            default => [now()->startOfDay(), now()->endOfDay()],
+            'all', '' => [null, null],
+            default => [null, null],
         };
     }
 
@@ -159,9 +182,9 @@ new #[Title('Financiers')] class extends Component {
 
         return CacheService::rememberForUser('financiers.payments_today', $user->id, CacheService::STATS_TTL, function () use ($user) {
             return (float) FinancierPayment::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
                 ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
                 ->whereDate('date', today())
                 ->sum('amount');
         });
@@ -174,9 +197,9 @@ new #[Title('Financiers')] class extends Component {
 
         return CacheService::rememberForUser('financiers.payments_yesterday', $user->id, CacheService::STATS_TTL, function () use ($user) {
             return (float) FinancierPayment::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
                 ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
                 ->whereDate('date', now()->subDay())
                 ->sum('amount');
         });
@@ -189,9 +212,9 @@ new #[Title('Financiers')] class extends Component {
 
         return CacheService::rememberForUser('financiers.payments_week', $user->id, CacheService::STATS_TTL, function () use ($user) {
             return (float) FinancierPayment::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
                 ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
                 ->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
                 ->sum('amount');
         });
@@ -204,9 +227,9 @@ new #[Title('Financiers')] class extends Component {
 
         return CacheService::rememberForUser('financiers.payments_month', $user->id, CacheService::STATS_TTL, function () use ($user) {
             return (float) FinancierPayment::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
                 ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
                 ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
                 ->sum('amount');
         });
@@ -219,9 +242,9 @@ new #[Title('Financiers')] class extends Component {
 
         return CacheService::rememberForUser('financiers.payments_year', $user->id, CacheService::STATS_TTL, function () use ($user) {
             return (float) FinancierPayment::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
                 ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
                 ->whereBetween('date', [now()->startOfYear(), now()->endOfYear()])
                 ->sum('amount');
         });
@@ -234,7 +257,7 @@ new #[Title('Financiers')] class extends Component {
 
         return CacheService::rememberForUser('financiers.outstanding', $user->id, CacheService::STATS_TTL, function () use ($user) {
             return (float) Financier::query()
-                ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+                ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
                 ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
                 ->sum('outstanding_balance');
         });
@@ -247,7 +270,7 @@ new #[Title('Financiers')] class extends Component {
 
         return Financier::query()
             ->with(['payments', 'financierUser'])
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
             ->when($user->isFinancier(), fn ($query) => $query->where('financier_user_id', $user->id))
             ->when($this->payoutType, fn ($query) => $query->where('payout_type', $this->payoutType))
             ->when($this->search, fn ($query) => $query->where(function ($sub) {
@@ -282,11 +305,32 @@ new #[Title('Financiers')] class extends Component {
 
         return FinancierPayment::query()
             ->with('financier.financierUser', 'user')
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
             ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->when($this->payoutSearch, fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")))
-            ->when($this->payoutTypeFilter, fn ($query) => $query->where('type', $this->payoutTypeFilter))
-            ->whereBetween('date', [$startDate, $endDate])
+            ->when($this->payoutSearch, fn ($query) => $query->where(function ($sub) {
+                $sub->whereHas('financier', function ($q) {
+                    $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                        ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                        ->orWhereHas('financierUser', fn ($fu) => $fu->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                            ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                            ->orWhere('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%"));
+                })->orWhere('notes', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                  ->orWhere('payment_method', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%");
+            }))
+            ->when($this->payoutTypeFilter, function ($query) {
+                if ($this->payoutTypeFilter === 'all_payouts') {
+                    $query->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment']);
+                } else {
+                    $query->where('type', $this->payoutTypeFilter);
+                }
+            })
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $from = min($startDate, $endDate);
+                $to = max($startDate, $endDate);
+                $query->whereBetween('date', [$from, $to]);
+            })
+            ->when($startDate && ! $endDate, fn ($query) => $query->where('date', '>=', $startDate))
+            ->when(! $startDate && $endDate, fn ($query) => $query->where('date', '<=', $endDate))
             ->latest('date')
             ->latest('id')
             ->paginate(15, ['*'], 'payoutsPage');
@@ -299,11 +343,71 @@ new #[Title('Financiers')] class extends Component {
         [$startDate, $endDate] = $this->dateRange;
 
         return (float) FinancierPayment::query()
-            ->when(! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
             ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
-            ->when($this->payoutSearch, fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")))
-            ->when($this->payoutTypeFilter, fn ($query) => $query->where('type', $this->payoutTypeFilter))
-            ->whereBetween('date', [$startDate, $endDate])
+            ->when($this->payoutSearch, fn ($query) => $query->where(function ($sub) {
+                $sub->whereHas('financier', function ($q) {
+                    $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                        ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                        ->orWhereHas('financierUser', fn ($fu) => $fu->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                            ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                            ->orWhere('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%"));
+                })->orWhere('notes', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                  ->orWhere('payment_method', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%");
+            }))
+            ->when($this->payoutTypeFilter, function ($query) {
+                if ($this->payoutTypeFilter === 'all_payouts') {
+                    $query->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment']);
+                } else {
+                    $query->where('type', $this->payoutTypeFilter);
+                }
+            })
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $from = min($startDate, $endDate);
+                $to = max($startDate, $endDate);
+                $query->whereBetween('date', [$from, $to]);
+            })
+            ->when($startDate && ! $endDate, fn ($query) => $query->where('date', '>=', $startDate))
+            ->when(! $startDate && $endDate, fn ($query) => $query->where('date', '<=', $endDate))
+            ->sum('amount');
+    }
+
+    #[Computed(cache: false)]
+    public function filteredActuallyPaidTotal(): float
+    {
+        $user = Auth::user();
+        [$startDate, $endDate] = $this->dateRange;
+
+        $types = ['daily_payment', 'weekly_payment', 'monthly_payment'];
+        if ($this->payoutTypeFilter && $this->payoutTypeFilter !== 'all_payouts') {
+            if (in_array($this->payoutTypeFilter, $types, true)) {
+                $types = [$this->payoutTypeFilter];
+            } else {
+                return 0.0;
+            }
+        }
+
+        return (float) FinancierPayment::query()
+            ->when(! $user->isAdmin() && ! $user->isManager() && ! $user->isFinancier(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($user->isFinancier(), fn ($query) => $query->whereHas('financier', fn ($q) => $q->where('financier_user_id', $user->id)))
+            ->when($this->payoutSearch, fn ($query) => $query->where(function ($sub) {
+                $sub->whereHas('financier', function ($q) {
+                    $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                        ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                        ->orWhereHas('financierUser', fn ($fu) => $fu->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                            ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                            ->orWhere('email', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%"));
+                })->orWhere('notes', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%")
+                  ->orWhere('payment_method', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->payoutSearch}%");
+            }))
+            ->whereIn('type', $types)
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $from = min($startDate, $endDate);
+                $to = max($startDate, $endDate);
+                $query->whereBetween('date', [$from, $to]);
+            })
+            ->when($startDate && ! $endDate, fn ($query) => $query->where('date', '>=', $startDate))
+            ->when(! $startDate && $endDate, fn ($query) => $query->where('date', '<=', $endDate))
             ->sum('amount');
     }
 
@@ -601,7 +705,7 @@ new #[Title('Financiers')] class extends Component {
         }
 
         $validated = $this->validate([
-            'type' => ['required', 'in:daily_payment,weekly_payment,monthly_payment,loan_received,loan_repaid,interest_payment'],
+            'type' => ['required', 'in:daily_payment,weekly_payment,monthly_payment,loan_received,loan_repaid,interest_payment,adjusted_balance'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', 'in:cash,upi,bank_transfer,cheque,other'],
             'payment_date' => ['required', 'date'],
@@ -798,7 +902,7 @@ new #[Title('Financiers')] class extends Component {
     </div>
 
     <!-- Summary Stat Cards -->
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $this->activeTab === 'payouts' ? 'xl:grid-cols-6' : 'xl:grid-cols-4' }}">
         <flux:card class="flex flex-col gap-1">
             <flux:text size="sm">{{ __('Paid to Financiers (This Week)') }}</flux:text>
             <flux:heading size="lg">₹{{ number_format($this->paymentsThisWeek, 2) }}</flux:heading>
@@ -820,13 +924,23 @@ new #[Title('Financiers')] class extends Component {
         </flux:card>
 
         @if ($this->activeTab === 'payouts')
-        <flux:card class="flex flex-col gap-1 border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/30">
-            <flux:text size="sm" class="text-indigo-600 dark:text-indigo-400">{{ __('Filtered Payouts Total') }}</flux:text>
-            <flux:heading size="lg" class="text-indigo-700 dark:text-indigo-300">₹{{ number_format($this->filteredPaymentsTotal, 2) }}</flux:heading>
-            <flux:text size="xs" class="text-indigo-500 dark:text-indigo-500 truncate">
-                {{ $datePreset === 'custom'
+        <flux:card class="flex flex-col gap-1 border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30">
+            <flux:text size="sm" class="text-emerald-700 dark:text-emerald-400 font-medium">{{ __('Filtered Paid (Daily+Weekly+Monthly)') }}</flux:text>
+            <flux:heading size="lg" class="text-emerald-700 dark:text-emerald-300">₹{{ number_format($this->filteredActuallyPaidTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-emerald-600 dark:text-emerald-500 truncate" title="{{ __('Actually paid to financiers') }}">
+                {{ __('Actually Paid') }} ({{ $datePreset === 'custom'
                     ? ($payoutDateFrom ? \Illuminate\Support\Carbon::parse($payoutDateFrom)->format('d M') : '—') . ' → ' . ($payoutDateTo ? \Illuminate\Support\Carbon::parse($payoutDateTo)->format('d M Y') : '—')
-                    : ucfirst($datePreset) }}
+                    : ($datePreset === 'all' || ! $datePreset ? __('All Time') : ucfirst($datePreset)) }})
+            </flux:text>
+        </flux:card>
+
+        <flux:card class="flex flex-col gap-1 border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/30">
+            <flux:text size="sm" class="text-indigo-600 dark:text-indigo-400">{{ __('Filtered Total (All Transactions)') }}</flux:text>
+            <flux:heading size="lg" class="text-indigo-700 dark:text-indigo-300">₹{{ number_format($this->filteredPaymentsTotal, 2) }}</flux:heading>
+            <flux:text size="xs" class="text-indigo-500 dark:text-indigo-500 truncate" title="{{ __('All transaction types including loans') }}">
+                {{ __('All Types') }} ({{ $datePreset === 'custom'
+                    ? ($payoutDateFrom ? \Illuminate\Support\Carbon::parse($payoutDateFrom)->format('d M') : '—') . ' → ' . ($payoutDateTo ? \Illuminate\Support\Carbon::parse($payoutDateTo)->format('d M Y') : '—')
+                    : ($datePreset === 'all' || ! $datePreset ? __('All Time') : ucfirst($datePreset)) }})
             </flux:text>
         </flux:card>
         @endif
@@ -952,19 +1066,22 @@ new #[Title('Financiers')] class extends Component {
     
     @if ($this->activeTab === 'payouts')
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
-        <flux:input wire:model.live.debounce.400ms="payoutSearch" :placeholder="__('Search financier name...')" icon="magnifying-glass" />
+        <flux:input wire:model.live.debounce.400ms="payoutSearch" :placeholder="__('Search financier name, phone or notes...')" icon="magnifying-glass" />
         
         <flux:select wire:model.live="payoutTypeFilter" :placeholder="__('All Transaction Types')">
             <flux:select.option value="">{{ __('All Transactions') }}</flux:select.option>
+            <flux:select.option value="all_payouts">{{ __('Weekly + Daily + Monthly (Paid)') }}</flux:select.option>
             <flux:select.option value="daily_payment">{{ __('Daily Payment') }}</flux:select.option>
             <flux:select.option value="weekly_payment">{{ __('Weekly Payment') }}</flux:select.option>
             <flux:select.option value="monthly_payment">{{ __('Monthly Payment') }}</flux:select.option>
             <flux:select.option value="loan_received">{{ __('Loan Received') }}</flux:select.option>
             <flux:select.option value="loan_repaid">{{ __('Loan Repaid') }}</flux:select.option>
             <flux:select.option value="interest_payment">{{ __('Interest Paid') }}</flux:select.option>
+            <flux:select.option value="adjusted_balance">{{ __('Adjusted Balance') }}</flux:select.option>
         </flux:select>
         
         <flux:select wire:model.live="datePreset" :label="__('Date Range')">
+            <flux:select.option value="all">{{ __('All Time') }}</flux:select.option>
             <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
             <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
             <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
@@ -997,11 +1114,11 @@ new #[Title('Financiers')] class extends Component {
                     <flux:table.cell>{{ $payment->date->format('d M Y') }}</flux:table.cell>
                     <flux:table.cell class="font-medium">
                         <a href="{{ route('financiers.show', $payment->financier_id) }}" wire:navigate class="hover:underline text-indigo-600 dark:text-indigo-400">
-                            {{ $payment->financier->name }}
+                            {{ $payment->financier?->name ?? '—' }}
                         </a>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge :color="match ($payment->type) { 'loan_received' => 'orange', 'loan_repaid' => 'blue', 'interest_payment' => 'purple', default => 'green' }" size="sm">
+                        <flux:badge :color="match ($payment->type) { 'loan_received' => 'orange', 'loan_repaid' => 'blue', 'interest_payment' => 'purple', 'adjusted_balance' => 'cyan', default => 'green' }" size="sm">
                             {{ ucwords(str_replace('_', ' ', $payment->type)) }}
                         </flux:badge>
                     </flux:table.cell>
@@ -1128,6 +1245,7 @@ new #[Title('Financiers')] class extends Component {
                     <flux:select.option value="loan_received">{{ __('Loan Received from Financier (Increases Balance)') }}</flux:select.option>
                     <flux:select.option value="loan_repaid">{{ __('Principal Loan Repaid') }}</flux:select.option>
                     <flux:select.option value="interest_payment">{{ __('Interest Paid') }}</flux:select.option>
+                    <flux:select.option value="adjusted_balance">{{ __('Adjusted Balance (Reduces Balance)') }}</flux:select.option>
                 </flux:select>
 
                 <flux:input type="number" step="0.01" min="0.01" wire:model="amount" :label="__('Amount (₹)')" placeholder="e.g. 500 or 50000" required />

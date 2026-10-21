@@ -76,7 +76,7 @@ new #[Title('Financier Ledger')] class extends Component {
     {
         return (float) FinancierPayment::query()
             ->where('financier_id', $this->financier->id)
-            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment'])
+            ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'loan_repaid', 'interest_payment', 'adjusted_balance'])
             ->when($this->period === 'this_week', fn ($q) => $q->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]))
             ->when($this->period === 'this_month', fn ($q) => $q->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()]))
             ->when($this->period === 'this_year', fn ($q) => $q->whereBetween('date', [now()->startOfYear(), now()->endOfYear()]))
@@ -157,7 +157,7 @@ new #[Title('Financier Ledger')] class extends Component {
         }
 
         $validated = $this->validate([
-            'type' => ['required', 'in:daily_payment,weekly_payment,monthly_payment,loan_received,loan_repaid,interest_payment'],
+            'type' => ['required', 'in:daily_payment,weekly_payment,monthly_payment,loan_received,loan_repaid,interest_payment,adjusted_balance'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', 'in:cash,upi,bank_transfer,cheque,other'],
             'payment_date' => ['required', 'date'],
@@ -305,6 +305,7 @@ new #[Title('Financier Ledger')] class extends Component {
             <flux:select.option value="loan_received">{{ __('Loan Received') }}</flux:select.option>
             <flux:select.option value="loan_repaid">{{ __('Principal Loan Repaid') }}</flux:select.option>
             <flux:select.option value="interest_payment">{{ __('Interest Payment') }}</flux:select.option>
+            <flux:select.option value="adjusted_balance">{{ __('Adjusted Balance') }}</flux:select.option>
         </flux:select>
 
         @can('update', $this->financier)
@@ -340,6 +341,8 @@ new #[Title('Financier Ledger')] class extends Component {
                             <flux:badge color="blue" size="sm">{{ ucfirst(str_replace('_', ' ', $payment->type)) }}</flux:badge>
                         @elseif ($payment->type === 'loan_repaid')
                             <flux:badge color="green" size="sm">{{ __('Loan Repaid') }}</flux:badge>
+                        @elseif ($payment->type === 'adjusted_balance')
+                            <flux:badge color="cyan" size="sm">{{ __('Adjusted Balance') }}</flux:badge>
                         @else
                             <flux:badge color="purple" size="sm">{{ __('Interest Paid') }}</flux:badge>
                         @endif
@@ -396,6 +399,7 @@ new #[Title('Financier Ledger')] class extends Component {
                     <flux:select.option value="loan_received">{{ __('Loan Received from Financier (Increases Balance)') }}</flux:select.option>
                     <flux:select.option value="loan_repaid">{{ __('Principal Loan Repaid') }}</flux:select.option>
                     <flux:select.option value="interest_payment">{{ __('Interest Paid') }}</flux:select.option>
+                    <flux:select.option value="adjusted_balance">{{ __('Adjusted Balance (Reduces Balance)') }}</flux:select.option>
                 </flux:select>
 
                 <flux:input type="number" step="0.01" min="0.01" wire:model="amount" :label="__('Amount (₹)')" placeholder="e.g. 500 or 50000" required />
