@@ -5,6 +5,7 @@ use App\Models\Role;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use App\Models\User;
+use App\Services\CacheService;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,6 +25,9 @@ new #[Title('Suppliers')] class extends Component {
     public string $search = '';
 
     #[Url]
+    public string $activeTab = 'suppliers'; // suppliers, transactions
+
+    #[Url]
     public string $datePreset = '';
 
     #[Url]
@@ -31,6 +35,9 @@ new #[Title('Suppliers')] class extends Component {
 
     #[Url]
     public string $dateTo = '';
+
+    public string $transactionSearch = '';
+    public string $transactionTypeFilter = '';
 
     // Supplier Modal State
     public bool $showSupplierModal = false;
@@ -48,12 +55,14 @@ new #[Title('Suppliers')] class extends Component {
     // Payment/Purchase Modal State
     public bool $showPaymentModal = false;
     public ?int $paymentSupplierId = null;
+    public ?int $editingPaymentId = null;
     public string $type = 'raw_material_purchase'; // raw_material_purchase, payment_made
     public float $amount = 0.0;
     public string $payment_method = 'cash';
     public string $payment_date = '';
     public string $payment_notes = '';
     public $bill_image = null;
+    public ?string $existing_bill_path = null;
 
     // Ledger Modal State
     public bool $showLedgerModal = false;
@@ -70,7 +79,18 @@ new #[Title('Suppliers')] class extends Component {
     {
         if (in_array($property, ['search', 'dateFrom', 'dateTo'], true)) {
             $this->resetPage();
+            $this->resetPage('transactionsPage');
         }
+    }
+
+    public function updatingTransactionSearch(): void
+    {
+        $this->resetPage('transactionsPage');
+    }
+
+    public function updatingTransactionTypeFilter(): void
+    {
+        $this->resetPage('transactionsPage');
     }
 
     public function updatedDatePreset(): void
@@ -101,6 +121,32 @@ new #[Title('Suppliers')] class extends Component {
                 break;
         }
         $this->resetPage();
+        $this->resetPage('transactionsPage');
+    }
+
+    #[Computed]
+    public function payments()
+    {
+        $user = Auth::user();
+
+        return SupplierPayment::query()
+            ->with(['supplier', 'user'])
+            ->when(! $user->isManager(), fn ($query) => $query->where('user_id', $user->id))
+            ->when($this->transactionSearch, fn ($query) => $query->where(function ($sub) {
+                $sub->whereHas('supplier', function ($q) {
+                    $q->where('name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->transactionSearch}%")
+                        ->orWhere('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->transactionSearch}%")
+                        ->orWhere('location', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->transactionSearch}%")
+                        ->orWhere('material_supplied', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->transactionSearch}%");
+                })->orWhere('notes', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->transactionSearch}%")
+                  ->orWhere('payment_method', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->transactionSearch}%");
+            }))
+            ->when($this->transactionTypeFilter, fn ($q) => $q->where('type', $this->transactionTypeFilter))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('date', '<=', $this->dateTo))
+            ->latest('date')
+            ->latest('id')
+            ->paginate(15, ['*'], 'transactionsPage');
     }
 
     #[Computed]
@@ -490,6 +536,8 @@ new #[Title('Suppliers')] class extends Component {
         $supplier = Supplier::findOrFail($supplierId);
         $this->authorize('update', $supplier);
 
+        $this->editingPaymentId = null;
+        $this->existing_bill_path = null;
         $this->paymentSupplierId = $supplier->id;
         $this->type = $defaultType;
         $this->amount = 0.0;
@@ -498,6 +546,56 @@ new #[Title('Suppliers')] class extends Component {
         $this->payment_notes = '';
         $this->bill_image = null;
         $this->showPaymentModal = true;
+    }
+
+    public function editPayment(int $id): void
+    {
+        $payment = SupplierPayment::with('supplier')->findOrFail($id);
+        $this->authorize('update', $payment->supplier);
+
+        $this->editingPaymentId = $payment->id;
+        $this->paymentSupplierId = $payment->supplier_id;
+        $this->type = $payment->type;
+        $this->amount = (float) $payment->amount;
+        $this->payment_method = $payment->payment_method;
+        $this->payment_date = $payment->date->toDateString();
+        $this->payment_notes = (string) $payment->notes;
+        $this->bill_image = null;
+        $this->existing_bill_path = $payment->bill_path;
+        $this->showPaymentModal = true;
+    }
+
+    public function removeExistingBill(): void
+    {
+        if ($this->editingPaymentId) {
+            $payment = SupplierPayment::with('supplier')->find($this->editingPaymentId);
+            if ($payment) {
+                $this->authorize('update', $payment->supplier);
+                if ($payment->bill_path) {
+                    if (Storage::exists($payment->bill_path)) {
+                        Storage::delete($payment->bill_path);
+                    }
+                    $payment->update(['bill_path' => null]);
+                    $this->existing_bill_path = null;
+                    Flux::toast(variant: 'success', text: __('Receipt removed.'));
+                }
+            }
+        }
+    }
+
+    public function deletePayment(int $id): void
+    {
+        $payment = SupplierPayment::with('supplier')->findOrFail($id);
+        $this->authorize('update', $payment->supplier);
+
+        if ($payment->bill_path && Storage::exists($payment->bill_path)) {
+            Storage::delete($payment->bill_path);
+        }
+
+        $payment->delete();
+        CacheService::invalidateUser(Auth::id());
+        unset($this->suppliers, $this->payments, $this->selectedLedgerSupplier);
+        Flux::toast(variant: 'success', text: __('Entry deleted.'));
     }
 
     public function savePayment(): void
@@ -519,27 +617,53 @@ new #[Title('Suppliers')] class extends Component {
             'bill_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
 
-        $billPath = null;
-        if ($this->bill_image) {
-            $billPath = $this->bill_image->store('bills');
+        if ($this->editingPaymentId) {
+            $payment = SupplierPayment::where('supplier_id', $supplier->id)->findOrFail($this->editingPaymentId);
+            $billPath = $payment->bill_path;
+            if ($this->bill_image) {
+                if ($billPath && Storage::exists($billPath)) {
+                    Storage::delete($billPath);
+                }
+                $billPath = $this->bill_image->store('bills');
+            }
+
+            $payment->update([
+                'type' => $validated['type'],
+                'amount' => $validated['amount'],
+                'date' => $validated['payment_date'],
+                'payment_method' => $validated['payment_method'],
+                'notes' => $validated['payment_notes'],
+                'bill_path' => $billPath,
+            ]);
+
+            $toastMsg = __('Supplier entry updated successfully.');
+        } else {
+            $billPath = null;
+            if ($this->bill_image) {
+                $billPath = $this->bill_image->store('bills');
+            }
+
+            SupplierPayment::create([
+                'supplier_id' => $supplier->id,
+                'user_id' => Auth::id(),
+                'date' => $validated['payment_date'],
+                'type' => $validated['type'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'notes' => $validated['payment_notes'],
+                'bill_path' => $billPath,
+            ]);
+
+            $toastMsg = __('Supplier entry recorded successfully.');
         }
 
-        SupplierPayment::create([
-            'supplier_id' => $supplier->id,
-            'user_id' => Auth::id(),
-            'date' => $validated['payment_date'],
-            'type' => $validated['type'],
-            'amount' => $validated['amount'],
-            'payment_method' => $validated['payment_method'],
-            'notes' => $validated['payment_notes'],
-            'bill_path' => $billPath,
-        ]);
-
+        CacheService::invalidateUser(Auth::id());
         $this->showPaymentModal = false;
         $this->bill_image = null;
-        unset($this->suppliers);
-        unset($this->selectedLedgerSupplier);
-        Flux::toast(variant: 'success', text: __('Supplier entry recorded successfully.'));
+        $this->existing_bill_path = null;
+        $this->editingPaymentId = null;
+        unset($this->suppliers, $this->payments, $this->selectedLedgerSupplier);
+        Flux::toast(variant: 'success', text: $toastMsg);
     }
 
     // Ledger Navigation
