@@ -160,6 +160,18 @@ new #[Title('Employee Piece Rates')] class extends Component {
                 ];
 
             case 'siddi':
+                if ((int) $this->calcSiddiFeet === 25) {
+                    $unitCost = 100.00;
+                    $totalCost = $unitCost * $qty;
+                    return [
+                        'label' => __('25ft Siddi (Fixed Labor Rate: ₹100)'),
+                        'rate_label' => '₹100 / pc',
+                        'formula' => "{$qty} pcs × ₹100 (25ft Siddi Fixed Rate)",
+                        'unit_cost' => $unitCost,
+                        'total_cost' => $totalCost,
+                    ];
+                }
+
                 $dandas = max(1, $this->calcSiddiDandas);
                 $unitCost = $dandas * $dandaRate;
                 $totalCost = $unitCost * $qty;
@@ -277,6 +289,8 @@ new #[Title('Employee Piece Rates')] class extends Component {
                 <span>15ft (13d) = <strong>₹52</strong></span>
                 <span>•</span>
                 <span>20ft (18d) = <strong>₹72</strong></span>
+                <span>•</span>
+                <span>25ft = <strong>₹100 (Fixed)</strong></span>
             </div>
         </flux:card>
 
