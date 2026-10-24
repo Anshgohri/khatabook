@@ -44,7 +44,7 @@
                     </flux:sidebar.item>
                     @endif
 
-                    <flux:sidebar.item icon="archive-box" :href="route('products')" :current="request()->routeIs('products')" wire:navigate>
+                    <flux:sidebar.item icon="archive-box" :href="route('products')" :current="request()->routeIs('products*')" wire:navigate>
                         {{ __('Products') }}
                     </flux:sidebar.item>
 

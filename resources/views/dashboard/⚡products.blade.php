@@ -262,7 +262,7 @@ new #[Title('Products & Inventory')] class extends Component {
         <flux:heading size="xl">{{ __('Products & Inventory') }}</flux:heading>
 
         @can('create', Product::class)
-        <flux:button variant="primary" icon="plus" wire:click="createProduct">{{ __('Add product') }}</flux:button>
+        <flux:button variant="primary" icon="plus" :href="route('products.create')" wire:navigate>{{ __('Add product') }}</flux:button>
         @endcan
     </div>
 
@@ -326,13 +326,17 @@ new #[Title('Products & Inventory')] class extends Component {
                 <flux:table.row wire:key="product-{{ $product->id }}">
                     <flux:table.cell>
                         <div class="flex items-center gap-3">
-                            @if ($product->has_custom_image)
-                                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-9 h-9 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700 shrink-0" />
-                            @else
-                                <div class="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 text-xs shrink-0 font-medium">📦</div>
-                            @endif
+                            <a href="{{ route('products.show', $product->id) }}" wire:navigate class="shrink-0">
+                                @if ($product->has_custom_image)
+                                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-9 h-9 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700 shrink-0" />
+                                @else
+                                    <div class="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 text-xs shrink-0 font-medium">📦</div>
+                                @endif
+                            </a>
                             <div class="flex flex-col">
-                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $product->name }}</span>
+                                <a href="{{ route('products.show', $product->id) }}" wire:navigate class="font-medium text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline">
+                                    {{ $product->name }}
+                                </a>
                                 @if ($product->description)
                                     <span class="text-xs text-zinc-400 max-w-xs truncate" title="{{ $product->description }}">{{ $product->description }}</span>
                                 @endif
@@ -368,11 +372,14 @@ new #[Title('Products & Inventory')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2">
+                            @can('view', $product)
+                            <flux:button size="sm" variant="ghost" icon="eye" :href="route('products.show', $product->id)" wire:navigate title="{{ __('View product') }}" />
+                            @endcan
                             @can('create', App\Models\InventoryLog::class)
                             <flux:button size="sm" variant="ghost" icon="archive-box" wire:click="adjustStock({{ $product->id }})">{{ __('Adjust stock') }}</flux:button>
                             @endcan
                             @can('update', $product)
-                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editProduct({{ $product->id }})" />
+                            <flux:button size="sm" variant="ghost" icon="pencil" :href="route('products.edit', $product->id)" wire:navigate title="{{ __('Edit product') }}" />
                             @endcan
                             @can('delete', $product)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteProduct({{ $product->id }})" wire:confirm="{{ __('Delete this product?') }}" />
@@ -388,56 +395,6 @@ new #[Title('Products & Inventory')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </div>
-
-    <flux:modal wire:model.self="showProductForm" class="md:w-96">
-        <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ $editingId ? __('Edit product') : __('Add product') }}</flux:heading>
-
-            <form wire:submit="saveProduct" class="flex flex-col gap-4">
-                <flux:input wire:model="name" :label="__('Name')" placeholder="e.g. Baans (Bamboo) or Finished Table" required />
-
-                <flux:select wire:model="type" :label="__('Item Type')" required>
-                    <flux:select.option value="finished_good">{{ __('Finished Good (Sales Item)') }}</flux:select.option>
-                    <flux:select.option value="raw_material">{{ __('Raw Material (Input Material)') }}</flux:select.option>
-                </flux:select>
-
-                <flux:input wire:model="unit" :label="__('Unit of Measurement')" placeholder="e.g. pcs, bundle, feet, kg" required />
-
-                <flux:select wire:model="product_category_id" :label="__('Category')" :placeholder="__('Uncategorized')">
-                    @foreach ($this->categories as $category)
-                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-
-                <flux:input type="number" step="0.01" min="0" wire:model="unit_price" :label="__('Selling Unit Price (₹)')" required />
-                <flux:input type="number" step="0.01" min="0" wire:model="rent_price" :label="__('Daily Rent Price (₹)')" :description="__('Optional. Default daily rent when given on rent.')" />
-
-                @if (auth()->user()?->isSystemAdmin())
-                <flux:input type="number" step="0.01" min="0" wire:model="cost_price" :label="__('Production / Making Cost (₹)')" :description="__('Total cost to make/produce this item (System Admin view only)')" />
-                @endif
-                <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
-
-                <flux:input type="file" wire:model="image" :label="__('Product Image (Optional)')" accept="image/*" />
-
-                @if ($image)
-                    <div class="flex items-center gap-3 p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                        <img src="{{ $image->temporaryUrl() }}" class="w-12 h-12 object-cover rounded-md border border-zinc-200" />
-                        <span class="text-xs text-zinc-500">{{ __('New Image Preview') }}</span>
-                    </div>
-                @elseif ($editingId && ($existingProduct = App\Models\Product::find($editingId))?->image_path)
-                    <div class="flex items-center gap-3 p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                        <img src="{{ Storage::url($existingProduct->image_path) }}" class="w-12 h-12 object-cover rounded-md border border-zinc-200" />
-                        <span class="text-xs text-zinc-500">{{ __('Current Product Image') }}</span>
-                    </div>
-                @endif
-
-                <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="ghost" wire:click="$set('showProductForm', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
 
     <flux:modal wire:model.self="showStockForm" class="md:w-96">
         <div class="flex flex-col gap-6">

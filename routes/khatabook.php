@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('expenses', 'pages::expenses')->name('expenses');
     Route::livewire('expense-categories', 'pages::expense-categories')->name('expense-categories');
     Route::livewire('products', 'pages::products')->name('products');
+    Route::livewire('products/create', 'pages::products-form')->name('products.create');
+    Route::livewire('products/{product}/edit', 'pages::products-form')->name('products.edit');
+    Route::livewire('products/{product}', 'pages::products-detail')->name('products.show');
     Route::livewire('categories', 'pages::categories')->name('categories');
     Route::livewire('employees', 'pages::employees')->name('employees');
     Route::livewire('employees/{employee}', 'pages::employee-ledger')->name('employees.show');
