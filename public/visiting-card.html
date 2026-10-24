@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shashi Bala Baans Store - Business Card & Marketing Kit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Hind:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --emerald-dark: #062b1e;
+            --emerald-mid: #0b4632;
+            --emerald-light: #126347;
+            --gold-primary: #d4af37;
+            --gold-light: #f7e7a9;
+            --gold-dark: #aa8214;
+            --zinc-bg: #0f172a;
+            --cream-bg: #fdfbf7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Hind', sans-serif;
+            background: #090e17;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .header .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(18,99,71,0.2));
+            border: 1px solid rgba(212,175,55,0.4);
+            color: var(--gold-light);
+            padding: 0.4rem 1.2rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+        }
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.4rem;
+            color: #ffffff;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            color: #94a3b8;
+            font-size: 1.05rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Mockup Gallery Carousel */
+        .mockups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3.5rem;
+        }
+        .mockup-card {
+            background: #111a2e;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .mockup-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(212,175,55,0.4);
+        }
+        .mockup-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .mockup-info {
+            padding: 1.25rem;
+        }
+        .mockup-info h3 {
+            font-size: 1.15rem;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .mockup-info p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.3rem;
+            line-height: 1.4;
+        }
+
+        /* Print Ready Vector Cards Section */
+        .section-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .section-title h2 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            font-family: 'Cinzel', serif;
+        }
+        .section-title p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .cards-preview-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Standard Visiting Card Dimension: 3.5in x 2in (ratio 1.75 : 1) */
+        .business-card {
+            width: 440px;
+            height: 252px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 2px 5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            user-select: none;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+        .business-card:hover {
+            transform: scale(1.02);
+        }
+
+        /* FRONT CARD STYLES */
+        .card-front {
+            background: radial-gradient(circle at 80% 20%, #0d533b 0%, #062b1e 65%, #031710 100%);
+            border: 2px solid #b89329;
+            padding: 1.25rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #ffffff;
+        }
+        .card-front::before {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .front-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .front-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .logo-emblem {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #fce99f 0%, #d4af37 50%, #916f10 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #062b1e;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid #ffe89e;
+        }
+        .brand-names h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #ffffff, #ffeaa7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .brand-names .hindi-name {
+            font-family: 'Hind', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        .rent-badge {
+            background: linear-gradient(135deg, #eab308, #ca8a04);
+            color: #0f172a;
+            padding: 0.35rem 0.65rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.72rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+            line-height: 1.2;
+            text-transform: uppercase;
+            border: 1px solid #fef08a;
+        }
+
+        .front-mid {
+            margin: 0.4rem 0;
+        }
+        .tagline {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .products-highlight {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-top: 0.15rem;
+        }
+        .proprietor {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            margin-top: 0.2rem;
+        }
+        .proprietor span {
+            color: var(--gold-light);
+            font-weight: 700;
+        }
+
+        .front-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(212, 175, 55, 0.25);
+            padding-top: 0.5rem;
+        }
+        .address-box {
+            font-size: 0.68rem;
+            color: #94a3b8;
+            line-height: 1.35;
+            max-width: 240px;
+        }
+        .phone-box {
+            text-align: right;
+        }
+        .phone-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(18, 99, 71, 0.7);
+            border: 1px solid #22c55e;
+            color: #ffffff;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* BACK CARD STYLES */
+        .card-back {
+            background: #ffffff;
+            border: 2px solid #062b1e;
+            padding: 1.1rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #0f172a;
+        }
+        .card-back::before {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border: 1px solid #d4af37;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .back-header {
+            background: #062b1e;
+            color: #fce99f;
+            text-align: center;
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .services-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.3rem 0.8rem;
+            margin: 0.4rem 0;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .services-list div {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .services-list span.icon {
+            color: #16a34a;
+            font-weight: 900;
+        }
+
+        .special-target-box {
+            background: #fefce8;
+            border: 1px dashed #ca8a04;
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            text-align: center;
+        }
+        .special-target-box h4 {
+            color: #854d0e;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+        .special-target-box p {
+            color: #a16207;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .back-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.4rem;
+        }
+        .delivery-note {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #0b4632;
+        }
+        .qr-placeholder {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .qr-box {
+            width: 38px;
+            height: 38px;
+            background: #000;
+            padding: 3px;
+            border-radius: 4px;
+        }
+        .qr-box svg {
+            width: 100%;
+            height: 100%;
+            fill: #fff;
+        }
+        .qr-text {
+            font-size: 0.62rem;
+            color: #475569;
+            line-height: 1.2;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .actions-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3.5rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+        .btn-secondary {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            box-shadow: none;
+        }
+        .btn-secondary:hover {
+            background: #334155;
+        }
+
+        /* Strategy Guide */
+        .strategy-section {
+            background: #111a2e;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            margin-bottom: 3rem;
+        }
+        .strategy-section h2 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            font-family: 'Cinzel', serif;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .strategy-section > p {
+            text-align: center;
+            color: #94a3b8;
+            max-width: 750px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .tactics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .tactic-card {
+            background: #182238;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+        .tactic-card:hover {
+            border-color: rgba(212,175,55,0.4);
+        }
+        .tactic-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        .tactic-card h3 {
+            font-size: 1.15rem;
+            color: #f8fafc;
+            margin-bottom: 0.5rem;
+        }
+        .tactic-card p {
+            font-size: 0.88rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .tactic-tag {
+            display: inline-block;
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+        }
+
+        /* Print Media Styles */
+        @media print {
+            body {
+                background: #ffffff;
+                color: #000000;
+                padding: 0;
+            }
+            .header, .mockups-grid, .actions-bar, .strategy-section {
+                display: none !important;
+            }
+            .cards-preview-wrap {
+                margin: 0;
+                gap: 20px;
+            }
+            .business-card {
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <span class="badge">Business Expansion & Branding Kit</span>
+            <h1>Shashi Bala Baans Store</h1>
+            <p>High-Impact Business Card & Customer Acquisition Strategy for Bamboo Ghodi, Challi & Siddi (Sale & Rental Service)</p>
+        </div>
+
+        <!-- Photorealistic Mockups Showcase -->
+        <div class="mockups-grid">
+            <div class="mockup-card">
+                <img src="/visiting-card-assets/front-mockup.jpg" alt="Business Card Front Mockup">
+                <div class="mockup-info">
+                    <h3>Front Side (लग्जरी गोल्ड व डार्क एमराल्ड) <span>Front Design</span></h3>
+                    <p>हाइलाइट्स: एम्बॉस्ड 'SB' बम्बू लोगो, 'अब किराए पर भी उपलब्ध!' गोल्ड सील बैज, प्रोप्राइटर नेम व व्हाट्सऐप कांटेक्ट नंबर।</p>
+                </div>
+            </div>
+
+            <div class="mockup-card">
+                <img src="/visiting-card-assets/back-mockup.jpg" alt="Business Card Back Mockup">
+                <div class="mockup-info">
+                    <h3>Back Side (कस्टमर कंवर्जन व सर्विस लिस्ट) <span>Back Design</span></h3>
+                    <p>हाइलाइट्स: POP/पेंटर/मिस्त्री भाइयों के लिए विशेष किराए का बैनर, 3ft-8ft घोड़ी, चाली, सीढ़ी लिस्ट, साइट डिलीवरी व QR कोड।</p>
+                </div>
+            </div>
+
+            <div class="mockup-card">
+                <img src="/visiting-card-assets/duo-mockup.jpg" alt="Duo Business Cards Mockup">
+                <div class="mockup-info">
+                    <h3>Full Presentation (फ्रंट और बैक एक साथ) <span>Duo View</span></h3>
+                    <p>प्रीमियम टिम्बर बोर्ड पर रियलिस्टिक 3D प्रेजेंटेशन - जो स्थानीय प्रिंटर या कस्टमर्स को दिखाने के लिए एकदम परफेक्ट है।</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Print-Ready Vector Cards -->
+        <div class="section-title">
+            <h2>Print-Ready Vector Layout (Exact 3.5" × 2" Dimensions)</h2>
+            <p>You can print these directly or share them with any printing press in Karnal</p>
+        </div>
+
+        <div class="cards-preview-wrap">
+            <!-- Front Card -->
+            <div class="business-card card-front">
+                <div class="front-top">
+                    <div class="front-logo">
+                        <div class="logo-emblem">SB</div>
+                        <div class="brand-names">
+                            <h2>SHASHI BALA BAANS</h2>
+                            <div class="hindi-name">शशि बाला बांस स्टोर (SB Baans Store)</div>
+                        </div>
+                    </div>
+                    <div class="rent-badge">
+                        अब किराए पर<br>भी उपलब्ध!
+                    </div>
+                </div>
+
+                <div class="front-mid">
+                    <div class="tagline">DIRECT TIMBER MERCHANT • WHOLESALE & RETAIL</div>
+                    <div class="products-highlight">बांस की घोड़ी • चाली • मजबूत सीढ़ी • असम बांस</div>
+                    <div class="proprietor">प्रोप्राइटर: <span>अशोक कुमार</span></div>
+                </div>
+
+                <div class="front-bottom">
+                    <div class="address-box">
+                        📍 <strong>गोदाम पता:</strong> मकान नं. 2755, गौशाला रोड के सामने, जनक पुरी, करनाल (हरियाणा) - 132001
+                    </div>
+                    <div class="phone-box">
+                        <div class="phone-pill">
+                            <span>📞</span> 92555-23276 / 89503-04888
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Card -->
+            <div class="business-card card-back">
+                <div class="back-header">
+                    ★ विशेष सुविधाएं • RENT & SALE SERVICES ★
+                </div>
+
+                <div class="services-list">
+                    <div><span class="icon">✔</span> बांस की घोड़ी - बिक्री व किराए पर</div>
+                    <div><span class="icon">✔</span> मजबूत बांस की सीढ़ी (Siddi)</div>
+                    <div><span class="icon">✔</span> सुरक्षित बांस की चाली (Heavy Duty)</div>
+                    <div><span class="icon">✔</span> असम का पक्का व भारी बांस (Poles)</div>
+                </div>
+
+                <div class="special-target-box">
+                    <h4>🔨 POP, पेंटर व ठेकेदारों के लिए</h4>
+                    <p>साइट काम के लिए उचित दैनिक व मासिक किराए पर घोड़ी-चाली उपलब्ध!</p>
+                </div>
+
+                <div class="back-bottom">
+                    <div class="delivery-note">
+                        <span style="font-size: 1.2rem;">🚚</span>
+                        <div>
+                            <strong>एक कॉल पर साइट तक डिलीवरी</strong><br>
+                            <span style="color:#64748b;">(घर बैठे ऑर्डर करें, मंडी जाने की जरूरत नहीं)</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.65rem; color: #64748b; font-weight: 600;">ऑर्डर व पूछताछ:</span><br>
+                        <strong style="font-size: 0.8rem; color: #062b1e;">📞 92555-23276, 89503-04888</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-bar">
+            <button class="btn" onclick="window.print()">
+                🖨️ Print / Save as PDF
+            </button>
+            <a href="/visiting-card-assets/front-mockup.jpg" download class="btn btn-secondary">
+                ⬇️ Download Front Image
+            </a>
+            <a href="/visiting-card-assets/back-mockup.jpg" download class="btn btn-secondary">
+                ⬇️ Download Back Image
+            </a>
+        </div>
+
+        <!-- Strategy Guide: How To Overcome Home Godown Location -->
+        <div class="strategy-section">
+            <h2>🎯 'होम गोदाम' से बिजनेस को 5x बढ़ाने की अचूक रणनीति</h2>
+            <p>क्योंकि आपकी दुकान मुख्य बांस मंडी में नहीं है, इसलिए कस्टमर को मंडी जाने के बजाय आपके पास खींचने के 4 सबसे ताकतवर तरीके:</p>
+
+            <div class="tactics-grid">
+                <div class="tactic-card">
+                    <div class="tactic-icon">🪜</div>
+                    <h3>1. 'घोड़ी-चाली रेंट' - सबसे बड़ा कस्टमर चुंबक</h3>
+                    <p>पेंटर और POP कारीगर 3-5 दिन के काम के लिए ₹5,000 की नई घोड़ी नहीं खरीदना चाहते। जब आप उन्हें <strong>सस्ते दैनिक किराए (₹50-₹80/दिन)</strong> पर देंगे, तो शहर के 50+ ठेकेदार सीधे आपके पक्के ग्राहक बन जाएंगे।</p>
+                    <span class="tactic-tag">कस्टमर एक्विजिशन हुक</span>
+                </div>
+
+                <div class="tactic-card">
+                    <div class="tactic-icon">🚚</div>
+                    <h3>2. 'साइट डिलीवरी' - मंडी की भीड़ से मुक्ति</h3>
+                    <p>मंडी में कस्टमर को खुद ऑटो/रिक्शा लेकर जाना पड़ता है। अपने कार्ड पर साफ लिखें: <strong>"फोन घुमाएं, घोड़ी-चाली सीधी साइट पर पाएं"</strong>। जब डिलीवरी उनके काम की जगह पहुंचेगी, तो कोई भी मंडी के धक्के नहीं खाना चाहेगा।</p>
+                    <span class="tactic-tag">लोकेशन की कमजोरी खत्म</span>
+                </div>
+
+                <div class="tactic-card">
+                    <div class="tactic-icon">🏪</div>
+                    <h3>3. हार्डवेयर, पेंट व POP दुकानों पर कार्ड वितरण</h3>
+                    <p>करनाल की 15-20 बड़ी <strong>Asian Paints, Berger Paints, POP Gypsum दुकानों</strong> के काउंटरों पर अपने 20-20 कार्ड रखवाएं। दुकानदार को बोलें: <em>"अगर कोई पेंटर या कारीगर घोड़ी किराए पर मांगे तो हमारा नंबर दें।"</em></p>
+                    <span class="tactic-tag">डायरेक्ट B2B पार्टनरशिप</span>
+                </div>
+
+                <div class="tactic-card">
+                    <div class="tactic-icon">📱</div>
+                    <h3>4. रेंट कस्टमर को परमानेंट खरीददार बनाना</h3>
+                    <p>जब भी कोई कारीगर रेंट पर घोड़ी लौटाने आए, उससे पूछें: <em>"भैया आपकी खुद की सीढ़ी या बांस चाहिए क्या? हम असम का पक्का माल सबसे कम रेट में देते हैं।"</em> 10 रेंट कस्टमर में से 4 कस्टमर आपसे सीढ़ी या घोड़ी जरूर खरीदेंगे।</p>
+                    <span class="tactic-tag">रेंट से सेल (Upsell)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
