@@ -88,7 +88,7 @@
 
                     @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer())
                     @can('viewAny', App\Models\Supplier::class)
-                        <flux:sidebar.item icon="truck" :href="route('suppliers')" :current="request()->routeIs('suppliers')" wire:navigate>
+                        <flux:sidebar.item icon="truck" :href="route('suppliers')" :current="request()->routeIs('suppliers*')" wire:navigate>
                             {{ __('Suppliers') }}
                         </flux:sidebar.item>
                     @endcan

@@ -40,6 +40,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('financiers', 'pages::financiers')->name('financiers');
     Route::livewire('financiers/{financier}', 'pages::financier-ledger')->name('financiers.show');
     Route::livewire('suppliers', 'pages::suppliers')->name('suppliers');
+    Route::livewire('suppliers/create', 'pages::suppliers-form')->name('suppliers.create');
+    Route::livewire('suppliers/{supplier}/edit', 'pages::suppliers-form')->name('suppliers.edit');
+    Route::livewire('suppliers/{supplier}/payments/create', 'pages::supplier-payment-form')->name('suppliers.payments.create');
+    Route::livewire('suppliers/{supplier}/payments/{payment}/edit', 'pages::supplier-payment-form')->name('suppliers.payments.edit');
+    Route::livewire('suppliers/{supplier}/payments/{payment}', 'pages::supplier-payment-detail')->name('suppliers.payments.show');
+    Route::livewire('suppliers/payments/create', 'pages::supplier-payment-form')->name('suppliers.payments.standalone');
+    Route::livewire('suppliers/payments/{payment}/edit', 'pages::supplier-payment-form')->name('suppliers.payments.edit.standalone');
     Route::livewire('suppliers/{supplier}', 'pages::supplier-ledger')->name('suppliers.show');
     Route::livewire('production', 'pages::production')->name('production');
     Route::livewire('production/create', 'pages::production-form')->name('production.create');

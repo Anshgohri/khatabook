@@ -255,7 +255,7 @@ new #[Title('Supplier Ledger')] class extends Component {
                 <flux:badge color="zinc" size="lg">₹0.00 Balance</flux:badge>
             @endif
 
-            <flux:button variant="primary" icon="plus" wire:click="openPaymentModal('raw_material_purchase')">
+            <flux:button variant="primary" icon="plus" :href="route('suppliers.payments.create', ['supplier' => $this->supplier->id])" wire:navigate>
                 {{ __('Record Purchase / Pay') }}
             </flux:button>
         </div>
@@ -297,10 +297,10 @@ new #[Title('Supplier Ledger')] class extends Component {
         </flux:select>
 
         <div class="flex items-center gap-2 sm:justify-end">
-            <flux:button size="sm" variant="subtle" icon="shopping-bag" wire:click="openPaymentModal('raw_material_purchase')">
+            <flux:button size="sm" variant="subtle" icon="shopping-bag" :href="route('suppliers.payments.create', ['supplier' => $this->supplier->id, 'type' => 'raw_material_purchase'])" wire:navigate>
                 {{ __('Purchase') }}
             </flux:button>
-            <flux:button size="sm" variant="subtle" icon="banknotes" wire:click="openPaymentModal('payment_made')">
+            <flux:button size="sm" variant="subtle" icon="banknotes" :href="route('suppliers.payments.create', ['supplier' => $this->supplier->id, 'type' => 'payment_made'])" wire:navigate>
                 {{ __('Pay') }}
             </flux:button>
         </div>
@@ -348,7 +348,8 @@ new #[Title('Supplier Ledger')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center justify-end gap-1">
-                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editPayment({{ $payment->id }})" title="{{ __('Edit entry') }}" />
+                            <flux:button size="sm" variant="ghost" icon="eye" :href="route('suppliers.payments.show', ['supplier' => $this->supplier->id, 'payment' => $payment->id])" wire:navigate title="{{ __('View details') }}" />
+                            <flux:button size="sm" variant="ghost" icon="pencil" :href="route('suppliers.payments.edit', ['supplier' => $this->supplier->id, 'payment' => $payment->id])" wire:navigate title="{{ __('Edit entry') }}" />
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this entry?') }}" title="{{ __('Delete entry') }}" />
                         </div>
                     </flux:table.cell>
@@ -361,53 +362,4 @@ new #[Title('Supplier Ledger')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </div>
-
-    <!-- Record Purchase / Payment Modal -->
-    <flux:modal wire:model.self="showPaymentModal" class="md:w-[480px]">
-        <div class="flex flex-col gap-6">
-            <div>
-                <flux:heading size="lg">{{ $editingPaymentId ? __('Edit Supplier Entry') : __('Record Supplier Purchase / Payment') }}</flux:heading>
-                <flux:subheading size="sm">{{ __('Supplier:') }} <strong>{{ $this->supplier->name }}</strong> ({{ $this->supplier->material_supplied ?? __('Raw Material') }})</flux:subheading>
-            </div>
-
-            <form wire:submit="savePayment" class="flex flex-col gap-4">
-                <flux:select wire:model="type" :label="__('Transaction Type')" required>
-                    <flux:select.option value="raw_material_purchase">{{ __('Raw Material Purchase (Increases Balance Owed)') }}</flux:select.option>
-                    <flux:select.option value="payment_made">{{ __('Payment Paid to Supplier (Reduces Balance Owed)') }}</flux:select.option>
-                </flux:select>
-
-                <flux:input type="number" step="0.01" min="0.01" wire:model="amount" :label="__('Amount (₹)')" placeholder="e.g. 15000" required />
-                <flux:input type="date" wire:model="payment_date" :label="__('Date')" required />
-
-                <flux:select wire:model="payment_method" :label="__('Payment Method')">
-                    <flux:select.option value="cash">{{ __('Cash') }}</flux:select.option>
-                    <flux:select.option value="upi">{{ __('UPI / PhonePe / GPay') }}</flux:select.option>
-                    <flux:select.option value="bank_transfer">{{ __('Bank Transfer') }}</flux:select.option>
-                    <flux:select.option value="cheque">{{ __('Cheque') }}</flux:select.option>
-                    <flux:select.option value="other">{{ __('Other') }}</flux:select.option>
-                </flux:select>
-
-                <flux:textarea wire:model="payment_notes" :label="__('Notes / Item Details')" placeholder="e.g. 200 Baans purchased" rows="2" />
-
-                @if ($existing_bill_path)
-                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-xs border border-zinc-200 dark:border-zinc-700">
-                        <div class="flex items-center gap-1.5 truncate">
-                            <span>📄 {{ __('Existing Receipt:') }}</span>
-                            <a href="{{ Storage::url($existing_bill_path) }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline font-medium truncate">{{ basename($existing_bill_path) }}</a>
-                        </div>
-                        <button type="button" wire:click="removeExistingBill" class="text-rose-600 hover:text-rose-700 dark:text-rose-400 font-medium shrink-0 ml-2">
-                            {{ __('Remove') }}
-                        </button>
-                    </div>
-                @endif
-
-                <flux:input type="file" wire:model="bill_image" :label="$existing_bill_path ? __('Replace Receipt Image (Optional)') : __('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
-
-                <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="ghost" wire:click="$set('showPaymentModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ $editingPaymentId ? __('Update Entry') : __('Save Entry') }}</flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
 </div>

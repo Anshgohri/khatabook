@@ -683,7 +683,7 @@ new #[Title('Suppliers')] class extends Component {
         <div class="flex items-center gap-2">
             <flux:button variant="subtle" icon="arrow-path" wire:click="syncAllSuppliersWithUsers" title="{{ __('Link unlinked suppliers to user accounts') }}">{{ __('Sync with Users') }}</flux:button>
             @can('create', App\Models\Supplier::class)
-            <flux:button variant="primary" icon="plus" wire:click="createSupplier">{{ __('Add Supplier') }}</flux:button>
+            <flux:button variant="primary" icon="plus" :href="route('suppliers.create')" wire:navigate>{{ __('Add Supplier') }}</flux:button>
             @endcan
         </div>
     </div>
@@ -800,14 +800,14 @@ new #[Title('Suppliers')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2">
-                            <flux:button size="sm" variant="subtle" icon="shopping-bag" wire:click="openPaymentModal({{ $supplier->id }}, 'raw_material_purchase')">
+                            <flux:button size="sm" variant="subtle" icon="shopping-bag" :href="route('suppliers.payments.create', ['supplier' => $supplier->id, 'type' => 'raw_material_purchase'])" wire:navigate>
                                 {{ __('Purchase') }}
                             </flux:button>
-                            <flux:button size="sm" variant="subtle" icon="banknotes" wire:click="openPaymentModal({{ $supplier->id }}, 'payment_made')">
+                            <flux:button size="sm" variant="subtle" icon="banknotes" :href="route('suppliers.payments.create', ['supplier' => $supplier->id, 'type' => 'payment_made'])" wire:navigate>
                                 {{ __('Pay') }}
                             </flux:button>
                             <flux:button size="sm" variant="subtle" icon="eye" :href="route('suppliers.show', $supplier->id)" wire:navigate>{{ __('View Ledger') }}</flux:button>
-                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editSupplier({{ $supplier->id }})" />
+                            <flux:button size="sm" variant="ghost" icon="pencil" :href="route('suppliers.edit', $supplier->id)" wire:navigate title="{{ __('Edit Supplier') }}" />
                             @can('delete', $supplier)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteSupplier({{ $supplier->id }})" wire:confirm="{{ __('Delete this supplier and all their records?') }}" />
                             @endcan
@@ -816,7 +816,12 @@ new #[Title('Suppliers')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="10" class="text-center text-zinc-500 py-6">{{ __('No suppliers registered yet. Click "Add Supplier" to create one.') }}</flux:table.cell>
+                    <flux:table.cell colspan="10" class="text-center text-zinc-500 py-6">
+                        {{ __('No suppliers registered yet.') }}
+                        @can('create', App\Models\Supplier::class)
+                            <a href="{{ route('suppliers.create') }}" wire:navigate class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline ml-1">{{ __('Click here to Add Supplier') }}</a>
+                        @endcan
+                    </flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
@@ -905,8 +910,11 @@ new #[Title('Suppliers')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2 justify-end">
+                            @can('view', $payment->supplier)
+                            <flux:button size="sm" variant="ghost" icon="eye" :href="route('suppliers.payments.show', ['supplier' => $payment->supplier_id, 'payment' => $payment->id])" wire:navigate title="{{ __('View details') }}" />
+                            @endcan
                             @can('update', $payment->supplier)
-                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editPayment({{ $payment->id }})" title="{{ __('Edit entry') }}" />
+                            <flux:button size="sm" variant="ghost" icon="pencil" :href="route('suppliers.payments.edit', ['supplier' => $payment->supplier_id, 'payment' => $payment->id])" wire:navigate title="{{ __('Edit entry') }}" />
                             @endcan
                             @can('update', $payment->supplier)
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this transaction?') }}" title="{{ __('Delete entry') }}" />
@@ -923,115 +931,4 @@ new #[Title('Suppliers')] class extends Component {
         </flux:table>
     </div>
     @endif
-
-    <!-- Add/Edit Supplier Modal -->
-    <flux:modal wire:model.self="showSupplierModal" class="md:w-[480px]">
-        <div class="flex flex-col gap-6">
-            <div>
-                <flux:heading size="lg">{{ $editingSupplierId ? __('Edit Supplier') : __('Add New Supplier') }}</flux:heading>
-                <flux:subheading size="sm">{{ __('Link an already registered system user (Admin, Manager, Staff) or enter new supplier details manually.') }}</flux:subheading>
-            </div>
-
-            <form wire:submit="saveSupplier" class="flex flex-col gap-4">
-                <div class="flex flex-col gap-2">
-                    <flux:select wire:model.live="supplier_user_id" :label="__('Registered User (Optional)')" searchable>
-                        <flux:select.option value="">{{ __('-- Enter New Supplier / Manual Entry --') }}</flux:select.option>
-                        @foreach ($this->registeredUsers as $u)
-                            <flux:select.option value="{{ $u->id }}">
-                                {{ $u->name }} ({{ $this->formatRoleName($u->role?->name) }}){{ $u->phone ? " • {$u->phone}" : '' }}{{ (!str_contains((string) $u->email, '@khatabook.customer')) && $u->email ? " • {$u->email}" : '' }}
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
-
-                    @if ($this->selectedUser)
-                        <div class="flex items-center justify-between p-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800/60 text-xs">
-                            <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
-                                <flux:icon name="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                <span><strong>{{ __('Linked User:') }}</strong> {{ $this->selectedUser->name }} ({{ $this->formatRoleName($this->selectedUser->role?->name) }})</span>
-                            </div>
-                            <button type="button" wire:click="clearUserSelection" class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 underline font-medium">
-                                {{ __('Clear / New') }}
-                            </button>
-                        </div>
-                    @endif
-                </div>
-
-                <flux:input wire:model="name" :label="__('Supplier Name')" placeholder="e.g. Raja Assam" required />
-                <flux:input type="email" wire:model="email" :label="__('Supplier Email (Dashboard Login)')" placeholder="e.g. raja@example.com" />
-                <flux:input wire:model="phone" :label="__('Phone Number')" placeholder="e.g. 9876543210" />
-                <flux:input wire:model="location" :label="__('Location / City')" placeholder="e.g. Assam" />
-                <flux:input wire:model="material_supplied" :label="__('Material Supplied')" placeholder="e.g. Baans (Bamboo), Fatta" />
-
-                @if (! $editingSupplierId)
-                <flux:input type="number" step="0.01" min="0" wire:model="initial_balance" :label="__('Initial Opening Balance Owed (₹)')" placeholder="e.g. 40000 (optional)" />
-                @endif
-
-                <flux:select wire:model="status" :label="__('Status')">
-                    <flux:select.option value="active">{{ __('Active') }}</flux:select.option>
-                    <flux:select.option value="inactive">{{ __('Inactive') }}</flux:select.option>
-                </flux:select>
-
-                <flux:textarea wire:model="notes" :label="__('Notes / Remarks')" rows="2" />
-
-                <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="ghost" wire:click="$set('showSupplierModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Save Supplier') }}</flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
-
-    <!-- Record Purchase / Payment Modal -->
-    <flux:modal wire:model.self="showPaymentModal" class="md:w-[480px]">
-        <div class="flex flex-col gap-6">
-            <div>
-                <flux:heading size="lg">{{ $editingPaymentId ? __('Edit Supplier Purchase / Payment') : __('Record Supplier Purchase / Payment') }}</flux:heading>
-                @if ($paymentSupplierId)
-                    @php $currentSup = \App\Models\Supplier::find($paymentSupplierId); @endphp
-                    @if ($currentSup)
-                        <flux:subheading size="sm">{{ __('Supplier:') }} <strong>{{ $currentSup->name }}</strong> ({{ $currentSup->material_supplied ?? __('Raw Material') }})</flux:subheading>
-                    @endif
-                @endif
-            </div>
-
-            <form wire:submit="savePayment" class="flex flex-col gap-4">
-                <flux:select wire:model="type" :label="__('Transaction Type')" required>
-                    <flux:select.option value="raw_material_purchase">{{ __('Raw Material Purchase (Increases Balance Owed)') }}</flux:select.option>
-                    <flux:select.option value="payment_made">{{ __('Payment Paid to Supplier (Reduces Balance Owed)') }}</flux:select.option>
-                </flux:select>
-
-                <flux:input type="number" step="0.01" min="0.01" wire:model="amount" :label="__('Amount (₹)')" placeholder="e.g. 15000" required />
-                <flux:input type="date" wire:model="payment_date" :label="__('Date')" required />
-
-                <flux:select wire:model="payment_method" :label="__('Payment Method')">
-                    <flux:select.option value="cash">{{ __('Cash') }}</flux:select.option>
-                    <flux:select.option value="upi">{{ __('UPI / PhonePe / GPay') }}</flux:select.option>
-                    <flux:select.option value="bank_transfer">{{ __('Bank Transfer') }}</flux:select.option>
-                    <flux:select.option value="cheque">{{ __('Cheque') }}</flux:select.option>
-                    <flux:select.option value="other">{{ __('Other') }}</flux:select.option>
-                </flux:select>
-
-                <flux:textarea wire:model="payment_notes" :label="__('Notes / Item Details')" placeholder="e.g. 200 Baans purchased" rows="2" />
-
-                @if ($existing_bill_path)
-                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-xs border border-zinc-200 dark:border-zinc-700">
-                        <div class="flex items-center gap-1.5 truncate">
-                            <span>📄 {{ __('Existing Receipt:') }}</span>
-                            <a href="{{ Storage::url($existing_bill_path) }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline font-medium truncate">{{ basename($existing_bill_path) }}</a>
-                        </div>
-                        <button type="button" wire:click="removeExistingBill" class="text-rose-600 hover:text-rose-700 dark:text-rose-400 font-medium shrink-0 ml-2">
-                            {{ __('Remove') }}
-                        </button>
-                    </div>
-                @endif
-
-                <flux:input type="file" wire:model="bill_image" :label="$existing_bill_path ? __('Replace Receipt Image (Optional)') : __('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
-
-                <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="ghost" wire:click="$set('showPaymentModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ $editingPaymentId ? __('Update Entry') : __('Save Entry') }}</flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
 </div>
