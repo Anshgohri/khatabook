@@ -10,11 +10,10 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Title('Expenses')] class extends Component {
-    use WithFileUploads, WithPagination;
+    use WithPagination;
 
     #[Url]
     public string $search = '';
@@ -34,25 +33,7 @@ new #[Title('Expenses')] class extends Component {
     #[Url]
     public string $dateTo = '';
 
-    public bool $showForm = false;
-
     public bool $showCategoryModal = false;
-
-    public ?int $editingId = null;
-
-    public string $date = '';
-
-    public string $expense_category_id = '';
-
-    public string $description = '';
-
-    public float $amount = 0;
-
-    public string $payment_method = 'cash';
-
-    public string $notes = '';
-
-    public $bill_image = null;
 
     // Dynamic Category Properties
     public ?int $editingCategoryId = null;
@@ -65,7 +46,6 @@ new #[Title('Expenses')] class extends Component {
     public function mount(): void
     {
         $this->authorize('viewAny', Expense::class);
-        $this->date = now()->toDateString();
     }
 
     public function updating(string $property): void
@@ -263,84 +243,6 @@ new #[Title('Expenses')] class extends Component {
             ->sum('amount');
     }
 
-    public function createExpense(): void
-    {
-        $this->authorize('create', Expense::class);
-
-        $this->reset(['editingId', 'description', 'amount', 'notes']);
-        $this->date = now()->toDateString();
-        $this->expense_category_id = '';
-        $this->payment_method = 'cash';
-        $this->bill_image = null;
-        $this->showForm = true;
-    }
-
-    public function editExpense(int $expenseId): void
-    {
-        $expense = Expense::findOrFail($expenseId);
-
-        $this->authorize('update', $expense);
-
-        $this->editingId = $expense->id;
-        $this->date = $expense->date->toDateString();
-        $this->expense_category_id = (string) $expense->expense_category_id;
-        $this->description = (string) $expense->description;
-        $this->amount = (float) $expense->amount;
-        $this->payment_method = $expense->payment_method;
-        $this->notes = (string) $expense->notes;
-        $this->bill_image = null;
-        $this->showForm = true;
-    }
-
-    public function save(): void
-    {
-        if ($this->bill_image && method_exists($this->bill_image, 'exists') && ! $this->bill_image->exists()) {
-            $this->addError('bill_image', __('The uploaded receipt file is no longer available on the server. Please select the file again.'));
-            return;
-        }
-
-        $validated = $this->validate([
-            'date' => ['required', 'date'],
-            'expense_category_id' => ['required', 'exists:expense_categories,id'],
-            'description' => ['nullable', 'string'],
-            'amount' => ['required', 'numeric', 'min:0'],
-            'payment_method' => ['required', 'in:cash,bank_transfer,upi,cheque,other'],
-            'notes' => ['nullable', 'string'],
-            'bill_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-        ]);
-
-        $billPath = null;
-        if ($this->bill_image) {
-            $billPath = $this->bill_image->store('bills');
-        }
-
-        if ($this->editingId) {
-            $expense = Expense::findOrFail($this->editingId);
-            $this->authorize('update', $expense);
-
-            if ($billPath) {
-                $validated['bill_path'] = $billPath;
-            }
-
-            unset($validated['bill_image']);
-            $expense->update($validated);
-        } else {
-            $this->authorize('create', Expense::class);
-            unset($validated['bill_image']);
-
-            Expense::create([
-                ...$validated,
-                'user_id' => Auth::id(),
-                'bill_path' => $billPath,
-            ]);
-        }
-
-        $this->showForm = false;
-        $this->bill_image = null;
-        unset($this->expenses);
-        Flux::toast(variant: 'success', text: __('Expense saved.'));
-    }
-
     public function deleteExpense(int $expenseId): void
     {
         $expense = Expense::findOrFail($expenseId);
@@ -470,7 +372,7 @@ new #[Title('Expenses')] class extends Component {
             @endif
 
             @can('create', Expense::class)
-                <flux:button variant="primary" icon="plus" wire:click="createExpense">
+                <flux:button variant="primary" icon="plus" :href="route('expenses.create')" wire:navigate>
                     {{ __('Add Expense') }}
                 </flux:button>
             @endcan
@@ -580,7 +482,11 @@ new #[Title('Expenses')] class extends Component {
                             </span>
                         </div>
                     </flux:table.cell>
-                    <flux:table.cell class="max-w-xs truncate">{{ $expense->description ?: '-' }}</flux:table.cell>
+                    <flux:table.cell class="max-w-xs truncate">
+                        <a href="{{ route('expenses.show', $expense->id) }}" wire:navigate class="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400 font-medium text-zinc-900 dark:text-zinc-100">
+                            {{ $expense->description ?: '-' }}
+                        </a>
+                    </flux:table.cell>
                     <flux:table.cell class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ number_format((float) $expense->amount, 2) }}</flux:table.cell>
                     <flux:table.cell class="capitalize">{{ str_replace('_', ' ', $expense->payment_method) }}</flux:table.cell>
                     <flux:table.cell>
@@ -602,8 +508,11 @@ new #[Title('Expenses')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2 justify-end">
+                            @can('view', $expense)
+                                <flux:button size="sm" variant="ghost" icon="eye" :href="route('expenses.show', $expense->id)" wire:navigate title="{{ __('View') }}" />
+                            @endcan
                             @can('update', $expense)
-                                <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editExpense({{ $expense->id }})" title="{{ __('Edit') }}" />
+                                <flux:button size="sm" variant="ghost" icon="pencil" :href="route('expenses.edit', $expense->id)" wire:navigate title="{{ __('Edit') }}" />
                             @endcan
                             @can('delete', $expense)
                                 <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteExpense({{ $expense->id }})" wire:confirm="{{ __('Delete this expense entry?') }}" title="{{ __('Delete') }}" />
@@ -621,56 +530,6 @@ new #[Title('Expenses')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </div>
-
-    <!-- Add/Edit Expense Modal -->
-    <flux:modal wire:model.self="showForm" class="md:w-96">
-        <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ $editingId ? __('Edit Expense') : __('Add Expense') }}</flux:heading>
-
-            <form wire:submit="save" class="flex flex-col gap-4">
-                <flux:input type="date" wire:model="date" :label="__('Date')" required />
-
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <flux:label>{{ __('Category') }}</flux:label>
-                        @if (auth()->user()?->isAdmin())
-                            <button type="button" wire:click="openCategoryModal" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
-                                <span>+ New Category</span>
-                            </button>
-                        @endif
-                    </div>
-                    <flux:select wire:model="expense_category_id" :placeholder="__('Select a category')" required>
-                        @foreach ($this->categories as $category)
-                            <flux:select.option value="{{ $category->id }}">
-                                {{ $category->icon ?? '📁' }} {{ $category->name }} ({{ ucfirst($category->type ?? 'business') }})
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
-
-                <flux:textarea wire:model="description" :label="__('Description / Items')" placeholder="{{ __('e.g., Tea/Snacks for office, Household groceries, Raw bamboo freight') }}" rows="2" />
-
-                <flux:input type="number" step="0.01" min="0" wire:model="amount" :label="__('Amount (₹)')" required />
-
-                <flux:select wire:model="payment_method" :label="__('Payment Method')">
-                    <flux:select.option value="cash">{{ __('Cash') }}</flux:select.option>
-                    <flux:select.option value="bank_transfer">{{ __('Bank Transfer') }}</flux:select.option>
-                    <flux:select.option value="upi">{{ __('UPI') }}</flux:select.option>
-                    <flux:select.option value="cheque">{{ __('Cheque') }}</flux:select.option>
-                    <flux:select.option value="other">{{ __('Other') }}</flux:select.option>
-                </flux:select>
-
-                <flux:textarea wire:model="notes" :label="__('Notes (Optional)')" rows="2" />
-
-                <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
-
-                <div class="flex justify-end gap-2 mt-2">
-                    <flux:button type="button" variant="ghost" wire:click="$set('showForm', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Save Expense') }}</flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
 
     <!-- Admin Dynamic Category Management Modal -->
     @if (auth()->user()?->isAdmin())

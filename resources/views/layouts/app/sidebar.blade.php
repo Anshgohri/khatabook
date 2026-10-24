@@ -35,7 +35,7 @@
                     @endif
 
                     @if (! auth()->user()?->isFinancier() && ! auth()->user()?->isCustomer() && ! auth()->user()?->isEmployee())
-                    <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses')" wire:navigate>
+                    <flux:sidebar.item icon="receipt-percent" :href="route('expenses')" :current="request()->routeIs('expenses*')" wire:navigate>
                         {{ __('Expenses') }}
                     </flux:sidebar.item>
 
