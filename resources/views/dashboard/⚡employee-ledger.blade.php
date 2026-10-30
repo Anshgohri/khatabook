@@ -28,6 +28,8 @@ new #[Title('Employee Ledger')] class extends Component {
 
     // Payment Modal State
     public bool $showPaymentModal = false;
+    public ?int $editingPaymentId = null;
+    public ?string $existing_bill_path = null;
     public string $type = 'daily_pay';
     public float $amount = 0.0;
     public string $payment_method = 'cash';
@@ -116,6 +118,8 @@ new #[Title('Employee Ledger')] class extends Component {
     {
         $this->authorize('update', $this->employee);
 
+        $this->editingPaymentId = null;
+        $this->existing_bill_path = null;
         $this->type = $defaultType;
         $this->amount = $defaultType === 'daily_pay' ? (float) $this->employee->default_daily_rate : 0.0;
         $this->payment_method = 'cash';
@@ -123,6 +127,39 @@ new #[Title('Employee Ledger')] class extends Component {
         $this->payment_notes = '';
         $this->bill_image = null;
         $this->showPaymentModal = true;
+    }
+
+    public function editPayment(int $paymentId): void
+    {
+        $payment = EmployeePayment::where('employee_id', $this->employee->id)->findOrFail($paymentId);
+        $this->authorize('update', $this->employee);
+
+        $this->editingPaymentId = $payment->id;
+        $this->type = $payment->type;
+        $this->amount = (float) $payment->amount;
+        $this->payment_method = $payment->payment_method;
+        $this->payment_date = $payment->date->toDateString();
+        $this->payment_notes = (string) ($payment->notes ?? '');
+        $this->bill_image = null;
+        $this->existing_bill_path = $payment->bill_path;
+        $this->showPaymentModal = true;
+    }
+
+    public function removeExistingBill(): void
+    {
+        $this->authorize('update', $this->employee);
+
+        if ($this->editingPaymentId) {
+            $payment = EmployeePayment::where('employee_id', $this->employee->id)->find($this->editingPaymentId);
+            if ($payment && $payment->bill_path) {
+                if (Storage::exists($payment->bill_path)) {
+                    Storage::delete($payment->bill_path);
+                }
+                $payment->update(['bill_path' => null]);
+                $this->existing_bill_path = null;
+                Flux::toast(variant: 'success', text: __('Receipt removed.'));
+            }
+        }
     }
 
     public function savePayment(): void
@@ -143,33 +180,63 @@ new #[Title('Employee Ledger')] class extends Component {
             'bill_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
 
-        $billPath = null;
-        if ($this->bill_image) {
-            $billPath = $this->bill_image->store('bills');
-        }
+        if ($this->editingPaymentId) {
+            $payment = EmployeePayment::where('employee_id', $this->employee->id)->findOrFail($this->editingPaymentId);
+            $billPath = $payment->bill_path;
+            if ($this->bill_image) {
+                if ($billPath && Storage::exists($billPath)) {
+                    Storage::delete($billPath);
+                }
+                $billPath = $this->bill_image->store('bills');
+            }
 
-        EmployeePayment::create([
-            'employee_id' => $this->employee->id,
-            'user_id' => Auth::id(),
-            'date' => $validated['payment_date'],
-            'type' => $validated['type'],
-            'amount' => $validated['amount'],
-            'payment_method' => $validated['payment_method'],
-            'notes' => $validated['payment_notes'],
-            'bill_path' => $billPath,
-        ]);
+            $payment->update([
+                'date' => $validated['payment_date'],
+                'type' => $validated['type'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'notes' => $validated['payment_notes'],
+                'bill_path' => $billPath,
+            ]);
+
+            $toastMsg = __('Payment entry updated successfully.');
+        } else {
+            $billPath = null;
+            if ($this->bill_image) {
+                $billPath = $this->bill_image->store('bills');
+            }
+
+            EmployeePayment::create([
+                'employee_id' => $this->employee->id,
+                'user_id' => Auth::id(),
+                'date' => $validated['payment_date'],
+                'type' => $validated['type'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'notes' => $validated['payment_notes'],
+                'bill_path' => $billPath,
+            ]);
+
+            $toastMsg = __('Payment entry recorded successfully.');
+        }
 
         $this->employee->refresh();
         $this->showPaymentModal = false;
         $this->bill_image = null;
+        $this->editingPaymentId = null;
+        $this->existing_bill_path = null;
         unset($this->payments, $this->wagesPaidInPeriod, $this->advanceGivenInPeriod, $this->advanceRepaidInPeriod);
-        Flux::toast(variant: 'success', text: __('Payment entry recorded successfully.'));
+        Flux::toast(variant: 'success', text: $toastMsg);
     }
 
     public function deletePayment(int $paymentId): void
     {
         $payment = EmployeePayment::where('employee_id', $this->employee->id)->findOrFail($paymentId);
         $this->authorize('update', $this->employee);
+
+        if ($payment->bill_path && Storage::exists($payment->bill_path)) {
+            Storage::delete($payment->bill_path);
+        }
 
         $payment->delete();
         $this->employee->refresh();
@@ -307,8 +374,13 @@ new #[Title('Employee Ledger')] class extends Component {
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        <div class="flex justify-end">
-                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this payment entry?') }}" />
+                        <div class="flex items-center gap-1 justify-end">
+                            @can('update', $this->employee)
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="editPayment({{ $payment->id }})" title="{{ __('Edit entry') }}" />
+                            @endcan
+                            @can('update', $this->employee)
+                            <flux:button size="sm" variant="ghost" icon="trash" class="text-rose-600 hover:text-rose-700 dark:text-rose-400" wire:click="deletePayment({{ $payment->id }})" wire:confirm="{{ __('Delete this payment entry?') }}" title="{{ __('Delete') }}" />
+                            @endcan
                         </div>
                     </flux:table.cell>
                 </flux:table.row>
@@ -321,10 +393,13 @@ new #[Title('Employee Ledger')] class extends Component {
         </flux:table>
     </div>
 
-    <!-- Record Payment / Advance Modal -->
-    <flux:modal wire:model.self="showPaymentModal" class="md:w-96">
+    <!-- Record / Edit Payment Modal -->
+    <flux:modal wire:model.self="showPaymentModal" class="md:w-[480px]">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ __('Log Payment / Advance') }}</flux:heading>
+            <div>
+                <flux:heading size="lg">{{ $editingPaymentId ? __('Edit Payment / Entry') : __('Log Payment / Advance') }}</flux:heading>
+                <flux:subheading size="sm">{{ __('Employee:') }} <strong>{{ $this->employee->name }}</strong></flux:subheading>
+            </div>
 
             <form wire:submit="savePayment" class="flex flex-col gap-4">
                 <flux:select wire:model="type" :label="__('Transaction Type')" required>
@@ -347,11 +422,23 @@ new #[Title('Employee Ledger')] class extends Component {
 
                 <flux:textarea wire:model="payment_notes" :label="__('Notes / Reason')" placeholder="e.g. Paid 1 Lakh initial advance for emergency" rows="2" />
 
-                <flux:input type="file" wire:model="bill_image" :label="__('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
+                @if ($existing_bill_path)
+                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-xs border border-zinc-200 dark:border-zinc-700">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span>📄 {{ __('Existing Receipt:') }}</span>
+                            <a href="{{ Storage::url($existing_bill_path) }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline font-medium truncate">{{ basename($existing_bill_path) }}</a>
+                        </div>
+                        <button type="button" wire:click="removeExistingBill" class="text-rose-600 hover:text-rose-700 dark:text-rose-400 font-medium shrink-0 ml-2">
+                            {{ __('Remove') }}
+                        </button>
+                    </div>
+                @endif
+
+                <flux:input type="file" wire:model="bill_image" :label="$existing_bill_path ? __('Replace Receipt Image (Optional)') : __('Bill / Receipt Image (Optional)')" accept="image/*,.pdf" />
 
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" wire:click="$set('showPaymentModal', false)">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Save Payment') }}</flux:button>
+                    <flux:button type="submit" variant="primary">{{ $editingPaymentId ? __('Update Payment') : __('Save Payment') }}</flux:button>
                 </div>
             </form>
         </div>
