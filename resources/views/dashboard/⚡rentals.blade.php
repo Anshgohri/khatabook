@@ -95,9 +95,22 @@ new #[Title('Rentals')] class extends Component {
                     </a>
                     @endif
                 </div>
-                <flux:badge :color="match ($rental->status) { 'returned' => 'green', 'active' => 'amber', default => 'red' }" size="sm">
-                    {{ ucfirst($rental->status) }}
-                </flux:badge>
+                <div class="flex flex-col items-end gap-1">
+                    <flux:badge :color="match ($rental->status) { 'returned' => 'green', 'active' => 'amber', default => 'red' }" size="sm">
+                        {{ ucfirst($rental->status) }}
+                    </flux:badge>
+                    @if ($rental->status === 'returned' && $rental->settlement_type)
+                        <flux:badge :color="match ($rental->settlement_type) { 'refund_to_customer' => 'green', 'collect_from_customer' => 'amber', default => 'zinc' }" size="xs">
+                            @if ($rental->settlement_type === 'refund_to_customer')
+                                {{ __('Refunded ₹:amt', ['amt' => number_format((float) $rental->settlement_amount, 2)]) }}
+                            @elseif ($rental->settlement_type === 'collect_from_customer')
+                                {{ __('Collected ₹:amt', ['amt' => number_format((float) $rental->settlement_amount, 2)]) }}
+                            @else
+                                {{ __('Settled Even') }}
+                            @endif
+                        </flux:badge>
+                    @endif
+                </div>
             </div>
 
             <!-- Rented Products Box -->
@@ -136,9 +149,18 @@ new #[Title('Rentals')] class extends Component {
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-1">
-                <flux:button size="sm" variant="subtle" icon="pencil" :href="route('rentals.edit', $rental->id)" wire:navigate class="flex-1">
-                    {{ __('Edit / Return') }}
+                @if ($rental->status === 'active')
+                <flux:button size="sm" variant="primary" class="bg-emerald-600 hover:bg-emerald-700 text-white flex-1" icon="arrow-down-tray" :href="route('rentals.edit', ['rental' => $rental->id, 'action' => 'return'])" wire:navigate>
+                    {{ __('Return & Settle') }}
                 </flux:button>
+                <flux:button size="sm" variant="subtle" icon="pencil" :href="route('rentals.edit', $rental->id)" wire:navigate>
+                    {{ __('Edit') }}
+                </flux:button>
+                @else
+                <flux:button size="sm" variant="subtle" icon="pencil" :href="route('rentals.edit', $rental->id)" wire:navigate class="flex-1">
+                    {{ __('View / Edit') }}
+                </flux:button>
+                @endif
                 <flux:button size="sm" variant="ghost" icon="trash" class="text-red-500 hover:text-red-600" wire:click="deleteRental({{ $rental->id }})" wire:confirm="{{ __('Delete this rental?') }}" />
             </div>
         </flux:card>
@@ -162,14 +184,19 @@ new #[Title('Rentals')] class extends Component {
                 <flux:table.column>{{ __('Rented Products') }}</flux:table.column>
                 <flux:table.column>{{ __('Security') }}</flux:table.column>
                 <flux:table.column>{{ __('Total Rent') }}</flux:table.column>
-                <flux:table.column>{{ __('Status') }}</flux:table.column>
+                <flux:table.column>{{ __('Status & Settlement') }}</flux:table.column>
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->rentals as $rental)
                 <flux:table.row wire:key="rental-row-{{ $rental->id }}">
-                    <flux:table.cell class="whitespace-nowrap">{{ $rental->rented_at?->format('d M Y') }}</flux:table.cell>
+                    <flux:table.cell class="whitespace-nowrap">
+                        <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $rental->rented_at?->format('d M Y') }}</span>
+                        @if ($rental->returned_at)
+                            <span class="text-[11px] text-zinc-400 block">Ret: {{ $rental->returned_at->format('d M Y') }}</span>
+                        @endif
+                    </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex flex-col">
                             <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $rental->customer_name }}</span>
@@ -206,13 +233,36 @@ new #[Title('Rentals')] class extends Component {
                         </div>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge :color="match ($rental->status) { 'returned' => 'green', 'active' => 'amber', default => 'red' }" size="sm">
-                            {{ ucfirst($rental->status) }}
-                        </flux:badge>
+                        <div class="flex flex-col gap-1 items-start">
+                            <flux:badge :color="match ($rental->status) { 'returned' => 'green', 'active' => 'amber', default => 'red' }" size="sm">
+                                {{ ucfirst($rental->status) }}
+                            </flux:badge>
+                            @if ($rental->status === 'returned' && $rental->settlement_type)
+                                <flux:badge :color="match ($rental->settlement_type) { 'refund_to_customer' => 'green', 'collect_from_customer' => 'amber', default => 'zinc' }" size="xs">
+                                    @if ($rental->settlement_type === 'refund_to_customer')
+                                        {{ __('Refund: ₹:amt', ['amt' => number_format((float) $rental->settlement_amount, 2)]) }}
+                                    @elseif ($rental->settlement_type === 'collect_from_customer')
+                                        {{ __('Collect: ₹:amt', ['amt' => number_format((float) $rental->settlement_amount, 2)]) }}
+                                    @else
+                                        {{ __('Settled Even') }}
+                                    @endif
+                                </flux:badge>
+                                @if ($rental->payment_method)
+                                    <span class="text-[10px] text-zinc-400">via {{ ucfirst(str_replace('_', ' ', $rental->payment_method)) }}</span>
+                                @endif
+                            @endif
+                        </div>
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2">
-                            <flux:button size="sm" variant="subtle" icon="pencil" :href="route('rentals.edit', $rental->id)" wire:navigate>{{ __('Edit / Return') }}</flux:button>
+                            @if ($rental->status === 'active')
+                            <flux:button size="sm" variant="primary" class="bg-emerald-600 hover:bg-emerald-700 text-white" icon="arrow-down-tray" :href="route('rentals.edit', ['rental' => $rental->id, 'action' => 'return'])" wire:navigate title="{{ __('Return and settle transaction') }}">
+                                {{ __('Return & Settle') }}
+                            </flux:button>
+                            <flux:button size="sm" variant="subtle" icon="pencil" :href="route('rentals.edit', $rental->id)" wire:navigate>{{ __('Edit') }}</flux:button>
+                            @else
+                            <flux:button size="sm" variant="subtle" icon="pencil" :href="route('rentals.edit', $rental->id)" wire:navigate>{{ __('View / Edit') }}</flux:button>
+                            @endif
                             <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteRental({{ $rental->id }})" wire:confirm="{{ __('Delete this rental?') }}" />
                         </div>
                     </flux:table.cell>
