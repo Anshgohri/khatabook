@@ -42,6 +42,10 @@
                     <flux:sidebar.item icon="folder-plus" :href="route('expense-categories')" :current="request()->routeIs('expense-categories')" wire:navigate>
                         {{ __('Expense Categories') }}
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="building-library" :href="route('bank-accounts')" :current="request()->routeIs('bank-accounts*')" wire:navigate>
+                        {{ __('Bank Passbook') }}
+                    </flux:sidebar.item>
                     @endif
 
                     <flux:sidebar.item icon="archive-box" :href="route('products')" :current="request()->routeIs('products*')" wire:navigate>

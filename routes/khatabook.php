@@ -30,6 +30,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Database Backup
     Route::get('admin/database/backup', [DatabaseBackupController::class, 'download'])->name('admin.database.backup');
 
+    Route::livewire('bank-accounts', 'pages::bank-accounts')->name('bank-accounts');
+
     Route::livewire('expenses', 'pages::expenses')->name('expenses');
     Route::livewire('expenses/create', 'pages::expenses-form')->name('expenses.create');
     Route::livewire('expenses/{expense}/edit', 'pages::expenses-form')->name('expenses.edit');
