@@ -29,6 +29,9 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
     public string $typeFilter = ''; // '', 'credit', 'debit'
 
     #[Url]
+    public string $categoryFilter = '';
+
+    #[Url]
     public string $datePreset = 'month';
 
     #[Url]
@@ -107,9 +110,20 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
 
     public function updating(string $property): void
     {
-        if (in_array($property, ['search', 'accountId', 'typeFilter', 'dateFrom', 'dateTo'], true)) {
+        if (in_array($property, ['search', 'accountId', 'typeFilter', 'categoryFilter', 'dateFrom', 'dateTo'], true)) {
             $this->resetPage();
         }
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->accountId = '';
+        $this->categoryFilter = '';
+        $this->typeFilter = '';
+        $this->datePreset = 'month';
+        $this->applyPreset('month');
+        $this->resetPage();
     }
 
     public function setPreset(string $preset): void
@@ -211,12 +225,71 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
     }
 
     #[Computed]
+    public function availableCategories(): array
+    {
+        $standardCredit = [
+            'Customer Payment' => '📥 Customer Payment',
+            'Cash Deposit' => '💵 Cash Deposit',
+            'Owner Capital' => '💼 Owner Investment / Capital',
+            'Loan Received' => '🏦 Loan / Financier Receipt',
+            'Interest / Dividend' => '📈 Bank Interest / Returns',
+            'Tax Refund' => '📑 Tax / GST Refund',
+            'Rental Income' => '🏠 Rental Income',
+            'Internal Transfer' => '⇄ Internal Transfer',
+            'General Credit' => '🟢 General Credit',
+        ];
+
+        $standardDebit = [
+            'Vendor Payment' => '📤 Vendor / Supplier Payment',
+            'Salary / Wages' => '👷 Salary / Labour Wages',
+            'Cash Withdrawal' => '🏧 Cash / ATM Withdrawal',
+            'Rent / Lease' => '🏢 Rent / Property Lease',
+            'Utility / Electricity' => '⚡ Utility / Electricity Bill',
+            'Owner Drawing' => '👤 Owner Drawing / Personal',
+            'Loan EMI' => '🏦 Loan EMI / Interest Paid',
+            'Taxes / GST' => '📑 Tax / GST Payment',
+            'Bank Charges' => '💳 Bank Fees / Service Charges',
+            'Internal Transfer' => '⇄ Internal Transfer',
+            'General Debit' => '🔴 General Debit',
+        ];
+
+        if ($this->typeFilter === 'credit') {
+            $categories = $standardCredit;
+        } elseif ($this->typeFilter === 'debit') {
+            $categories = $standardDebit;
+        } else {
+            $categories = array_merge($standardCredit, $standardDebit);
+        }
+
+        // Fetch any additional distinct category recorded in the database
+        $dbCategories = BankTransaction::query()
+            ->when($this->typeFilter, fn($q) => $q->where('type', $this->typeFilter))
+            ->distinct()
+            ->pluck('category')
+            ->filter()
+            ->values()
+            ->all();
+
+        foreach ($dbCategories as $cat) {
+            if (! isset($categories[$cat])) {
+                $categories[$cat] = '📁 ' . $cat;
+            }
+        }
+
+        return $categories;
+    }
+
+    #[Computed]
     public function filteredStats(): array
     {
         $query = BankTransaction::query();
 
         if ($this->accountId) {
             $query->where('bank_account_id', $this->accountId);
+        }
+
+        if ($this->categoryFilter) {
+            $query->where('category', $this->categoryFilter);
         }
 
         if ($this->dateFrom) {
@@ -227,9 +300,25 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
             $query->whereDate('date', '<=', $this->dateTo);
         }
 
+        if ($this->search) {
+            $term = '%' . trim($this->search) . '%';
+            $query->where(function (Builder $q) use ($term) {
+                $q->where('party_name', 'like', $term)
+                    ->orWhere('description', 'like', $term)
+                    ->orWhere('reference_number', 'like', $term)
+                    ->orWhere('category', 'like', $term)
+                    ->orWhereHas('account', fn($aq) => $aq->where('bank_name', 'like', $term)->orWhere('account_name', 'like', $term));
+            });
+        }
+
+        $countQuery = clone $query;
+        if ($this->typeFilter) {
+            $countQuery->where('type', $this->typeFilter);
+        }
+        $count = (int) $countQuery->count();
+
         $credits = (float) (clone $query)->where('type', 'credit')->sum('amount');
         $debits = (float) (clone $query)->where('type', 'debit')->sum('amount');
-        $count = (int) (clone $query)->count();
 
         return [
             'credits' => $credits,
@@ -253,6 +342,10 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
 
         if ($this->typeFilter) {
             $query->where('type', $this->typeFilter);
+        }
+
+        if ($this->categoryFilter) {
+            $query->where('category', $this->categoryFilter);
         }
 
         if ($this->dateFrom) {
@@ -631,6 +724,9 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
         if ($this->typeFilter) {
             $query->where('type', $this->typeFilter);
         }
+        if ($this->categoryFilter) {
+            $query->where('category', $this->categoryFilter);
+        }
         if ($this->dateFrom) {
             $query->whereDate('date', '>=', $this->dateFrom);
         }
@@ -939,53 +1035,93 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
 
     <!-- Filter Toolbar -->
     <flux:card class="flex flex-col gap-4 p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <!-- Search Input -->
-            <div class="w-full lg:max-w-xs">
-                <flux:input
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="{{ __('Search party, narration, UTR #...') }}"
-                    icon="magnifying-glass"
-                    clearable
-                />
-            </div>
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between flex-wrap">
+            <!-- Left: Search, Bank Account & Category Filter Dropdown -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 min-w-[280px]">
+                <!-- Search Input -->
+                <div class="w-full sm:w-60">
+                    <flux:input
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="{{ __('Search party, narration, UTR #...') }}"
+                        icon="magnifying-glass"
+                        clearable
+                    />
+                </div>
 
-            <!-- Date Preset Pills -->
-            <div class="flex flex-wrap items-center gap-1.5">
-                @foreach (['today' => __('Today'), 'yesterday' => __('Yesterday'), 'week' => __('This Week'), 'month' => __('This Month'), 'all' => __('All Time'), 'custom' => __('Custom')] as $key => $label)
+                <!-- Bank Account Dropdown Filter -->
+                <div class="w-full sm:w-52">
+                    <flux:select wire:model.live="accountId" :placeholder="__('All Bank Accounts')">
+                        <flux:select.option value="">{{ __('All Bank Accounts') }}</flux:select.option>
+                        @foreach ($this->accounts as $acc)
+                            <flux:select.option value="{{ $acc->id }}">
+                                {{ $acc->bank_name }} ({{ $acc->maskedAccountNumber() ?: $acc->account_name }})
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                <!-- Category Dropdown Filter -->
+                <div class="w-full sm:w-52">
+                    <flux:select wire:model.live="categoryFilter" :placeholder="__('All Categories')">
+                        <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
+                        @foreach ($this->availableCategories as $val => $label)
+                            <flux:select.option value="{{ $val }}">{{ $label }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                @if ($search || $accountId || $categoryFilter || $typeFilter || $datePreset !== 'month')
                     <button
                         type="button"
-                        wire:click="setPreset('{{ $key }}')"
-                        class="px-2.5 py-1 text-xs font-medium rounded-lg transition-all {{ $datePreset === $key ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}"
+                        wire:click="resetFilters"
+                        class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors whitespace-nowrap self-start sm:self-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        title="{{ __('Reset all filters') }}"
                     >
-                        {{ $label }}
+                        <flux:icon name="x-mark" class="size-3.5" />
+                        <span>{{ __('Reset') }}</span>
                     </button>
-                @endforeach
+                @endif
             </div>
 
-            <!-- Transaction Type Segmented Toggle -->
-            <div class="inline-flex rounded-lg bg-zinc-100 dark:bg-zinc-800 p-0.5">
-                <button
-                    type="button"
-                    wire:click="$set('typeFilter', '')"
-                    class="px-3 py-1 text-xs font-medium rounded-md transition-colors {{ $typeFilter === '' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm font-semibold' : 'text-zinc-600 dark:text-zinc-400' }}"
-                >
-                    {{ __('All') }}
-                </button>
-                <button
-                    type="button"
-                    wire:click="$set('typeFilter', 'credit')"
-                    class="px-3 py-1 text-xs font-medium rounded-md transition-colors {{ $typeFilter === 'credit' ? 'bg-emerald-600 text-white shadow-sm font-semibold' : 'text-emerald-700 dark:text-emerald-400 hover:text-emerald-600' }}"
-                >
-                    {{ __('Credits (+)') }}
-                </button>
-                <button
-                    type="button"
-                    wire:click="$set('typeFilter', 'debit')"
-                    class="px-3 py-1 text-xs font-medium rounded-md transition-colors {{ $typeFilter === 'debit' ? 'bg-rose-600 text-white shadow-sm font-semibold' : 'text-rose-700 dark:text-rose-400 hover:text-rose-600' }}"
-                >
-                    {{ __('Debits (—)') }}
-                </button>
+            <!-- Right: Date Preset Pills & Transaction Type Segmented Toggle -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Date Preset Pills -->
+                <div class="flex flex-wrap items-center gap-1">
+                    @foreach (['today' => __('Today'), 'yesterday' => __('Yesterday'), 'week' => __('This Week'), 'month' => __('This Month'), 'all' => __('All Time'), 'custom' => __('Custom')] as $key => $label)
+                        <button
+                            type="button"
+                            wire:click="setPreset('{{ $key }}')"
+                            class="px-2.5 py-1 text-xs font-medium rounded-lg transition-all {{ $datePreset === $key ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}"
+                        >
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <!-- Transaction Type Segmented Toggle -->
+                <div class="inline-flex rounded-lg bg-zinc-100 dark:bg-zinc-800 p-0.5">
+                    <button
+                        type="button"
+                        wire:click="$set('typeFilter', '')"
+                        class="px-3 py-1 text-xs font-medium rounded-md transition-colors {{ $typeFilter === '' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm font-semibold' : 'text-zinc-600 dark:text-zinc-400' }}"
+                    >
+                        {{ __('All') }}
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('typeFilter', 'credit')"
+                        class="px-3 py-1 text-xs font-medium rounded-md transition-colors {{ $typeFilter === 'credit' ? 'bg-emerald-600 text-white shadow-sm font-semibold' : 'text-emerald-700 dark:text-emerald-400 hover:text-emerald-600' }}"
+                    >
+                        {{ __('Credits (+)') }}
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('typeFilter', 'debit')"
+                        class="px-3 py-1 text-xs font-medium rounded-md transition-colors {{ $typeFilter === 'debit' ? 'bg-rose-600 text-white shadow-sm font-semibold' : 'text-rose-700 dark:text-rose-400 hover:text-rose-600' }}"
+                    >
+                        {{ __('Debits (—)') }}
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1003,15 +1139,31 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
 
         <!-- Filtered Period Statistics Ribbon -->
         <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs">
-            <div class="flex items-center gap-2 text-zinc-500">
+            <div class="flex flex-wrap items-center gap-2 text-zinc-500">
                 <span class="font-medium text-zinc-700 dark:text-zinc-300">
                     {{ __('Showing :count transactions', ['count' => $this->filteredStats['count']]) }}
                 </span>
                 @if ($accountId)
                     @php $currAcc = $this->accounts->firstWhere('id', (int) $accountId); @endphp
                     <span>•</span>
-                    <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                        {{ $currAcc?->bank_name }} ({{ $currAcc?->account_name }})
+                    <span class="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                        <span>{{ __('Account:') }}</span>
+                        <strong>{{ $currAcc?->bank_name }}</strong>
+                        <button type="button" wire:click="filterByAccount('')" class="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 ml-0.5" title="{{ __('Clear account filter') }}">×</button>
+                    </span>
+                @endif
+                @if ($categoryFilter)
+                    <span>•</span>
+                    <span class="inline-flex items-center gap-1 font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-md">
+                        <span>{{ __('Category:') }}</span>
+                        <strong>{{ $categoryFilter }}</strong>
+                        <button type="button" wire:click="$set('categoryFilter', '')" class="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 ml-0.5">×</button>
+                    </span>
+                @endif
+                @if ($typeFilter)
+                    <span>•</span>
+                    <span class="font-medium {{ $typeFilter === 'credit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                        {{ ucfirst($typeFilter) }}s only
                     </span>
                 @endif
                 @if ($dateFrom && $dateTo)
@@ -1072,7 +1224,12 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
                     <!-- Bank Account -->
                     <flux:table.cell class="whitespace-nowrap">
                         @if ($tx->account)
-                            <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                wire:click="filterByAccount('{{ $tx->account->id }}')"
+                                class="flex items-center gap-2 text-start transition-transform hover:scale-105"
+                                title="{{ __('Filter by :acc', ['acc' => $tx->account->bank_name]) }}"
+                            >
                                 <span class="flex h-6 w-6 items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                                     <flux:icon name="building-library" class="size-3.5" />
                                 </span>
@@ -1084,7 +1241,7 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
                                         {{ $tx->account->maskedAccountNumber() }}
                                     </span>
                                 </div>
-                            </div>
+                            </button>
                         @else
                             <span class="text-zinc-400 text-xs">—</span>
                         @endif
@@ -1110,9 +1267,16 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
 
                     <!-- Category -->
                     <flux:table.cell class="whitespace-nowrap">
-                        <flux:badge size="sm" :color="$tx->type === 'credit' ? 'green' : 'zinc'">
-                            {{ $tx->category }}
-                        </flux:badge>
+                        <button
+                            type="button"
+                            wire:click="$set('categoryFilter', '{{ addslashes($tx->category) }}')"
+                            class="transition-transform hover:scale-105 text-start"
+                            title="{{ __('Filter by :cat', ['cat' => $tx->category]) }}"
+                        >
+                            <flux:badge size="sm" :color="$tx->type === 'credit' ? 'green' : 'zinc'" class="cursor-pointer hover:ring-1 hover:ring-indigo-400">
+                                {{ $tx->category }}
+                            </flux:badge>
+                        </button>
                     </flux:table.cell>
 
                     <!-- Reference Number / UTR -->
