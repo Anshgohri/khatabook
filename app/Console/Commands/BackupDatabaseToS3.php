@@ -35,16 +35,19 @@ class BackupDatabaseToS3 extends Command
             
             $path = 'backup/' . $filename;
 
-            $this->info("Generated dump. Uploading to S3 path: {$path}");
+            $this->info("Generated dump. Uploading to path: {$path}");
 
-            // Note: Make sure AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, and AWS_BUCKET are set in .env
-            $uploaded = Storage::disk('s3')->put($path, $sqlDump);
+            $isS3Configured = config('filesystems.disks.s3.driver') === 's3' && ! empty(config('filesystems.disks.s3.bucket'));
+            $disk = $isS3Configured ? 's3' : 'local';
+
+            $uploaded = Storage::disk($disk)->put($path, $sqlDump);
 
             if ($uploaded) {
-                $this->info('Database backup successfully uploaded to S3!');
+                $target = $isS3Configured ? 'S3' : 'local disk';
+                $this->info("Database backup successfully uploaded to {$target}!");
                 return Command::SUCCESS;
             } else {
-                $this->error('Failed to upload the backup to S3.');
+                $this->error('Failed to upload the backup.');
                 return Command::FAILURE;
             }
         } catch (\Exception $e) {

@@ -45,26 +45,22 @@ class ExcelSyncService
 
     /**
      * The storage disk to use — matches FILESYSTEM_DISK env value.
-     * On Vercel production this will be 's3' (Supabase).
-     * Locally this will be 'local'.
+     * When S3 is properly configured with a bucket, this uses 's3'.
+     * Otherwise it safely defaults to 'local'.
      */
     private function disk(): Filesystem
     {
-        $diskName = config('filesystems.default', 'local');
-
-        // Always use 'local' or 's3'; never 'public' for private exports
-        if (! in_array($diskName, ['local', 's3'], true)) {
-            $diskName = 'local';
-        }
+        $diskName = $this->isS3() ? 's3' : 'local';
 
         return Storage::disk($diskName);
     }
 
     private function isS3(): bool
     {
+        $hasBucket = ! empty(config('filesystems.disks.s3.bucket')) && config('filesystems.disks.s3.driver') === 's3';
         $diskName = config('filesystems.default', 'local');
 
-        return $diskName === 's3';
+        return $diskName === 's3' && $hasBucket;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -135,7 +131,11 @@ class ExcelSyncService
      */
     public function fileExists(): bool
     {
-        return $this->disk()->exists(self::STORAGE_PATH);
+        try {
+            return $this->disk()->exists(self::STORAGE_PATH);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**

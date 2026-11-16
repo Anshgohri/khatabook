@@ -13,7 +13,17 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'public'),
+    'default' => (function () {
+        $default = env('FILESYSTEM_DISK', 'public');
+        $hasS3Bucket = ! empty(env('SUPABASE_S3_BUCKET', env('SUPABASE_BUCKET', env('AWS_BUCKET'))));
+
+        // If S3 is requested but no bucket is configured, safely use local public disk
+        if ($default === 's3' && ! $hasS3Bucket) {
+            return 'public';
+        }
+
+        return $default;
+    })(),
 
     /*
     |--------------------------------------------------------------------------
@@ -47,18 +57,34 @@ return [
             'report' => false,
         ],
 
-        's3' => [
-            'driver' => 's3',
-            'key' => env('SUPABASE_S3_KEY', env('SUPABASE_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID'))),
-            'secret' => env('SUPABASE_S3_SECRET', env('SUPABASE_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY'))),
-            'region' => env('SUPABASE_S3_REGION', env('SUPABASE_DEFAULT_REGION', env('AWS_DEFAULT_REGION', 'us-east-1'))),
-            'bucket' => env('SUPABASE_S3_BUCKET', env('SUPABASE_BUCKET', env('AWS_BUCKET'))),
-            'url' => env('SUPABASE_S3_URL', env('SUPABASE_URL', env('AWS_URL'))),
-            'endpoint' => env('SUPABASE_S3_ENDPOINT', env('SUPABASE_ENDPOINT', env('AWS_ENDPOINT'))),
-            'use_path_style_endpoint' => env('SUPABASE_S3_USE_PATH_STYLE', env('SUPABASE_USE_PATH_STYLE_ENDPOINT', env('AWS_USE_PATH_STYLE_ENDPOINT', true))),
-            'throw' => false,
-            'report' => false,
-        ],
+        's3' => (function () {
+            $bucket = env('SUPABASE_S3_BUCKET', env('SUPABASE_BUCKET', env('AWS_BUCKET')));
+
+            // If no bucket is configured, fallback to local public disk so S3 calls never throw null bucket errors
+            if (empty($bucket)) {
+                return [
+                    'driver' => 'local',
+                    'root' => storage_path('app/public'),
+                    'url' => env('STORAGE_URL', '/storage'),
+                    'visibility' => 'public',
+                    'throw' => false,
+                    'report' => false,
+                ];
+            }
+
+            return [
+                'driver' => 's3',
+                'key' => env('SUPABASE_S3_KEY', env('SUPABASE_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID'))),
+                'secret' => env('SUPABASE_S3_SECRET', env('SUPABASE_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY'))),
+                'region' => env('SUPABASE_S3_REGION', env('SUPABASE_DEFAULT_REGION', env('AWS_DEFAULT_REGION', 'us-east-1'))),
+                'bucket' => $bucket,
+                'url' => env('SUPABASE_S3_URL', env('SUPABASE_URL', env('AWS_URL'))),
+                'endpoint' => env('SUPABASE_S3_ENDPOINT', env('SUPABASE_ENDPOINT', env('AWS_ENDPOINT'))),
+                'use_path_style_endpoint' => env('SUPABASE_S3_USE_PATH_STYLE', env('SUPABASE_USE_PATH_STYLE_ENDPOINT', env('AWS_USE_PATH_STYLE_ENDPOINT', true))),
+                'throw' => false,
+                'report' => false,
+            ];
+        })(),
 
     ],
 
