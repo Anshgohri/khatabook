@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/database/backup', [DatabaseBackupController::class, 'download'])->name('admin.database.backup');
 
     Route::livewire('bank-accounts', 'pages::bank-accounts')->name('bank-accounts');
+    Route::livewire('manual-records', 'pages::manual-records')->name('manual-records');
 
     Route::livewire('expenses', 'pages::expenses')->name('expenses');
     Route::livewire('expenses/create', 'pages::expenses-form')->name('expenses.create');
