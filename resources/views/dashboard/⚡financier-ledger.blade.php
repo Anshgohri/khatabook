@@ -249,6 +249,14 @@ new #[Title('Financier Ledger')] class extends Component {
         </div>
 
         <div class="flex items-center gap-2">
+            @if ($this->financier->interest_type === 'principal_reducing')
+                @if ((float) $this->financier->outstanding_balance <= 0)
+                    <flux:badge color="green" size="lg">{{ __('Paid Off') }}</flux:badge>
+                @elseif ($this->financier->remaining_term)
+                    <flux:badge color="blue" size="lg">{{ $this->financier->remaining_term }}</flux:badge>
+                @endif
+            @endif
+
             @if ((float) $this->financier->outstanding_balance > 0)
                 <flux:badge color="orange" size="lg">Outstanding Loan: ₹{{ number_format((float) $this->financier->outstanding_balance, 2) }}</flux:badge>
             @else

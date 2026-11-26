@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -135,5 +136,124 @@ class Financier extends Model
         return (float) $this->payments
             ->whereIn('type', ['loan_repaid', 'adjusted_balance'])
             ->sum('amount');
+    }
+
+    /**
+     * Get the effective installment amount per period.
+     */
+    public function getEffectiveInstallmentAmount(): float
+    {
+        if ((float) $this->default_payment_amount > 0) {
+            return (float) $this->default_payment_amount;
+        }
+
+        if ($this->relationLoaded('payments')) {
+            $lastPayment = $this->payments
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'installment_paid'])
+                ->where('amount', '>', 0)
+                ->sortByDesc('date')
+                ->first();
+        } else {
+            $lastPayment = $this->payments()
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment', 'installment_paid'])
+                ->where('amount', '>', 0)
+                ->latest('date')
+                ->first();
+        }
+
+        return $lastPayment ? (float) $lastPayment->amount : 0.0;
+    }
+
+    /**
+     * Get the effective payout type ('daily', 'weekly', 'monthly').
+     */
+    public function getEffectivePayoutType(): string
+    {
+        if (! empty($this->payout_type)) {
+            return strtolower($this->payout_type);
+        }
+
+        if ($this->relationLoaded('payments')) {
+            $lastPayment = $this->payments
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment'])
+                ->sortByDesc('date')
+                ->first();
+        } else {
+            $lastPayment = $this->payments()
+                ->whereIn('type', ['daily_payment', 'weekly_payment', 'monthly_payment'])
+                ->latest('date')
+                ->first();
+        }
+
+        return match ($lastPayment?->type) {
+            'daily_payment' => 'daily',
+            'weekly_payment' => 'weekly',
+            'monthly_payment' => 'monthly',
+            default => 'monthly',
+        };
+    }
+
+    /**
+     * Calculate remaining installments for principal-reducing loans.
+     * Returns null if not principal-reducing or if installment amount is unavailable.
+     * Returns 0 if outstanding balance is zero or paid off.
+     */
+    public function remainingInstallmentsCount(): ?int
+    {
+        if ($this->interest_type !== 'principal_reducing') {
+            return null;
+        }
+
+        $balance = (float) $this->outstanding_balance;
+        if ($balance <= 0) {
+            return 0;
+        }
+
+        $installment = $this->getEffectiveInstallmentAmount();
+        if ($installment <= 0) {
+            return null;
+        }
+
+        return (int) ceil($balance / $installment);
+    }
+
+    /**
+     * Get a formatted remaining term label (e.g. "10 months left", "4 weeks left", "12 days left", or "Paid Off").
+     */
+    public function remainingTermLabel(): ?string
+    {
+        if ($this->interest_type !== 'principal_reducing') {
+            return null;
+        }
+
+        $balance = (float) $this->outstanding_balance;
+        if ($balance <= 0) {
+            return __('Paid Off');
+        }
+
+        $count = $this->remainingInstallmentsCount();
+        if ($count === null) {
+            return null;
+        }
+
+        $type = $this->getEffectivePayoutType();
+        $unit = match ($type) {
+            'daily' => Str::plural('day', $count),
+            'weekly' => Str::plural('week', $count),
+            'monthly' => Str::plural('month', $count),
+            default => Str::plural('period', $count),
+        };
+
+        return "{$count} {$unit} left";
+    }
+
+    public function getRemainingTermAttribute(): ?string
+    {
+        return $this->remainingTermLabel();
+    }
+
+    public function getRemainingInstallmentsCountAttribute(): ?int
+    {
+        return $this->remainingInstallmentsCount();
     }
 }

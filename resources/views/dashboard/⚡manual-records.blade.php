@@ -195,7 +195,7 @@ new #[Title('Manual Records & Daily Dues')] class extends Component {
     #[Computed]
     public function financiersList()
     {
-        return Financier::query()->where('status', 'active')->orderBy('name')->get(['id', 'name', 'phone', 'outstanding_balance', 'default_payment_amount', 'payout_type']);
+        return Financier::query()->where('status', 'active')->orderBy('name')->get(['id', 'name', 'phone', 'outstanding_balance', 'default_payment_amount', 'payout_type', 'interest_type']);
     }
 
     #[Computed]
@@ -951,7 +951,7 @@ new #[Title('Manual Records & Daily Dues')] class extends Component {
                             <flux:select.option value="">{{ __('Select from active financiers...') }}</flux:select.option>
                             @foreach ($this->financiersList as $f)
                                 <flux:select.option value="{{ $f->id }}">
-                                    {{ $f->name }} (Payout: ₹{{ number_format($f->default_payment_amount, 0) }} / {{ $f->payout_type ?: 'payout' }})
+                                    {{ $f->name }} (Payout: ₹{{ number_format($f->default_payment_amount, 0) }} / {{ $f->payout_type ?: 'payout' }}{{ $f->remaining_term ? ' • ' . $f->remaining_term : '' }})
                                 </flux:select.option>
                             @endforeach
                         </flux:select>

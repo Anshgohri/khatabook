@@ -978,6 +978,7 @@ new #[Title('Financiers')] class extends Component {
                 <flux:table.column>{{ __('Total Loan Taken') }}</flux:table.column>
                 <flux:table.column>{{ __('Total Paid') }}</flux:table.column>
                 <flux:table.column>{{ __('Remaining Balance') }}</flux:table.column>
+                <flux:table.column>{{ __('Remaining Term') }}</flux:table.column>
                 <flux:table.column>{{ __('Status') }}</flux:table.column>
                 <flux:table.column>{{ __('Quick Actions') }}</flux:table.column>
             </flux:table.columns>
@@ -1033,6 +1034,21 @@ new #[Title('Financiers')] class extends Component {
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
+                        @if ($financier->interest_type === 'principal_reducing')
+                            @if ((float) $financier->outstanding_balance <= 0)
+                                <flux:badge color="green" size="sm">{{ __('Paid Off') }}</flux:badge>
+                            @elseif ($financier->remaining_term)
+                                <flux:badge color="blue" size="sm">
+                                    {{ $financier->remaining_term }}
+                                </flux:badge>
+                            @else
+                                <span class="text-zinc-400 dark:text-zinc-500">—</span>
+                            @endif
+                        @else
+                            <span class="text-xs text-zinc-400 dark:text-zinc-500" title="{{ __('Only applicable for Principal Reduction loans') }}">—</span>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell>
                         <flux:badge :color="$financier->status === 'active' ? 'green' : 'zinc'" size="sm">
                             {{ ucfirst($financier->status) }}
                         </flux:badge>
@@ -1056,7 +1072,7 @@ new #[Title('Financiers')] class extends Component {
                 </flux:table.row>
                 @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="9" class="text-center text-zinc-500 py-6">{{ __('No financiers registered yet. Click "Add Financier" to create one.') }}</flux:table.cell>
+                    <flux:table.cell colspan="10" class="text-center text-zinc-500 py-6">{{ __('No financiers registered yet. Click "Add Financier" to create one.') }}</flux:table.cell>
                 </flux:table.row>
                 @endforelse
             </flux:table.rows>
