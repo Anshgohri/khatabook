@@ -189,6 +189,26 @@ new #[Title('Sales')] class extends Component {
             ->sum(fn ($sale) => $sale->totalCost());
     }
 
+    #[Computed]
+    public function filteredSalesTotal(): float
+    {
+        $user = Auth::user();
+
+        return (float) Sale::query()
+            ->when($user->isStaff(), fn($query) => $query->where('user_id', $user->id))
+            ->when($this->search, function ($query) {
+                $query->where('customer_name', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhere('items_sold', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%")
+                      ->orWhereHas('customer', function ($q) {
+                          $q->where('phone', \App\Providers\AppServiceProvider::likeOperator(), "%{$this->search}%");
+                      });
+            })
+            ->when($this->paymentStatus, fn($query) => $query->where('payment_status', $this->paymentStatus))
+            ->when($this->dateFrom, fn($query) => $query->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($query) => $query->whereDate('date', '<=', $this->dateTo))
+            ->sum('total_amount');
+    }
+
     public function deleteSale(int $saleId): void
     {
         $sale = Sale::findOrFail($saleId);
@@ -343,10 +363,10 @@ new #[Title('Sales')] class extends Component {
             <span class="text-xs text-zinc-500">{{ __('Cost of items sold today') }}</span>
         </flux:card>
 
-        <flux:card class="flex flex-col gap-1 border-l-4 border-l-orange-500 bg-orange-50/20 dark:bg-orange-950/10">
-            <flux:text size="sm" class="font-medium text-orange-800 dark:text-orange-300">{{ __('Produced Cost (Filtered)') }}</flux:text>
-            <flux:heading size="lg" class="text-orange-600 dark:text-orange-400">₹{{ number_format($this->filteredProductionCost, 2) }}</flux:heading>
-            <span class="text-xs text-zinc-500">{{ __('Calculated from item unit costs') }}</span>
+        <flux:card class="flex flex-col gap-1 border-l-4 border-l-blue-500 bg-blue-50/20 dark:bg-blue-950/10">
+            <flux:text size="sm" class="font-medium text-blue-800 dark:text-blue-300">{{ __('Total Sales (Filtered)') }}</flux:text>
+            <flux:heading size="lg" class="text-blue-600 dark:text-blue-400">₹{{ number_format($this->filteredSalesTotal, 2) }}</flux:heading>
+            <span class="text-xs text-zinc-500">{{ __('Total revenue according to filter') }}</span>
         </flux:card>
     </div>
     @endif
