@@ -46,6 +46,9 @@
             </div>
         </div>
 
+        {{-- ─── Daily Cash Split Widget (72% Material / 21% Financer Pot / 7% Home Draw) ─── --}}
+        @include('dashboard.partials.daily-cash-split-widget', ['cashSplit' => $cashSplit])
+
         {{-- ─── 1. Primary Revenue & Profit Overview ────────────────────────────── --}}
         <div class="flex flex-col gap-3">
             <flux:heading size="lg" class="flex items-center gap-2">

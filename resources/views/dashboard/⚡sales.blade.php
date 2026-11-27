@@ -209,6 +209,12 @@ new #[Title('Sales')] class extends Component {
             ->sum('total_amount');
     }
 
+    #[Computed]
+    public function dailyCashSplit(): array
+    {
+        return app(\App\Services\DailyCashSplitService::class)->getSplitData(today(), Auth::user());
+    }
+
     public function deleteSale(int $saleId): void
     {
         $sale = Sale::findOrFail($saleId);
@@ -342,6 +348,9 @@ new #[Title('Sales')] class extends Component {
             @endcan
         </div>
     </div>
+
+    {{-- Daily Cash Split Widget (72% Material / 21% Financer Pot / 7% Home Draw) --}}
+    @include('dashboard.partials.daily-cash-split-widget', ['cashSplit' => $this->dailyCashSplit])
 
     @if (auth()->user()?->isSystemAdmin())
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

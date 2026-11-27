@@ -10,6 +10,7 @@ use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use App\Services\CacheService;
+use App\Services\DailyCashSplitService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -91,13 +92,15 @@ class DashboardController extends Controller
             'topItems' => $this->topItemsData(),
         ];
 
+        $cashSplit = app(DailyCashSplitService::class)->getSplitData(today(), $user);
+
         return view('dashboard.dashboard', compact(
             'salesToday', 'profitToday', 'salesMonth', 'profitMonth', 'salesYear',
             'expensesMonth', 'profitMargin', 'cashFlow',
             'financiersPaidToday', 'financiersPaidMonth', 'financiersPaidYear', 'financiersOutstanding',
             'suppliersPaidToday', 'suppliersPaidMonth', 'suppliersPaidYear', 'suppliersOutstanding',
             'employeesPaidToday', 'employeesPaidMonth', 'employeesPaidYear',
-            'unreadNotificationsCount', 'recentNotifications', 'chartsPayload'
+            'unreadNotificationsCount', 'recentNotifications', 'chartsPayload', 'cashSplit'
         ));
     }
 
