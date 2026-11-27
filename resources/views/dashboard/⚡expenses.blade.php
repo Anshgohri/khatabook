@@ -74,6 +74,11 @@ new #[Title('Expenses')] class extends Component {
                 $this->dateFrom = now()->startOfMonth()->toDateString();
                 $this->dateTo = now()->endOfMonth()->toDateString();
                 break;
+            case 'previous_month':
+            case 'last_month':
+                $this->dateFrom = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                $this->dateTo = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+                break;
             case 'custom':
                 if (! $this->dateFrom) {
                     $this->dateFrom = now()->startOfMonth()->toDateString();
@@ -135,6 +140,7 @@ new #[Title('Expenses')] class extends Component {
             'yesterday' => __('Yesterday'),
             'week' => __('This Week'),
             'month' => __('This Month'),
+            'previous_month', 'last_month' => __('Previous Month'),
             default => __('All Time'),
         };
     }
@@ -439,6 +445,7 @@ new #[Title('Expenses')] class extends Component {
             <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
             <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
             <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
             <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
         </flux:select>
 

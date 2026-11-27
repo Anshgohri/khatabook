@@ -112,6 +112,11 @@ new #[Title('Suppliers')] class extends Component {
                 $this->dateFrom = now()->startOfMonth()->toDateString();
                 $this->dateTo = now()->endOfMonth()->toDateString();
                 break;
+            case 'previous_month':
+            case 'last_month':
+                $this->dateFrom = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                $this->dateTo = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+                break;
             case 'custom':
                 // Do not change dates for custom
                 break;
@@ -725,6 +730,7 @@ new #[Title('Suppliers')] class extends Component {
             <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
             <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
             <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
             <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
         </flux:select>
 
@@ -845,6 +851,7 @@ new #[Title('Suppliers')] class extends Component {
             <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
             <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
             <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
             <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
         </flux:select>
 

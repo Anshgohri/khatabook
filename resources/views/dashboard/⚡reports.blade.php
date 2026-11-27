@@ -22,6 +22,7 @@ new #[Title('Reports')] class extends Component {
     {
         return match ($this->preset) {
             'day' => [now()->startOfDay(), now()->endOfDay()],
+            'previous_month', 'last_month' => [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()],
             'year' => [now()->startOfYear(), now()->endOfYear()],
             default => [now()->startOfMonth(), now()->endOfMonth()],
         };
@@ -164,9 +165,10 @@ new #[Title('Reports')] class extends Component {
     <div class="flex items-center justify-between">
         <flux:heading size="xl">{{ __('Reports') }}</flux:heading>
 
-        <flux:select wire:model.live="preset" class="w-40">
+        <flux:select wire:model.live="preset" class="w-44">
             <flux:select.option value="day">{{ __('Daily') }}</flux:select.option>
-            <flux:select.option value="month">{{ __('Monthly') }}</flux:select.option>
+            <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
             <flux:select.option value="year">{{ __('Yearly') }}</flux:select.option>
         </flux:select>
     </div>

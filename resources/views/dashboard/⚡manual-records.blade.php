@@ -98,6 +98,10 @@ new #[Title('Manual Records & Daily Dues')] class extends Component {
                 $this->dateFrom = Carbon::now()->startOfMonth()->toDateString(),
                 $this->dateTo = Carbon::now()->endOfMonth()->toDateString(),
             ],
+            'previous_month', 'last_month' => [
+                $this->dateFrom = Carbon::now()->subMonthNoOverflow()->startOfMonth()->toDateString(),
+                $this->dateTo = Carbon::now()->subMonthNoOverflow()->endOfMonth()->toDateString(),
+            ],
             default => [
                 $this->dateFrom = '',
                 $this->dateTo = '',
@@ -694,6 +698,7 @@ new #[Title('Manual Records & Daily Dues')] class extends Component {
             <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
             <flux:select.option value="this_week">{{ __('This Week') }}</flux:select.option>
             <flux:select.option value="this_month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
             <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
         </flux:select>
 

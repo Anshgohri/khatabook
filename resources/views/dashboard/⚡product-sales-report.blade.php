@@ -67,9 +67,10 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                 $this->startDate = now()->startOfMonth()->toDateString();
                 $this->endDate = now()->toDateString();
                 break;
+            case 'previous_month':
             case 'last_month':
-                $this->startDate = now()->subMonth()->startOfMonth()->toDateString();
-                $this->endDate = now()->subMonth()->endOfMonth()->toDateString();
+                $this->startDate = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                $this->endDate = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
                 break;
             case 'this_year':
                 $this->startDate = now()->startOfYear()->toDateString();
@@ -105,7 +106,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
             'today' => [now()->startOfDay(), now()->endOfDay()],
             'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
             'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
-            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'previous_month', 'last_month' => [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()],
             'this_year' => [now()->startOfYear(), now()->endOfYear()],
             'all_time' => [Carbon::parse('2000-01-01'), now()->addYear()],
             default => [
@@ -395,7 +396,7 @@ new #[Title('Product Sales Analytics & Report')] class extends Component {
                     <flux:select.option value="today">{{ __('Today') }}</flux:select.option>
                     <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
                     <flux:select.option value="this_month">{{ __('This Month') }}</flux:select.option>
-                    <flux:select.option value="last_month">{{ __('Last Month') }}</flux:select.option>
+                    <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
                     <flux:select.option value="this_year">{{ __('This Year') }}</flux:select.option>
                     <flux:select.option value="custom">{{ __('Custom Date Range') }}</flux:select.option>
                     <flux:select.option value="all_time">{{ __('All Time') }}</flux:select.option>

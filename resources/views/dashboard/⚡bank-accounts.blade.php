@@ -152,6 +152,11 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
                 $this->dateFrom = now()->startOfMonth()->toDateString();
                 $this->dateTo = now()->endOfMonth()->toDateString();
                 break;
+            case 'previous_month':
+            case 'last_month':
+                $this->dateFrom = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                $this->dateTo = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+                break;
             case 'custom':
                 if (! $this->dateFrom) {
                     $this->dateFrom = now()->startOfMonth()->toDateString();
@@ -1087,7 +1092,7 @@ new #[Title('Bank Passbook & Accounts')] class extends Component {
             <div class="flex flex-wrap items-center gap-3">
                 <!-- Date Preset Pills -->
                 <div class="flex flex-wrap items-center gap-1">
-                    @foreach (['today' => __('Today'), 'yesterday' => __('Yesterday'), 'week' => __('This Week'), 'month' => __('This Month'), 'all' => __('All Time'), 'custom' => __('Custom')] as $key => $label)
+                    @foreach (['today' => __('Today'), 'yesterday' => __('Yesterday'), 'week' => __('This Week'), 'month' => __('This Month'), 'previous_month' => __('Previous Month'), 'all' => __('All Time'), 'custom' => __('Custom')] as $key => $label)
                         <button
                             type="button"
                             wire:click="setPreset('{{ $key }}')"

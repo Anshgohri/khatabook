@@ -166,6 +166,7 @@ new #[Title('Financiers')] class extends Component {
             'yesterday' => [now()->subDay()->toDateString(), now()->subDay()->toDateString()],
             'week' => [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()],
             'month' => [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
+            'previous_month', 'last_month' => [now()->subMonthNoOverflow()->startOfMonth()->toDateString(), now()->subMonthNoOverflow()->endOfMonth()->toDateString()],
             'custom' => [
                 $this->payoutDateFrom ? \Illuminate\Support\Carbon::parse($this->payoutDateFrom)->toDateString() : null,
                 $this->payoutDateTo ? \Illuminate\Support\Carbon::parse($this->payoutDateTo)->toDateString() : null,
@@ -930,7 +931,7 @@ new #[Title('Financiers')] class extends Component {
             <flux:text size="xs" class="text-emerald-600 dark:text-emerald-500 truncate" title="{{ __('Actually paid to financiers') }}">
                 {{ __('Actually Paid') }} ({{ $datePreset === 'custom'
                     ? ($payoutDateFrom ? \Illuminate\Support\Carbon::parse($payoutDateFrom)->format('d M') : '—') . ' → ' . ($payoutDateTo ? \Illuminate\Support\Carbon::parse($payoutDateTo)->format('d M Y') : '—')
-                    : ($datePreset === 'all' || ! $datePreset ? __('All Time') : ucfirst($datePreset)) }})
+                    : ($datePreset === 'all' || ! $datePreset ? __('All Time') : ($datePreset === 'previous_month' || $datePreset === 'last_month' ? __('Previous Month') : ucfirst($datePreset))) }})
             </flux:text>
         </flux:card>
 
@@ -940,7 +941,7 @@ new #[Title('Financiers')] class extends Component {
             <flux:text size="xs" class="text-indigo-500 dark:text-indigo-500 truncate" title="{{ __('All transaction types including loans') }}">
                 {{ __('All Types') }} ({{ $datePreset === 'custom'
                     ? ($payoutDateFrom ? \Illuminate\Support\Carbon::parse($payoutDateFrom)->format('d M') : '—') . ' → ' . ($payoutDateTo ? \Illuminate\Support\Carbon::parse($payoutDateTo)->format('d M Y') : '—')
-                    : ($datePreset === 'all' || ! $datePreset ? __('All Time') : ucfirst($datePreset)) }})
+                    : ($datePreset === 'all' || ! $datePreset ? __('All Time') : ($datePreset === 'previous_month' || $datePreset === 'last_month' ? __('Previous Month') : ucfirst($datePreset))) }})
             </flux:text>
         </flux:card>
         @endif
@@ -1102,6 +1103,7 @@ new #[Title('Financiers')] class extends Component {
             <flux:select.option value="yesterday">{{ __('Yesterday') }}</flux:select.option>
             <flux:select.option value="week">{{ __('This Week') }}</flux:select.option>
             <flux:select.option value="month">{{ __('This Month') }}</flux:select.option>
+            <flux:select.option value="previous_month">{{ __('Previous Month') }}</flux:select.option>
             <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
         </flux:select>
         
